@@ -2,6 +2,29 @@
 
 This is the frontend application for Gravity Farms Petfood, a premium pet food subscription service crafted in Gravity Falls, Oregon, built with React and LaunchDarkly for feature flagging.
 
+## Color Palette
+
+The application uses a consistent color palette inspired by nature and farm-fresh aesthetics:
+
+### Primary Colors
+- **Forest Green**: `#35524A` - Main text color, borders, and primary elements
+- **Fresh Green**: `#6A994E` - Accent color for headings and highlights
+- **Warm Yellow**: `#FFD166` - Primary button color and star ratings
+- **Cream**: `#F6E7CB` - Background color for header and footer
+
+### Secondary Colors
+- **Red Accent**: `#D7263D` - Hover state for buttons and interactive elements
+- **Green Accent**: `#4caf50` - Logo color and link hover states
+- **White**: `#FFFFFF` - Card backgrounds and text on dark backgrounds
+- **Gray Text**: `#555` - Secondary text in footer and navigation
+
+### Usage Examples
+- **Headers & Navigation**: `#F6E7CB` background with `#35524A` text
+- **Buttons**: `#FFD166` background with `#35524A` text, hover to `#D7263D`
+- **Cards & Content**: `#FFFFFF` background with `#35524A` text
+- **Accent Elements**: `#6A994E` for headings and special text
+- **Interactive Elements**: `#4caf50` for hover states and links
+
 ## Setup
 
 1. Install dependencies:
