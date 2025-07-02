@@ -10,7 +10,7 @@ interface LDContextProps {
 }
 
 export const LDContextProvider = ({ children }: LDContextProps) => {
-  const clientSideID = import.meta.env.VITE_LAUNCHDARKLY_CLIENT_ID;
+  const clientSideID = import.meta.env.LAUNCHDARKLY_CLIENT_KEY;
   const { user, previousAnonymousKey } = useUser();
 
   // Memoize context so it only changes when user or previousAnonymousKey changes

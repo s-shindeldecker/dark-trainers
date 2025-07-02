@@ -1,0 +1,3 @@
+launchdarkly-server-sdk
+Faker
+python-dotenv

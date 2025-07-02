@@ -69,10 +69,9 @@ interface HeaderProps {
   onLogin: () => void;
   onLogout: () => void;
   onAccount?: () => void;
-  showDevTools?: boolean;
 }
 
-export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount, showDevTools }: HeaderProps) => {
+export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount }: HeaderProps) => {
   return (
     <NavBar>
       <CenteredHeader>
@@ -90,9 +89,6 @@ export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount, showDevTools 
             <NavLink><Link to="/why-gravity-farms">Why Gravity Farms?</Link></NavLink>
             <NavLink><Link to="/faq">FAQ</Link></NavLink>
             <NavLink><a href="#">For Vet Professionals</a></NavLink>
-            {showDevTools && (
-              <NavLink><Link to="/developer-tools">Developer Tools</Link></NavLink>
-            )}
             {isLoggedIn && (
               <NavLink><a href="#" onClick={onAccount}>Account</a></NavLink>
             )}

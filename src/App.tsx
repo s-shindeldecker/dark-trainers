@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { LDContextProvider } from './context/LDContext';
 import { UserProvider, useUser } from './context/UserContext';
 import type { UserProfile } from './context/UserContext';
@@ -7,9 +7,8 @@ import { Header } from './components/Layout/Header';
 import { Footer } from './components/Layout/Footer';
 import { SeasonalBanner } from './components/Layout/SeasonalBanner';
 import { Account } from './pages/Account';
-import { DeveloperTools } from './pages/DeveloperTools';
 import styled from '@emotion/styled';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Modal } from './components/common/Modal';
 import AboutUs from './pages/About';
 import WhyGravityFarms from './pages/WhyGravityFarms';
@@ -132,33 +131,7 @@ function PersonaModal({ open, onClose, onSelect }: { open: boolean; onClose: () 
 function AppContent() {
   const { isLoggedIn, login, logout } = useUser();
   const navigate = useNavigate();
-  const location = useLocation();
   const [showPersonaModal, setShowPersonaModal] = useState(false);
-  const [showDevTools, setShowDevTools] = useState(false);
-
-  useEffect(() => {
-    // Hide Developer Tools menu item when navigating away from /developer-tools
-    if (location.pathname !== '/developer-tools' && showDevTools) {
-      setShowDevTools(false);
-    }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        if (location.pathname === '/developer-tools' && showDevTools) {
-          setShowDevTools(false);
-          navigate('/');
-        } else {
-          setShowDevTools(true);
-          navigate('/developer-tools');
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [navigate, location.pathname, showDevTools]);
 
   const handlePersonaSelect = (profile: UserProfile) => {
     login(profile);
@@ -173,13 +146,11 @@ function AppContent() {
         onLogin={() => setShowPersonaModal(true)}
         onLogout={logout}
         onAccount={() => navigate('/account')}
-        showDevTools={showDevTools}
       />
       <MainContent>
         <Routes>
           <Route path="/" element={<HeroSection />} />
           <Route path="/account" element={<Account />} />
-          <Route path="/developer-tools" element={<DeveloperTools />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/why-gravity-farms" element={<WhyGravityFarms />} />
           <Route path="/faq" element={<FAQ />} />

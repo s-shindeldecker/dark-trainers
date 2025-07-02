@@ -1,6 +1,5 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { faker } from '@faker-js/faker';
 
 export type UserProfile = {
   key: string;
@@ -25,19 +24,26 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const getRandomUserProfile = (): UserProfile => {
-  const country = faker.helpers.arrayElement(['US', 'CA', 'FR', 'UK']);
-  const petType = faker.helpers.arrayElement(['dog', 'cat', 'bird', 'reptile']);
-  const planType = faker.helpers.arrayElement(['basic', 'premium', 'deluxe']);
-  const paymentType = faker.helpers.arrayElement(['credit_card', 'paypal', 'apple_pay']);
+  const countries = ['US', 'CA', 'FR', 'UK'];
+  const petTypes = ['dog', 'cat', 'both'];
+  const planTypes = ['basic', 'premium', 'deluxe'];
+  const paymentTypes = ['credit_card', 'paypal', 'apple_pay'];
+  
+  const country = countries[Math.floor(Math.random() * countries.length)];
+  const petType = petTypes[Math.floor(Math.random() * petTypes.length)];
+  const planType = planTypes[Math.floor(Math.random() * planTypes.length)];
+  const paymentType = paymentTypes[Math.floor(Math.random() * paymentTypes.length)];
+  
   let state = '';
-  if (country === 'US') state = faker.location.state();
-  else if (country === 'CA') state = faker.helpers.arrayElement(['ON', 'QC', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU']);
-  else if (country === 'FR') state = faker.helpers.arrayElement(['Paris', 'Bouches-du-Rhône', 'Nord', 'Rhône', 'Haute-Garonne']);
-  else if (country === 'UK') state = faker.helpers.arrayElement(['Greater London', 'West Midlands', 'Greater Manchester', 'West Yorkshire', 'Kent']);
+  if (country === 'US') state = 'California';
+  else if (country === 'CA') state = 'Ontario';
+  else if (country === 'FR') state = 'Paris';
+  else if (country === 'UK') state = 'Greater London';
+  
   return {
-    key: faker.internet.username() + '-' + faker.string.uuid(),
+    key: 'user-' + Math.random().toString(36).substring(2) + Date.now(),
     anonymous: false,
-    name: faker.person.fullName(),
+    name: 'Demo User',
     country,
     state,
     petType,
