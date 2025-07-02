@@ -11,6 +11,17 @@ interface LDContextProps {
 
 export const LDContextProvider = ({ children }: LDContextProps) => {
   const clientSideID = import.meta.env.LAUNCHDARKLY_CLIENT_KEY;
+  
+  // Debug logging
+  console.log('[LD] Environment variables check:', {
+    LAUNCHDARKLY_CLIENT_KEY: import.meta.env.LAUNCHDARKLY_CLIENT_KEY,
+    clientSideID: clientSideID,
+    isUndefined: clientSideID === undefined,
+    isNull: clientSideID === null,
+    isEmpty: clientSideID === '',
+    type: typeof clientSideID
+  });
+  
   const { user, previousAnonymousKey } = useUser();
 
   // Memoize context so it only changes when user or previousAnonymousKey changes
