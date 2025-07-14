@@ -8,7 +8,7 @@ The Gravity Farms demo uses LaunchDarkly feature flags to demonstrate A/B testin
 
 ## Feature Flags Overview
 
-### 1. Hero Banner Text (`hero-banner-text`)
+### 1. Hero Banner Configuration (`hero-banner-text`)
 **Flag Key:** `hero-banner-text`  
 **Type:** JSON Object  
 **Default Value:** `{"banner-text": "Control Banner"}`
@@ -17,11 +17,29 @@ The Gravity Farms demo uses LaunchDarkly feature flags to demonstrate A/B testin
 - The main hero banner text displayed on the homepage
 - Affects conversion rates and user engagement
 - Determines which experiment variant a user sees
+- See LaunchDarkly - Farm Fresh Petfood project for current settings
 
-**Available Variations:**
-- **Control:** `{"banner-text": "Control Banner"}` - 5% conversion rate
-- **Variant 1:** `{"banner-text": "Top-Rated Pet Food"}` - 7% conversion rate  
-- **Next Generation:** `{"banner-text": "Next Generation Nutrition"}` - 9% conversion rate
+**Visual Elements Controlled by JSON:**
+- `banner-text` - Main headline text
+- `banner-text-color` - Color of the main headline (hex color)
+- `horiz-justification` - Horizontal alignment of banner content (left, center, right)
+- `image-file` - Background image filename
+- `sub-banner-text` - Subtitle/description text
+- `sub-banner-text-color` - Color of subtitle text (hex color)
+- `vert-justification` - Vertical alignment of banner content (top, center, bottom)
+
+**Example JSON Structure:**
+```json
+{
+  "banner-text": "Fresh, healthy meals delivered",
+  "banner-text-color": "#FFF000",
+  "horiz-justification": "right",
+  "image-file": "hero-control.jpeg",
+  "sub-banner-text": "Start your pup's journey to better health with our 7-day free trial",
+  "sub-banner-text-color": "#FFFFFF",
+  "vert-justification": "top"
+}
+```
 
 **Code Impact:**
 - Located in `gravityfarms_simulation.py` lines 200-220
@@ -39,9 +57,8 @@ The Gravity Farms demo uses LaunchDarkly feature flags to demonstrate A/B testin
 - Used in adjusted revenue calculations
 
 **Available Variations:**
-- **7 days** (default)
-- **14 days** 
-- **30 days**
+ - The feature flag is a numeric, representing number of days.
+ - See LaunchDarkly - Farm Fresh Petfood project for current settings
 
 **Code Impact:**
 - Located in `gravityfarms_simulation.py` lines 180-190
@@ -59,10 +76,7 @@ The Gravity Farms demo uses LaunchDarkly feature flags to demonstrate A/B testin
 - Adds seasonal marketing messaging
 
 **Available Variations:**
-- **Empty string** (no banner)
-- **"Holiday Sale - 20% Off!"**
-- **"Summer Special - Free Shipping"**
-- **"New Customer Discount - 15% Off"**
+ - See LaunchDarkly - Farm Fresh Petfood project for current settings
 
 **Code Impact:**
 - Located in `gravityfarms_simulation.py` lines 250-260
