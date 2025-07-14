@@ -43,29 +43,29 @@ export const Footer = () => {
   const { value: tagline = "Crafted in Gravity Falls, delivered to your door", isLoading } = useFeatureFlag('site-tagline', "Crafted in Gravity Falls, delivered to your door");
 
   return (
-    <FooterBar>
+  <FooterBar>
       <div className="centered-container">
-        <FooterLinks>
-          <FooterLink><a href="#">Reviews</a></FooterLink>
-          <FooterLink><a href="#">About Us</a></FooterLink>
-          <FooterLink><a href="#">FAQ</a></FooterLink>
-          <FooterLink><a href="#">Careers</a></FooterLink>
-          <FooterLink><a href="#">Affiliates</a></FooterLink>
-          <FooterLink><a href="#">For Vet Professionals</a></FooterLink>
-          <FooterLink><a href="#">Privacy</a></FooterLink>
-          <FooterLink><a href="#">Terms</a></FooterLink>
-          <FooterLink><a href="#">Accessibility</a></FooterLink>
-          <FooterLink><a href="#">Do Not Sell My Personal Information</a></FooterLink>
-        </FooterLinks>
-        <Copyright>
+    <FooterLinks>
+      <FooterLink><a href="#">Reviews</a></FooterLink>
+      <FooterLink><a href="#">About Us</a></FooterLink>
+      <FooterLink><a href="#">FAQ</a></FooterLink>
+      <FooterLink><a href="#">Careers</a></FooterLink>
+      <FooterLink><a href="#">Affiliates</a></FooterLink>
+      <FooterLink><a href="#">For Vet Professionals</a></FooterLink>
+      <FooterLink><a href="#">Privacy</a></FooterLink>
+      <FooterLink><a href="#">Terms</a></FooterLink>
+      <FooterLink><a href="#">Accessibility</a></FooterLink>
+      <FooterLink><a href="#">Do Not Sell My Personal Information</a></FooterLink>
+    </FooterLinks>
+    <Copyright>
           © {new Date().getFullYear()} Gravity Farms Petfood. All rights reserved.
-        </Copyright>
+    </Copyright>
         {!isLoading && (
           <div style={{ fontSize: '0.85em', color: '#35524A', marginTop: '0.5em', fontWeight: 500 }}>
             {tagline}
           </div>
         )}
       </div>
-    </FooterBar>
-  );
+  </FooterBar>
+); 
 }; 

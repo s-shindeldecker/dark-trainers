@@ -6,6 +6,7 @@ from faker import Faker
 from ldclient import LDClient, Config, Context
 import os
 from dotenv import load_dotenv
+import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -96,26 +97,43 @@ def generate_user(fake):
         "paymentType": payment_type,
     }
 
-def evaluate_flags(ldclient, user):
-    context = (
-        Context.builder(user["key"])
-        .anonymous(False)
-        .name(user["name"])
-        .set("country", user["country"])
-        .set("state", user["state"])
-        .set("petType", user["petType"])
-        .set("planType", user["planType"])
-        .set("paymentType", user["paymentType"])
-        .build()
-    )
+def generate_revenue_amount(plan_type, country):
+    """Generate realistic revenue amounts based on plan type and country"""
+    base_prices = {
+        "basic": {"US": 29.99, "CA": 39.99, "UK": 24.99, "EU": 27.99},
+        "premium": {"US": 49.99, "CA": 64.99, "UK": 39.99, "EU": 44.99},
+        "deluxe": {"US": 79.99, "CA": 99.99, "UK": 59.99, "EU": 66.99}
+    }
+    region = "EU" if country in ("FR", "DE") else country
+    base_price = base_prices.get(plan_type, base_prices["basic"]).get(region, base_prices["basic"]["US"])
+    variation = random.uniform(0.9, 1.1)
+    revenue = base_price * variation
+    return round(revenue, 2)
+
+def calculate_adjusted_revenue(total_revenue, trial_days, plan_type, country):
+    """Calculate adjusted revenue by subtracting the cost of free trial days"""
+    base_prices = {
+        "basic": {"US": 29.99, "CA": 39.99, "UK": 24.99, "EU": 27.99},
+        "premium": {"US": 49.99, "CA": 64.99, "UK": 39.99, "EU": 44.99},
+        "deluxe": {"US": 79.99, "CA": 99.99, "UK": 59.99, "EU": 66.99}
+    }
+    region = "EU" if country in ("FR", "DE") else country
+    monthly_price = base_prices.get(plan_type, base_prices["basic"]).get(region, base_prices["basic"]["US"])
+    daily_rate = monthly_price / 30
+    trial_cost = daily_rate * trial_days
+    adjusted_revenue = total_revenue - trial_cost
+    adjusted_revenue = max(0, adjusted_revenue)
+    return round(adjusted_revenue, 2)
+
+def evaluate_flags(ldclient, context):
     trial_days = ldclient.variation("number-of-days-trial", context, 7)
     seasonal_banner = ldclient.variation("seasonal-sale-banner-text", context, "")
     hero_banner = ldclient.variation("hero-banner-text", context, {})
     return {"trialDays": trial_days, "seasonalBanner": seasonal_banner, "heroBanner": hero_banner}
 
 def simulate_user_journey(ldclient, fake, noise_level):
+    import datetime
     user = generate_user(fake)
-    flag_values = evaluate_flags(ldclient, user)
     context = (
         Context.builder(user["key"])
         .anonymous(False)
@@ -127,20 +145,73 @@ def simulate_user_journey(ldclient, fake, noise_level):
         .set("paymentType", user["paymentType"])
         .build()
     )
+    # Debug: print context kind and key
+    print(f"[DEBUG] Context: kind={getattr(context, 'kind', getattr(context, '_kind', 'user'))}, key={getattr(context, 'key', getattr(context, '_key', None))}")
+    flag_values = evaluate_flags(ldclient, context)
+    # Debug: print flag evaluations
+    for flag, value in flag_values.items():
+        print(f"[DEBUG] Flag evaluation: {flag} = {value} for user: {user['key']}")
+    
+    # Add small delay to ensure flag evaluation is registered before events
+    time.sleep(0.1)
+    
     events = ["page_view"]
-    if should_fire_event("trial_signup", user["country"], flag_values, noise_level):
+
+    # Branch simulation logic based on heroBanner variation
+    hero_banner_text = None
+    if isinstance(flag_values["heroBanner"], dict):
+        hero_banner_text = flag_values["heroBanner"].get("banner-text", "")
+    else:
+        hero_banner_text = str(flag_values["heroBanner"])
+
+    # Simulate different conversion rates and revenue for each hero banner variant
+    variant_conversion_rate = {
+        "Control": 0.05,
+        "Variant 1": 0.07,
+        "Next Generation": 0.09
+    }
+    variant_revenue_mean = {
+        "Control": 30.0,
+        "Variant 1": 35.0,
+        "Next Generation": 40.0
+    }
+    variant = "Control"
+    if "control" in hero_banner_text.lower():
+        variant = "Control"
+    elif "next" in hero_banner_text.lower():
+        variant = "Next Generation"
+    elif "variant" in hero_banner_text.lower() or "top" in hero_banner_text.lower():
+        variant = "Variant 1"
+
+    if random.random() < variant_conversion_rate[variant]:
         events.append("trial_signup")
+        print(f"[DEBUG] Tracking event: trial_signup for user: {user['key']} at {datetime.datetime.now().isoformat()} (variant: {variant})")
         ldclient.track("trial_signup", context)
-        if should_fire_event("trial_to_paid_conversion", user["country"], flag_values, noise_level):
+        if random.random() < 0.5:
             events.append("trial_to_paid_conversion")
+            print(f"[DEBUG] Tracking event: trial_to_paid_conversion for user: {user['key']} at {datetime.datetime.now().isoformat()} (variant: {variant})")
             ldclient.track("trial_to_paid_conversion", context)
             events.append("total_revenue")
-            ldclient.track("total_revenue", context)
-    if flag_values["seasonalBanner"] and should_fire_event("banner_click", user["country"], flag_values, noise_level):
+            revenue_amount = random.gauss(variant_revenue_mean[variant], 5.0)
+            revenue_amount = max(0, round(revenue_amount, 2))
+            print(f"[DEBUG] Tracking event: total_revenue for user: {user['key']} value: {revenue_amount} at {datetime.datetime.now().isoformat()} (variant: {variant})")
+            ldclient.track("total_revenue", context, metric_value=revenue_amount)
+            events.append("adjusted_revenue")
+            adjusted_revenue = calculate_adjusted_revenue(
+                revenue_amount,
+                flag_values["trialDays"],
+                user["planType"],
+                user["country"]
+            )
+            print(f"[DEBUG] Tracking event: adjusted_revenue for user: {user['key']} value: {adjusted_revenue} at {datetime.datetime.now().isoformat()} (variant: {variant})")
+            ldclient.track("adjusted_revenue", context, metric_value=adjusted_revenue)
+    if flag_values["seasonalBanner"] and random.random() < 0.1:
         events.append("banner_click")
+        print(f"[DEBUG] Tracking event: banner_click for user: {user['key']} at {datetime.datetime.now().isoformat()} (variant: {variant})")
         ldclient.track("banner_click", context)
-    if should_fire_event("hero_engagement", user["country"], flag_values, noise_level):
+    if random.random() < 0.15:
         events.append("hero_engagement")
+        print(f"[DEBUG] Tracking event: hero_engagement for user: {user['key']} at {datetime.datetime.now().isoformat()} (variant: {variant})")
         ldclient.track("hero_engagement", context)
     return user, flag_values, events
 
@@ -161,10 +232,13 @@ def main(duration, records_per_second):
         for flag, value in flag_values.items():
             value_str = str(value)
             results["flagEvaluations"][flag][value_str] += 1
+        
+        # Flush after each user to ensure events are sent immediately
+        ldclient.flush()
+        
         if (i + 1) % records_per_second == 0:
             print(f"Progress: {i + 1}/{total_records} users ({((i + 1) / total_records) * 100:.1f}%)")
             time.sleep(1)
-    ldclient.flush()
     ldclient.close()
     print("Simulation complete!")
     print("Results:")

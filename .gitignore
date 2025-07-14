@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Simulation data files
+experiment_assignments.jsonl
+runlog.txt
+
 node_modules
 dist
 dist-ssr
