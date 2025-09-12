@@ -17,7 +17,8 @@ jobs:
       uses: launchdarkly/find-code-references@v2.14.0
       with:
         accessToken: ${{ secrets.LD_ACCESS_TOKEN }}
-        projKey: my-project     # <-- your actual LD project key
-        repoName: ${{ github.repository }}  # ensures org/repo format
-        debug: true             # optional, for troubleshooting
+        projKey: ${{ secrets.LD_PROJECT_KEY }}
+        repoName: farm-fresh-pet-frontend   # <-- no slash
+        debug: true
+
     
