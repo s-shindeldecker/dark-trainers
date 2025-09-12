@@ -17,7 +17,7 @@ jobs:
       uses: launchdarkly/find-code-references@v2.14.0
       env:
         YOUR_PROJECT_KEY: ${{ secrets.YOUR_PROJECT_KEY }}
-        LD_DEBUG: true
+        LD_DEBUG: HELP
       with:
         accessToken: ${{ secrets.LD_ACCESS_TOKEN }}
         projKey: YOUR_PROJECT_KEY
