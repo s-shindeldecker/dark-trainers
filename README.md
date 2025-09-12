@@ -173,3 +173,6 @@ The build output will be in the `dist` directory.
 - The number of days shown in the button text and modal is controlled by the `number-of-days-trial` flag.
 - When enabled, the button appears in the hero section and opens a modal for trial signup.
 - Perfect for A/B testing different trial durations to optimize conversion rates.
+
+## Github Code References
+-- in progress
