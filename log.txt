@@ -1,0 +1,80 @@
+🚀 Starting Continuous LaunchDarkly Data Simulation
+============================================================
+Mode: SNOWFLAKE
+This script will run continuously with realistic traffic patterns.
+Press Ctrl+C to stop gracefully.
+============================================================
+
+🔄 Iteration 1
+   Time: 2025-08-12 16:27:39
+   Traffic Multiplier: 0.54
+   Users per second: 1.000
+   Users per minute: 60.0
+   Duration: 855 seconds (14.2 minutes)
+   Total elapsed: 0:00:00.000014
+   Estimated users this batch: 855
+   Starting simulation batch...
+   ✅ Snowflake connection established
+Progress: 1/855 users (0.1%)
+Progress: 2/855 users (0.2%)
+Progress: 3/855 users (0.4%)
+Progress: 4/855 users (0.5%)
+Progress: 5/855 users (0.6%)
+Progress: 6/855 users (0.7%)
+Progress: 7/855 users (0.8%)
+Progress: 8/855 users (0.9%)
+Progress: 9/855 users (1.1%)
+Progress: 10/855 users (1.2%)
+Progress: 11/855 users (1.3%)
+Progress: 12/855 users (1.4%)
+Progress: 13/855 users (1.5%)
+Progress: 14/855 users (1.6%)
+Progress: 15/855 users (1.8%)
+Progress: 16/855 users (1.9%)
+Progress: 17/855 users (2.0%)
+Progress: 18/855 users (2.1%)
+Progress: 19/855 users (2.2%)
+Progress: 20/855 users (2.3%)
+Progress: 21/855 users (2.5%)
+Progress: 22/855 users (2.6%)
+Progress: 23/855 users (2.7%)
+Progress: 24/855 users (2.8%)
+Progress: 25/855 users (2.9%)
+Progress: 26/855 users (3.0%)
+Progress: 27/855 users (3.2%)
+Progress: 28/855 users (3.3%)
+Progress: 29/855 users (3.4%)
+Progress: 30/855 users (3.5%)
+Progress: 31/855 users (3.6%)
+Progress: 32/855 users (3.7%)
+Progress: 33/855 users (3.9%)
+Progress: 34/855 users (4.0%)
+Progress: 35/855 users (4.1%)
+Progress: 36/855 users (4.2%)
+Progress: 37/855 users (4.3%)
+Progress: 38/855 users (4.4%)
+Progress: 39/855 users (4.6%)
+Progress: 40/855 users (4.7%)
+Progress: 41/855 users (4.8%)
+Progress: 42/855 users (4.9%)
+Progress: 43/855 users (5.0%)
+Progress: 44/855 users (5.1%)
+Progress: 45/855 users (5.3%)
+Progress: 46/855 users (5.4%)
+Progress: 47/855 users (5.5%)
+Progress: 48/855 users (5.6%)
+Progress: 49/855 users (5.7%)
+Progress: 50/855 users (5.8%)
+Progress: 51/855 users (6.0%)
+Progress: 52/855 users (6.1%)
+
+🛑 Received interrupt signal. Stopping simulation gracefully...
+
+⏹️  Simulation interrupted at 53/855 users
+   🔌 Snowflake connection closed
+
+✅ Simulation completed!
+   Total runtime: 0:00:53.641438
+   Total iterations: 1
+   Started: 2025-08-12 16:27:39
+   Ended: 2025-08-12 16:28:32

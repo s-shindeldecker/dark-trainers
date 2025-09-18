@@ -189,7 +189,7 @@ def calculate_adjusted_revenue(total_revenue, trial_days, plan_type, country):
     trial_cost = daily_rate * trial_days
     return max(0, round(total_revenue - trial_cost, 2))
 
-def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_conn=None):
+def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_conn=None, conversion_config=None):
     import time
     import random
     import json
@@ -222,8 +222,9 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
     }
     
     # Write to JSONL file - let post-analysis determine experiment assignment
-    with open("experiment_assignments.jsonl", "a") as f:
-        f.write(json.dumps(log_entry) + "\n")
+    # DISABLED for holdout testing - not testing mutual exclusion at this time
+    # with open("experiment_assignments.jsonl", "a") as f:
+    #     f.write(json.dumps(log_entry) + "\n")
     
     # Branch simulation logic based on heroBanner variation
     hero_banner_text = None
@@ -232,11 +233,18 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
     else:
         hero_banner_text = str(hero_banner_detail.value)
     
-    variant_conversion_rate = {
-        "Control": 0.05,
-        "Variant 1": 0.07,
-        "Next Generation": 0.09
-    }
+    # Use passed conversion config or fall back to default
+    if conversion_config:
+        variant_conversion_rate = conversion_config["conversion_rates"]
+        print(f"   🎯 Using batch conversion rates: {conversion_config['conversion_rates']}")
+    else:
+        # Default conversion rates
+        variant_conversion_rate = {
+            "Control": 0.05,
+            "Variant 1": 0.07,
+            "Next Generation": 0.09
+        }
+    
     variant_revenue_mean = {
         "Control": 30.0,
         "Variant 1": 35.0,
@@ -249,6 +257,9 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         variant = "Next Generation"
     elif "variant" in hero_banner_text.lower() or "top" in hero_banner_text.lower():
         variant = "Variant 1"
+    
+    # Debug output for variant selection and conversion rate
+    print(f"   🎭 User {user_info['key'][:8]}... - Banner: '{hero_banner_text[:30]}...' -> Variant: {variant} (Rate: {variant_conversion_rate[variant]:.1%})")
     
     # Initialize events list
     events = ["page_view"]

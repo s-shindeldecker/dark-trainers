@@ -1,3 +1,4 @@
+import { useLDClient } from 'launchdarkly-react-client-sdk'; 
 import { useState, useEffect } from 'react';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { useTrialDays } from '../../hooks/useTrialDays';
@@ -141,6 +142,7 @@ const DEFAULT_BANNER = {
 };
 
 export const HeroSection = () => {
+  const ldClient = useLDClient(); 
   const { value: showTrialButton, isLoading: isButtonLoading } = useFeatureFlag('show-trial-button', false);
   const { value: bannerConfig = DEFAULT_BANNER } = useFeatureFlag('hero-banner-text', DEFAULT_BANNER);
   const { trialDays, isLoading: isTrialDaysLoading } = useTrialDays(7);
@@ -160,6 +162,15 @@ export const HeroSection = () => {
   // Create dynamic trial text
   const trialButtonText = `Try ${trialDays} Days Free`;
   const trialModalText = `Get ${trialDays} days of fresh, customized meals for your dog.`;
+
+  const handleTrialButtonClick = () => {
+    if (ldClient) {
+      ldClient.track('new_demo_trial-button-clicked', { numDays: trialDays});
+    }
+    setShowModal(true);
+  };
+
+
 
   useEffect(() => {
     console.log('[LD] Hero Section Render:', {
@@ -202,7 +213,7 @@ export const HeroSection = () => {
       </HeroText>
       {(!isButtonLoading && !isTrialDaysLoading && showTrialButton) && (
         <HeroButtonWrapper>
-          <TrialButton onClick={() => setShowModal(true)}>
+          <TrialButton onClick={handleTrialButtonClick}>
             {trialButtonText}
           </TrialButton>
         </HeroButtonWrapper>
