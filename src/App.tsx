@@ -10,6 +10,7 @@ import { Account } from './pages/Account';
 import styled from '@emotion/styled';
 import { useState } from 'react';
 import { Modal } from './components/common/Modal';
+import { FlagLoadingProvider } from './components/common/FlagLoadingProvider';
 import AboutUs from './pages/About';
 import WhyGravityFarms from './pages/WhyGravityFarms';
 import FAQ from './pages/FAQ';
@@ -140,29 +141,31 @@ function AppContent() {
 
   return (
     <LDContextProvider>
-      <SeasonalBanner />
-      <Header
-        isLoggedIn={isLoggedIn}
-        onLogin={() => setShowPersonaModal(true)}
-        onLogout={logout}
-        onAccount={() => navigate('/account')}
-      />
-      <MainContent>
-        <Routes>
-          <Route path="/" element={<HeroSection />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/why-gravity-farms" element={<WhyGravityFarms />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/reviews" element={<Reviews />} />
-        </Routes>
-      </MainContent>
-      <Footer />
-      <PersonaModal 
-        open={showPersonaModal} 
-        onClose={() => setShowPersonaModal(false)}
-        onSelect={handlePersonaSelect} 
-      />
+      <FlagLoadingProvider>
+        <SeasonalBanner />
+        <Header
+          isLoggedIn={isLoggedIn}
+          onLogin={() => setShowPersonaModal(true)}
+          onLogout={logout}
+          onAccount={() => navigate('/account')}
+        />
+        <MainContent>
+          <Routes>
+            <Route path="/" element={<HeroSection />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/why-gravity-farms" element={<WhyGravityFarms />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/reviews" element={<Reviews />} />
+          </Routes>
+        </MainContent>
+        <Footer />
+        <PersonaModal 
+          open={showPersonaModal} 
+          onClose={() => setShowPersonaModal(false)}
+          onSelect={handlePersonaSelect} 
+        />
+      </FlagLoadingProvider>
     </LDContextProvider>
   );
 }
