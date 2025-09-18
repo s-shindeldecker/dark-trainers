@@ -1,5 +1,5 @@
 import { useFlagManager } from '../../context/FlagManager';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import styled from '@emotion/styled';
 
 const LoadingOverlay = styled.div`

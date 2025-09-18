@@ -1,5 +1,6 @@
 import { useLDClient } from 'launchdarkly-react-client-sdk';
-import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { useContextVersion } from './ContextVersion';
 
 // Define the flags we need to pre-load
