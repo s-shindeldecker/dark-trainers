@@ -1,7 +1,6 @@
 import { useLDClient } from 'launchdarkly-react-client-sdk'; 
 import { useState, useEffect } from 'react';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
-import { useTrialDays } from '../../hooks/useTrialDays';
+import { useFeatureFlagNew } from '../../context/FlagManager';
 import styled from '@emotion/styled';
 
 const HeroContainer = styled.div`
@@ -131,6 +130,26 @@ const ModalContent = styled.div`
   text-align: center;
 `;
 
+const LoadingSkeleton = styled.div`
+  width: 100%;
+  min-height: 700px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  
+  @media (max-width: 900px) {
+    min-height: 550px;
+  }
+  @media (max-width: 600px) {
+    min-height: 400px;
+  }
+`;
+
 const DEFAULT_BANNER = {
   'banner-text': 'Fresh, healthy meals crafted in Gravity Falls',
   'banner-text-color': '#FFFFFF',
@@ -143,10 +162,13 @@ const DEFAULT_BANNER = {
 
 export const HeroSection = () => {
   const ldClient = useLDClient(); 
-  const { value: showTrialButton, isLoading: isButtonLoading } = useFeatureFlag('show-trial-button', false);
-  const { value: bannerConfig = DEFAULT_BANNER } = useFeatureFlag('hero-banner-text', DEFAULT_BANNER);
-  const { trialDays, isLoading: isTrialDaysLoading } = useTrialDays(7);
+  const { value: showTrialButton, isLoading: isButtonLoading } = useFeatureFlagNew('show-trial-button', false);
+  const { value: bannerConfig = DEFAULT_BANNER, isLoading: isBannerLoading } = useFeatureFlagNew('hero-banner-text', DEFAULT_BANNER);
+  const { value: trialDays, isLoading: isTrialDaysLoading } = useFeatureFlagNew('number-of-days-trial', 7);
   const [showModal, setShowModal] = useState(false);
+
+  // Show loading skeleton while any flag is loading
+  const isAnyLoading = isButtonLoading || isBannerLoading || isTrialDaysLoading;
 
   const imageFile = bannerConfig['image-file'] || DEFAULT_BANNER['image-file'];
   const isFlagValid = imageFile && typeof imageFile === 'string' && imageFile.trim() !== '';
@@ -180,6 +202,7 @@ export const HeroSection = () => {
       isButtonLoading,
       trialDays,
       isTrialDaysLoading,
+      isAnyLoading,
       defaultBannerConfig: DEFAULT_BANNER,
       isFlagValid,
       computedValues: {
@@ -194,7 +217,12 @@ export const HeroSection = () => {
         trialModalText
       }
     });
-  }, [showTrialButton, bannerConfig, isButtonLoading, trialDays, isTrialDaysLoading, isFlagValid, bannerText, bannerTextColor, subBannerText, subBannerTextColor, horiz, vert, imageFile, trialButtonText, trialModalText]);
+  }, [showTrialButton, bannerConfig, isButtonLoading, trialDays, isTrialDaysLoading, isAnyLoading, isFlagValid, bannerText, bannerTextColor, subBannerText, subBannerTextColor, horiz, vert, imageFile, trialButtonText, trialModalText]);
+
+  // Show loading skeleton while flags are being evaluated
+  if (isAnyLoading) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <HeroContainer>
@@ -211,7 +239,7 @@ export const HeroSection = () => {
           <SubBannerText color={subBannerTextColor}>{subBannerText}</SubBannerText>
         </HeroTextOverlay>
       </HeroText>
-      {(!isButtonLoading && !isTrialDaysLoading && showTrialButton) && (
+      {showTrialButton && (
         <HeroButtonWrapper>
           <TrialButton onClick={handleTrialButtonClick}>
             {trialButtonText}
