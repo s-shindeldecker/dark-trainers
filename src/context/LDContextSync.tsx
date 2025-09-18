@@ -3,6 +3,7 @@ import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { ContextVersionContext } from './ContextVersion';
+import { FlagManagerProvider } from './FlagManager';
 
 const LDContextSync = ({ context, children }: PropsWithChildren<{ context: any }>) => {
   const ldClient = useLDClient();
@@ -36,7 +37,9 @@ const LDContextSync = ({ context, children }: PropsWithChildren<{ context: any }
 
   return (
     <ContextVersionContext.Provider value={contextVersion}>
-      {children}
+      <FlagManagerProvider>
+        {children}
+      </FlagManagerProvider>
     </ContextVersionContext.Provider>
   );
 };
