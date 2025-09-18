@@ -1,6 +1,6 @@
 import { useLDClient } from 'launchdarkly-react-client-sdk'; 
 import { useState, useEffect } from 'react';
-import { useFeatureFlagNew } from '../../context/FlagManager';
+import { useFeatureFlag } from '../../context/FlagManager';
 import styled from '@emotion/styled';
 
 const HeroContainer = styled.div`
@@ -162,9 +162,9 @@ const DEFAULT_BANNER = {
 
 export const HeroSection = () => {
   const ldClient = useLDClient(); 
-  const { value: showTrialButton, isLoading: isButtonLoading } = useFeatureFlagNew('show-trial-button', false);
-  const { value: bannerConfig = DEFAULT_BANNER, isLoading: isBannerLoading } = useFeatureFlagNew('hero-banner-text', DEFAULT_BANNER);
-  const { value: trialDays, isLoading: isTrialDaysLoading } = useFeatureFlagNew('number-of-days-trial', 7);
+  const { value: showTrialButton, isLoading: isButtonLoading } = useFeatureFlag('show-trial-button', false);
+  const { value: bannerConfig = DEFAULT_BANNER, isLoading: isBannerLoading } = useFeatureFlag('hero-banner-text', DEFAULT_BANNER);
+  const { value: trialDays, isLoading: isTrialDaysLoading } = useFeatureFlag('number-of-days-trial', 7);
   const [showModal, setShowModal] = useState(false);
 
   // Show loading skeleton while any flag is loading

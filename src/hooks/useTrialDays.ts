@@ -1,4 +1,4 @@
-import { useFeatureFlag } from './useFeatureFlag';
+import { useFeatureFlag } from '../context/FlagManager';
 
 /**
  * useTrialDays

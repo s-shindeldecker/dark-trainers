@@ -1,4 +1,4 @@
-import { useFeatureFlagNew } from '../../context/FlagManager';
+import { useFeatureFlag } from '../../context/FlagManager';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
@@ -36,7 +36,7 @@ const BannerText = styled.span`
 `;
 
 export const SeasonalBanner = () => {
-  const { value: bannerText, isLoading } = useFeatureFlagNew('seasonal-sale-banner-text', '');
+  const { value: bannerText, isLoading } = useFeatureFlag('seasonal-sale-banner-text', '');
   const ldClient = useLDClient();
   const navigate = useNavigate();
 

@@ -7,7 +7,8 @@ export const REQUIRED_FLAGS = [
   'hero-banner-text',
   'show-trial-button', 
   'number-of-days-trial',
-  'seasonal-sale-banner-text'
+  'seasonal-sale-banner-text',
+  'site-tagline'
 ] as const;
 
 export type FlagKey = typeof REQUIRED_FLAGS[number];
@@ -17,6 +18,7 @@ interface FlagValues {
   'show-trial-button': boolean;
   'number-of-days-trial': number;
   'seasonal-sale-banner-text': string;
+  'site-tagline': string;
 }
 
 interface FlagManagerContextType {
@@ -151,6 +153,8 @@ function getDefaultValue(flagKey: FlagKey): any {
       return 7;
     case 'seasonal-sale-banner-text':
       return '';
+    case 'site-tagline':
+      return 'Crafted in Gravity Falls, delivered to your door';
     default:
       return null;
   }
@@ -165,7 +169,7 @@ export const useFlagManager = () => {
 };
 
 // New hook that uses the centralized flag manager
-export const useFeatureFlagNew = <K extends FlagKey>(flagKey: K, defaultValue?: FlagValues[K]) => {
+export const useFeatureFlag = <K extends FlagKey>(flagKey: K, defaultValue?: FlagValues[K]) => {
   const { flags, isLoading, isReady } = useFlagManager();
   
   const value = flags[flagKey] ?? defaultValue ?? getDefaultValue(flagKey);

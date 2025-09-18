@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { useFeatureFlag } from '../../context/FlagManager';
 
 const FooterBar = styled.footer`
   width: 100%;
