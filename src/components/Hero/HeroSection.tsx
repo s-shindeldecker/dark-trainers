@@ -188,7 +188,7 @@ export const HeroSection = () => {
   return (
     <HeroContainer>
       {isFlagValid ? (
-        <HeroImage src={`/images/${imageFile}`} alt="Pet food subscription" />
+        <HeroImage src={`/images/${imageFile}`} alt="Pet food subscription" fetchPriority="high" />
       ) : (
         <FallbackBanner>
           LaunchDarkly flag not set or not working. No hero image to display.
