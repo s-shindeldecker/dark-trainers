@@ -76,9 +76,36 @@ def get_snowflake_connection():
     
     # Use private key if available, otherwise password
     if private_key:
-        conn_params['private_key'] = private_key
-        if private_key_passphrase:
-            conn_params['private_key_passphrase'] = private_key_passphrase
+        # Convert \n escape sequences to actual newlines (for .env file format)
+        private_key = private_key.replace('\\n', '\n')
+        
+        # Parse and reformat the key using cryptography library to ensure correct format
+        try:
+            from cryptography.hazmat.primitives import serialization
+            from cryptography.hazmat.backends import default_backend
+            
+            # Load the private key
+            private_key_bytes = private_key.encode('utf-8')
+            private_key_obj = serialization.load_pem_private_key(
+                private_key_bytes,
+                password=private_key_passphrase.encode('utf-8') if private_key_passphrase else None,
+                backend=default_backend()
+            )
+            
+            # Snowflake connector can accept the cryptography object directly
+            # This is more reliable than converting back to string
+            conn_params['private_key'] = private_key_obj
+            # Note: If key was encrypted, passphrase was used during loading above
+            # Snowflake connector doesn't need passphrase when using cryptography object
+        except ImportError:
+            # If cryptography is not available, use the key as-is
+            logger.warning("cryptography library not available, using private key as-is")
+            conn_params['private_key'] = private_key
+            if private_key_passphrase:
+                conn_params['private_key_passphrase'] = private_key_passphrase
+        except Exception as e:
+            # If parsing fails, raise a more helpful error
+            raise ValueError(f"Failed to parse private key: {e}. Please ensure the key is in PEM format.")
     elif password:
         conn_params['password'] = password
     else:

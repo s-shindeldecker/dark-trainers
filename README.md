@@ -1,29 +1,6 @@
 # Gravity Farms Petfood Frontend
 
-This is the frontend application for Gravity Farms Petfood, a premium pet food subscription service crafted in Gravity Falls, Oregon, built with React and LaunchDarkly for feature flagging.
-
-## Color Palette
-
-The application uses a consistent color palette inspired by nature and farm-fresh aesthetics:
-
-### Primary Colors
-- **Forest Green**: `#35524A` - Main text color, borders, and primary elements
-- **Fresh Green**: `#6A994E` - Accent color for headings and highlights
-- **Warm Yellow**: `#FFD166` - Primary button color and star ratings
-- **Cream**: `#F6E7CB` - Background color for header and footer
-
-### Secondary Colors
-- **Red Accent**: `#D7263D` - Hover state for buttons and interactive elements
-- **Green Accent**: `#4caf50` - Logo color and link hover states
-- **White**: `#FFFFFF` - Card backgrounds and text on dark backgrounds
-- **Gray Text**: `#555` - Secondary text in footer and navigation
-
-### Usage Examples
-- **Headers & Navigation**: `#F6E7CB` background with `#35524A` text
-- **Buttons**: `#FFD166` background with `#35524A` text, hover to `#D7263D`
-- **Cards & Content**: `#FFFFFF` background with `#35524A` text
-- **Accent Elements**: `#6A994E` for headings and special text
-- **Interactive Elements**: `#4caf50` for hover states and links
+A demo application for **Gravity Farms Petfood**, a premium pet food subscription service crafted in Gravity Falls, Oregon. Built with React, TypeScript, and LaunchDarkly to demonstrate feature flagging, experimentation, observability, and AI Configs.
 
 ## Setup
 
@@ -32,147 +9,99 @@ The application uses a consistent color palette inspired by nature and farm-fres
 npm install
 ```
 
-2. Create a `.env` file in the root directory with your LaunchDarkly client ID:
+2. Create a `.env` file in the root directory:
 ```bash
-VITE_LAUNCHDARKLY_CLIENT_ID=your-client-side-id
+LAUNCHDARKLY_CLIENT_KEY=your-client-side-id
+LAUNCHDARKLY_SDK_KEY=your-server-side-sdk-key
+OPENAI_API_KEY=your-openai-api-key          # Required for AI chatbot
+SERVER_PORT=3001                             # Optional, defaults to 3001
 ```
 
-3. Start the development server:
+3. Start the development servers:
 ```bash
+# Terminal 1 — Vite frontend (proxies /api to the backend)
 npm run dev
+
+# Terminal 2 — Express API server (AI chatbot backend)
+npm run dev:server
 ```
 
-## Features
-
-- React with TypeScript
-- LaunchDarkly integration for feature flags
-- Emotion for styled components
-- React Router for navigation
-- Material-UI components
-
-## Project Structure
+## Architecture
 
 ```
-src/
-├── components/
-│   ├── Hero/
-│   │   ├── HeroSection.tsx
-│   │   ├── HeroSkeleton.tsx
-│   │   └── HeroVariants.tsx
-│   ├── Layout/
-│   │   ├── Header.tsx
-│   │   ├── Footer.tsx
-│   │   └── SeasonalBanner.tsx
-│   └── common/
-│       ├── Button.tsx
-│       └── Card.tsx
-├── hooks/
-│   ├── useFeatureFlag.ts
-│   └── useTrialDays.ts
-├── context/
-│   └── LDContext.tsx
-├── pages/
-│   ├── Home.tsx
-│   ├── Plans.tsx
-│   └── About.tsx
-└── App.tsx
+├── src/                      # React frontend (Vite + TypeScript)
+│   ├── components/
+│   │   ├── Chat/             # AI chatbot widget (ChatWidget, ChatMessage)
+│   │   ├── Hero/             # Hero section with skeleton loading
+│   │   ├── Layout/           # Header, Footer, SeasonalBanner
+│   │   ├── Products/         # ProductCard, product data
+│   │   └── common/           # Modal
+│   ├── context/              # LaunchDarkly + User context providers
+│   ├── hooks/                # useFeatureFlag, useTrialDays
+│   └── pages/                # Products, ProductDetail, About, FAQ, etc.
+├── server/                   # Express API server
+│   ├── index.ts              # Server entry point (LD server SDK + AI init)
+│   └── routes/chat.ts        # POST /api/chat endpoint (AI Configs)
+└── vite.config.ts            # Dev proxy: /api → Express server
 ```
+
+## LaunchDarkly Integration
+
+### Observability SDK
+The app integrates `@launchdarkly/observability` and `@launchdarkly/session-replay` as plugins to the React SDK. These automatically capture Web Vitals (CLS, FCP, LCP, TTFB, INP), errors, and session replays without manual instrumentation.
+
+### AI Configs
+The chatbot uses LaunchDarkly AI Configs via the Node.js server-side AI SDK (`@launchdarkly/server-sdk-ai`). The `gravity-farms-chatbot` AI Config controls the model, system prompt, and parameters. Metrics (tokens, latency) are tracked automatically.
+
+### Custom Events
+- `banner_click` — Tracked when users click the seasonal sale banner
 
 ## Feature Flags
 
-### Seasonal Sale Banner
-- **Flag key:** `seasonal-sale-banner-text` (use camelCase `seasonalSaleBannerText` in React code)
-- **Type:** String
-- **Default value:** `''` (empty string - banner hidden when empty)
-- Controls the text displayed in a promotional banner above the main navigation header.
-- The banner only appears when the flag has a non-empty value.
-- Perfect for seasonal promotions, sales announcements, or special offers.
+| Flag Key | Type | Purpose |
+|---|---|---|
+| `hero-banner-text` | JSON | Controls hero headline, headline color, sub-headline, and image |
+| `show-trial-button` | Boolean | Shows/hides the free trial CTA in the hero section |
+| `number-of-days-trial` | Number | Number of trial days shown in button and modal copy |
+| `seasonal-sale-banner-text` | String | Promotional banner text (hidden when empty) |
+| `site-tagline` | String | Tagline shown in the footer |
+| `show-product-catalog` | Boolean | Enables the Products nav link and product pages |
+| `show-chatbot` | Boolean | Enables the floating AI chat widget |
 
-### Hero Banner (Image, Text, and Style)
-
-The application uses a single LaunchDarkly JSON flag to control the hero banner image, text, colors, and alignment:
-
-- **Flag key:** `hero-banner-text` (use camelCase `heroBannerText` in React code)
-- **Type:** JSON
-- **Example value:**
+### Hero Banner Flag (`hero-banner-text`)
 
 ```json
 {
-  "banner-text": "Fresh, healthy meals delivered for your dog",
+  "banner-text": "Fresh, healthy meals crafted in Gravity Falls",
   "banner-text-color": "#FFFFFF",
   "sub-banner-text": "Start your pup's journey to better health with our free trial",
-  "sub-banner-text-color": "#FFFFFF",
-  "horiz-justification": "center",
-  "vert-justification": "top",
   "image-file": "hero-control.jpeg"
 }
 ```
 
-- `banner-text`: Main heading text
-- `banner-text-color`: Hex color for the main heading
-- `sub-banner-text`: Subheading text
-- `sub-banner-text-color`: Hex color for the subheading
-- `horiz-justification`: `left`, `right`, or `center` (text alignment)
-- `vert-justification`: `top`, `bottom`, or `center` (vertical placement)
-- `image-file`: Filename of the hero image in `public/images/`
+Available hero images in `public/images/`: `hero-control.jpeg`, `hero-treatment.jpeg`, `hero-cats.jpeg`, `hero-next-generation.jpeg`, `Dogs_Snow.jpg`.
 
-**To add a new hero variation:**
-1. Place your new image in `frontend/public/images/` (e.g., `hero-summer.jpg`).
-2. Add a new variation in LaunchDarkly with the desired JSON structure and image filename.
-3. Assign users/contexts to the new variation as needed.
+## Color Palette
 
-### Trial Days
-- **Flag key:** `number-of-days-trial` (use camelCase `numberOfDaysTrial` in React code)
-- **Type:** Number
-- **Default value:** 7
-- Controls the number of days offered in the free trial throughout the application.
-- Used in: Hero section button text, modal content, and any other trial-related messaging.
-
-### Trial Button
-- **Flag key:** `show-trial-button` (use camelCase `showTrialButton` in React code)
-- **Type:** Boolean
-- Controls the visibility of the trial button in the hero section.
-- The button text dynamically shows the trial days from the `number-of-days-trial` flag.
-
-## Fallback/Default Image Logic
-- If the `image-file` property is missing, the app will use a default image (`hero-control.jpeg`).
-- If the flag is missing or incomplete, sensible defaults are used for all properties.
+| Color | Hex | Usage |
+|---|---|---|
+| Forest Green | `#35524A` | Primary text, borders, dark backgrounds |
+| Fresh Green | `#6A994E` | Accent headings, highlights |
+| Warm Yellow | `#FFD166` | Primary buttons, star ratings |
+| Cream | `#F6E7CB` | Header/footer background |
+| Red Accent | `#D7263D` | Button hover states |
+| White | `#FFFFFF` | Card backgrounds, sub-banner text |
 
 ## Development
 
-To add new feature flags:
-
-1. Create the flag in LaunchDarkly
-2. Use the `useFeatureFlag` hook in your component:
+### Adding a feature flag
 ```typescript
-const { value, isLoading } = useFeatureFlag('yourFlagKey', defaultValue);
+const { value, isLoading } = useFeatureFlag('your-flag-key', defaultValue);
 ```
 
-For trial days specifically, use the `useTrialDays` hook:
-```typescript
-const { trialDays, isLoading } = useTrialDays(7);
-```
-
-## Building for Production
-
+### Building for production
 ```bash
 npm run build
 ```
 
-The build output will be in the `dist` directory.
-
-## Adding a New Hero Image Variation
-
-1. Place your new hero image (e.g., `hero-summer.jpg`) in the `frontend/public/images/` directory.
-2. In LaunchDarkly, add a new variation to the `hero-image` flag with the value set to the filename (e.g., `hero-summer.jpg`).
-3. Assign users/contexts to the new variation as needed.
-4. The React app will automatically use `/images/{flagValue}` as the hero image.
-
-## Trial Button and Modal
-- The visibility of the trial button is controlled by the `show-trial-button` flag in LaunchDarkly.
-- The number of days shown in the button text and modal is controlled by the `number-of-days-trial` flag.
-- When enabled, the button appears in the hero section and opens a modal for trial signup.
-- Perfect for A/B testing different trial durations to optimize conversion rates.
-
-## Github Code References
--- in progress
+Output goes to the `dist` directory.

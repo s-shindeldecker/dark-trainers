@@ -155,6 +155,13 @@ def run_simulation(duration, records_per_second, mode='launchdarkly'):
             
             if mode == 'snowflake' and snowflake_events:
                 results["snowflakeEvents"] += len(snowflake_events)
+                # Actually insert the events into Snowflake
+                from gravityfarms_simulation import insert_metric_event_to_snowflake
+                for event_data in snowflake_events:
+                    try:
+                        insert_metric_event_to_snowflake(snowflake_conn, event_data)
+                    except Exception as e:
+                        print(f"   ⚠️  Error inserting event: {e}")
             
             if (i + 1) % records_per_second == 0:
                 print(f"Progress: {i + 1}/{total_records} users ({((i + 1) / total_records) * 100:.1f}%)")

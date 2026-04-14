@@ -14,7 +14,11 @@ runlog.txt
 node_modules
 dist
 dist-ssr
+server/dist
 *.local
+
+# Cursor / local agent state
+.claude/
 
 # Editor directories and files
 .vscode/*
@@ -29,6 +33,10 @@ dist-ssr
 .env
 env.txt
 
+# Private keys
+rsa_key.p8
+rsa_key.pub
+
 # Python
 venv/
 __pycache__/
@@ -36,3 +44,5 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.vercel
+.env*.local

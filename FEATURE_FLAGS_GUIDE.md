@@ -1,281 +1,147 @@
-# Gravity Farms Petfood - Feature Flags Demo Guide
+# Gravity Farms Petfood - Feature Flags Guide
 
-This guide explains the feature flags used in the Gravity Farms Petfood demo application, their keys, and how they affect the user experience.
+This guide explains the feature flags used in the Gravity Farms Petfood demo application, their keys, types, and how they affect the user experience.
 
 ## Overview
 
-The Gravity Farms demo uses LaunchDarkly feature flags to demonstrate A/B testing and experimentation capabilities. The application simulates a pet food subscription service with various user journeys and conversion events.
+The Gravity Farms demo uses LaunchDarkly feature flags to demonstrate experimentation, observability, and AI Config capabilities. The application simulates a pet food subscription service with various user journeys and conversion events.
 
-## Feature Flags Overview
+## Observability
+
+The frontend integrates `@launchdarkly/observability` and `@launchdarkly/session-replay` as plugins to the React client SDK. These automatically capture:
+
+- **Web Vitals:** CLS, FCP, LCP, TTFB, INP, FID
+- **Error monitoring:** Uncaught exceptions and promise rejections
+- **Session replays:** End-user session recordings with `strict` privacy
+
+No manual instrumentation is required for these — they activate when the LD SDK initializes.
+
+### Custom Events
+
+These events are manually tracked via `ldClient.track()`:
+
+| Event | Location | Trigger |
+|---|---|---|
+| `banner_click` | `SeasonalBanner.tsx` | User clicks the seasonal promo banner |
+
+## Feature Flags
 
 ### 1. Hero Banner Configuration (`hero-banner-text`)
-**Flag Key:** `hero-banner-text`  
-**Type:** JSON Object  
-**Default Value:** `{"banner-text": "Control Banner"}`
 
-**What it controls:**
-- The main hero banner text displayed on the homepage
-- Affects conversion rates and user engagement
-- Determines which experiment variant a user sees
-- See LaunchDarkly - Farm Fresh Petfood project for current settings
+**Type:** JSON  
+**Default:** See below
 
-**Visual Elements Controlled by JSON:**
-- `banner-text` - Main headline text
-- `banner-text-color` - Color of the main headline (hex color)
-- `horiz-justification` - Horizontal alignment of banner content (left, center, right)
-- `image-file` - Background image filename
-- `sub-banner-text` - Subtitle/description text
-- `sub-banner-text-color` - Color of subtitle text (hex color)
-- `vert-justification` - Vertical alignment of banner content (top, center, bottom)
+Controls the hero section on the homepage: headline, headline color, sub-headline, and background image.
 
-**Example JSON Structure:**
 ```json
 {
-  "banner-text": "Fresh, healthy meals delivered",
-  "banner-text-color": "#FFF000",
-  "horiz-justification": "right",
-  "image-file": "hero-control.jpeg",
-  "sub-banner-text": "Start your pup's journey to better health with our 7-day free trial",
-  "sub-banner-text-color": "#FFFFFF",
-  "vert-justification": "top"
+  "banner-text": "Fresh, healthy meals crafted in Gravity Falls",
+  "banner-text-color": "#FFFFFF",
+  "sub-banner-text": "Start your pup's journey to better health with our free trial",
+  "image-file": "hero-control.jpeg"
 }
 ```
 
-**Code Impact:**
-- Located in `gravityfarms_simulation.py` lines 200-220
-- Determines variant assignment and conversion probability
-- Affects revenue simulation (different mean values per variant)
+| Field | Description |
+|---|---|
+| `banner-text` | Main headline text |
+| `banner-text-color` | Hex color for the headline |
+| `sub-banner-text` | Subheadline text (always white) |
+| `image-file` | Filename in `public/images/` |
 
-### 2. Trial Days (`number-of-days-trial`)
-**Flag Key:** `number-of-days-trial`  
+**Available images:** `hero-control.jpeg`, `hero-treatment.jpeg`, `hero-cats.jpeg`, `hero-next-generation.jpeg`, `Dogs_Snow.jpg`
+
+**Anti-flicker:** The hero renders a skeleton loading state until flag values arrive, preventing the flash of default content on context switches.
+
+### 2. Trial Button (`show-trial-button`)
+
+**Type:** Boolean  
+**Default:** `false`
+
+Shows or hides the "Try N Days Free" CTA button in the hero section. When enabled, clicking the button opens a trial signup modal.
+
+### 3. Trial Days (`number-of-days-trial`)
+
 **Type:** Number  
-**Default Value:** `7`
+**Default:** `7`
 
-**What it controls:**
-- Number of free trial days offered to new customers
-- Affects revenue calculations and trial-to-paid conversion
-- Used in adjusted revenue calculations
+Controls how many trial days appear in the button text and modal copy. Used in combination with `show-trial-button`.
 
-**Available Variations:**
- - The feature flag is a numeric, representing number of days.
- - See LaunchDarkly - Farm Fresh Petfood project for current settings
+### 4. Seasonal Sale Banner (`seasonal-sale-banner-text`)
 
-**Code Impact:**
-- Located in `gravityfarms_simulation.py` lines 180-190
-- Used in `calculate_adjusted_revenue()` function
-- Affects trial cost calculations in revenue metrics
-
-### 3. Seasonal Sale Banner (`seasonal-sale-banner-text`)
-**Flag Key:** `seasonal-sale-banner-text`  
 **Type:** String  
-**Default Value:** `""` (empty)
+**Default:** `""` (empty — banner hidden)
 
-**What it controls:**
-- Displays promotional banner text for seasonal sales
-- Triggers banner click events when present
-- Adds seasonal marketing messaging
+Displays a promotional gradient banner above the main navigation. The banner only renders when the flag has a non-empty value. Clicking the banner tracks a `banner_click` event and navigates to the About page.
 
-**Available Variations:**
- - See LaunchDarkly - Farm Fresh Petfood project for current settings
+### 5. Site Tagline (`site-tagline`)
 
-**Code Impact:**
-- Located in `gravityfarms_simulation.py` lines 250-260
-- Controls banner click event probability (10% when banner is present)
-- Affects user engagement metrics
+**Type:** String  
+**Default:** `"Crafted in Gravity Falls, delivered to your door"`
 
-## User Journey Simulation
+Controls the tagline displayed in the footer beneath the copyright notice.
 
-### Flag Evaluation Flow
-1. **User Context Generation** - Creates realistic user profiles with:
-   - Country (US, UK, FR, DE, CA)
-   - Pet type (dog, cat, both)
-   - Plan type (basic, premium, trial)
-   - Payment method (credit_card, paypal, apple_pay, google_pay, bank)
+### 6. Product Catalog (`show-product-catalog`)
 
-2. **Flag Evaluation** - All three flags are evaluated for each user:
-   ```python
-   trial_days_detail = ld_client.variation_detail('number-of-days-trial', context, 7)
-   seasonal_banner = ld_client.variation('seasonal-sale-banner-text', context, "")
-   hero_banner_detail = ld_client.variation_detail('hero-banner-text', context, {})
-   ```
+**Type:** Boolean  
+**Default:** `false`
 
-3. **Event Tracking** - Based on flag values and user behavior:
-   - `page_view` - Always tracked
-   - `trial_signup` - Based on hero banner variant conversion rate
-   - `trial_to_paid_conversion` - 50% of signups convert
-   - `total_revenue` - Revenue based on variant and user profile
-   - `adjusted_revenue` - Revenue minus trial cost
-   - `banner_click` - 10% chance if seasonal banner present
-   - `hero_engagement` - 15% chance for all users
+When enabled, adds a "Products" link to the navigation and exposes the `/products` and `/products/:id` routes. The product catalog shows three subscription tiers: Basic Bites ($29/mo), Premium Paws ($49/mo), and Deluxe Den ($79/mo).
 
-## Experiment Analysis
+### 7. AI Chatbot (`show-chatbot`)
 
-### Hero Banner Experiment
-The `hero-banner-text` flag runs a multi-variant experiment:
+**Type:** Boolean  
+**Default:** `false`
 
-| Variant | Conversion Rate | Revenue Mean | Description |
-|---------|----------------|--------------|-------------|
-| Control | 5% | $30.00 | Standard banner |
-| Variant 1 | 7% | $35.00 | "Top-Rated" messaging |
-| Next Generation | 9% | $40.00 | "Next Generation" messaging |
+When enabled, renders a floating chat widget in the bottom-right corner. The chatbot uses LaunchDarkly AI Configs to control the model, system prompt, and generation parameters.
 
-### Mutual Exclusivity
-The simulation ensures users are assigned to only one experiment variant at a time, maintaining proper statistical analysis.
+**Requires:** The Express API server running (`npm run dev:server`) and a valid `OPENAI_API_KEY` in `.env`.
 
-## Revenue Calculation
+**AI Config key:** `gravity-farms-chatbot` (create this in your LaunchDarkly project as a Completion-mode AI Config)
 
-### Base Pricing by Region
-Basic Plan:
-US: $29.99, CA: $39.99, UK: £24.99, EU: €27.99
-Premium Plan:
-US: $49.99, CA: $64.99, UK: £39.99, EU: €44.99
-Deluxe Plan:
+## AI Configs
 
-### Adjusted Revenue Formula
-```python
-daily_rate = monthly_price / 30
-trial_cost = daily_rate * trial_days
-adjusted_revenue = max(0, total_revenue - trial_cost)
-```
+The chatbot backend (`server/routes/chat.ts`) uses the LaunchDarkly Node.js server-side AI SDK:
 
-## Data Collection Modes
+1. Evaluates the `gravity-farms-chatbot` AI Config for the current user context
+2. Merges the AI Config's messages with conversation history and the user's message
+3. Calls the configured LLM provider (defaults to `gpt-4o-mini`)
+4. Tracks token usage and latency metrics back to LaunchDarkly
 
-### LaunchDarkly Mode
-- Uses LaunchDarkly SDK `track()` calls
-- Events sent to LaunchDarkly for analysis
-- Real-time dashboard updates
+## Simulation (Python)
 
-### Snowflake Mode  
-- Direct insertion into Snowflake metric events table
-- Follows LaunchDarkly schema
-- Events have 5-10 minute offset from flag evaluation for causality
+The Python simulation scripts (`gravityfarms_simulation.py`, `run_continuous_simulation.py`) generate synthetic user traffic for experimentation. They evaluate flags via the server-side Python SDK and track events like `page_view`, `trial_signup`, `trial_to_paid_conversion`, `total_revenue`, and `banner_click`.
 
-## Customization Guide
+### Running the simulation
 
-### Adding New Feature Flags
-
-1. **Define the flag in LaunchDarkly:**
-   - Create flag with appropriate key
-   - Set flag type (boolean, string, number, JSON)
-   - Configure variations
-
-2. **Update simulation code:**
-   ```python
-   # Add flag evaluation
-   new_flag = ld_client.variation('your-flag-key', context, default_value)
-   
-   # Add conditional logic
-   if new_flag:
-       # Your custom logic here
-       events.append("custom_event")
-   ```
-
-3. **Update event tracking:**
-   ```python
-   if mode == 'launchdarkly':
-       ld_client.track("custom_event", context)
-   elif mode == 'snowflake':
-       snowflake_events.append(generate_metric_event_data(
-           user_info["key"], "custom_event", flag_eval_time=flag_eval_time
-       ))
-   ```
-
-### Modifying Conversion Rates
-
-Edit the `variant_conversion_rate` dictionary in `gravityfarms_simulation.py`:
-
-```python
-variant_conversion_rate = {
-    "Control": 0.05,        # 5% conversion
-    "Variant 1": 0.07,      # 7% conversion  
-    "Next Generation": 0.09  # 9% conversion
-}
-```
-
-### Changing Revenue Models
-
-Modify the `variant_revenue_mean` dictionary:
-
-```python
-variant_revenue_mean = {
-    "Control": 30.0,        # $30 average
-    "Variant 1": 35.0,      # $35 average
-    "Next Generation": 40.0  # $40 average
-}
-```
-
-## Running the Demo
-
-### Basic Simulation
 ```bash
 python gravityfarms_simulation.py --records 100 --mode launchdarkly
-```
-
-### Snowflake Mode
-```bash
-python gravityfarms_simulation.py --records 100 --mode snowflake
-```
-
-### Continuous Simulation
-```bash
 python run_continuous_simulation.py --mode launchdarkly
-```
-
-### Analysis
-```bash
-python analyze_experiment_assignments.py
 ```
 
 ## Environment Variables
 
-Required for LaunchDarkly mode:
-- `LAUNCHDARKLY_SDK_KEY`
+| Variable | Required For | Description |
+|---|---|---|
+| `LAUNCHDARKLY_CLIENT_KEY` | Frontend | Client-side ID for the React SDK |
+| `LAUNCHDARKLY_SDK_KEY` | Backend / Simulation | Server-side SDK key |
+| `OPENAI_API_KEY` | Chatbot | OpenAI API key for LLM calls |
+| `SERVER_PORT` | Backend | Express server port (default: 3001) |
 
-Required for Snowflake mode:
-- `SNOWFLAKE_ACCOUNT`
-- `SNOWFLAKE_USER` 
-- `SNOWFLAKE_PASSWORD` or `SNOWFLAKE_PRIVATE_KEY`
-- `SNOWFLAKE_WAREHOUSE`
-- `SNOWFLAKE_DATABASE`
-- `SNOWFLAKE_SCHEMA`
-- `SNOWFLAKE_METRIC_EVENTS_TABLE`
+## Adding New Feature Flags
 
-## Troubleshooting
-
-### Common Issues
-
-1. **Flag not evaluating correctly:**
-   - Check flag key spelling
-   - Verify flag is enabled in LaunchDarkly
-   - Ensure user context has required attributes
-
-2. **Events not appearing:**
-   - Check LaunchDarkly SDK key
-   - Verify `ld_client.flush()` is called
-   - Check network connectivity
-
-3. **Snowflake connection errors:**
-   - Verify all environment variables
-   - Check Snowflake credentials
-   - Ensure table exists with correct schema
-
-### Debug Mode
-Enable detailed logging by setting log level:
-```python
-logging.basicConfig(level=logging.DEBUG)
+1. Create the flag in LaunchDarkly
+2. Use the `useFeatureFlag` hook in your component:
+```typescript
+const { value, isLoading } = useFeatureFlag('your-flag-key', defaultValue);
 ```
+3. Gate rendering on `isLoading` if the flag controls visible content
+4. Update this guide with the new flag
 
 ## Best Practices
 
-1. **Flag Naming:** Use kebab-case for flag keys
-2. **Default Values:** Always provide sensible defaults
-3. **Event Tracking:** Use consistent event names
-4. **Testing:** Test flag variations before production
-5. **Documentation:** Keep this guide updated with new flags
-
-## Support
-
-For questions about this demo or LaunchDarkly integration, refer to:
-- [LaunchDarkly Documentation](https://docs.launchdarkly.com/)
-- [LaunchDarkly Python SDK](https://github.com/launchdarkly/python-server-sdk)
-- [LaunchDarkly Snowflake Integration](https://docs.launchdarkly.com/integrations/data-export/snowflake)
+1. **Flag naming:** Use kebab-case for flag keys (e.g., `show-product-catalog`)
+2. **Default values:** Always provide sensible defaults that produce a working UI
+3. **Loading states:** Gate content behind `isLoading` to prevent flicker
+4. **Event tracking:** Use consistent, descriptive event names
+5. **Feature gating:** Wrap all new customer-facing features with a boolean flag
