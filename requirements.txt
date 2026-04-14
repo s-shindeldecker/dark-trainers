@@ -1,3 +1,4 @@
 launchdarkly-server-sdk
 Faker
 python-dotenv
+snowflake-connector-python

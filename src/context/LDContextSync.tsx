@@ -1,4 +1,3 @@
-// Cleaned up by AI on 2025-06-18, see git history for previous versions.
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
@@ -7,6 +6,7 @@ import { ContextVersionContext } from './ContextVersion';
 const LDContextSync = ({ context, children }: PropsWithChildren<{ context: any }>) => {
   const ldClient = useLDClient();
   const [contextVersion, setContextVersion] = useState(0);
+  const [isIdentifying, setIsIdentifying] = useState(false);
   const prevContextRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -17,28 +17,23 @@ const LDContextSync = ({ context, children }: PropsWithChildren<{ context: any }
 
     (async () => {
       try {
-        console.log('[LD] Waiting for client initialization...');
+        setIsIdentifying(true);
         await ldClient.waitForInitialization();
-        console.log('[LD] Client initialized, about to identify with context:', JSON.stringify(context, null, 2));
         await ldClient.identify(context);
-        const currentContext = ldClient.getContext();
-        console.log('[LD] After identify, current context is:', JSON.stringify(currentContext, null, 2));
-        setContextVersion(v => {
-          const newVersion = v + 1;
-          console.log('[LD] Incrementing contextVersion from', v, 'to', newVersion);
-          return newVersion;
-        });
+        setContextVersion(v => v + 1);
       } catch (error) {
         console.error('[LD] Error updating context:', error);
+      } finally {
+        setIsIdentifying(false);
       }
     })();
   }, [ldClient, context]);
 
   return (
-    <ContextVersionContext.Provider value={contextVersion}>
+    <ContextVersionContext.Provider value={{ contextVersion, isIdentifying }}>
       {children}
     </ContextVersionContext.Provider>
   );
 };
 
-export default LDContextSync; 
+export default LDContextSync;

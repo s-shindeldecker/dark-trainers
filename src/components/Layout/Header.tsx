@@ -64,14 +64,32 @@ const NavLink = styled.li`
   }
 `;
 
+const GetStartedButton = styled(Link)`
+  display: inline-block;
+  background: #FFD166;
+  color: #35524A;
+  padding: 0.5em 1.2em;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.95em;
+  text-decoration: none;
+  transition: background 0.2s;
+  &:hover {
+    background: #FFC233;
+  }
+`;
+
 interface HeaderProps {
   isLoggedIn: boolean;
   onLogin: () => void;
   onLogout: () => void;
   onAccount?: () => void;
+  showProducts?: boolean;
+  showOurFood?: boolean;
+  showSignup?: boolean;
 }
 
-export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount }: HeaderProps) => {
+export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount, showProducts, showOurFood, showSignup }: HeaderProps) => {
   return (
     <NavBar>
       <CenteredHeader>
@@ -84,11 +102,17 @@ export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount }: HeaderProps
           </Logo>
           <NavLinks>
             <NavLink><Link to="/">Home</Link></NavLink>
+            {showOurFood && (
+              <NavLink><Link to="/our-food">Our Food</Link></NavLink>
+            )}
+            {showProducts && (
+              <NavLink><Link to="/products">Products</Link></NavLink>
+            )}
             <NavLink><Link to="/reviews">Reviews</Link></NavLink>
             <NavLink><Link to="/about">About Us</Link></NavLink>
             <NavLink><Link to="/why-gravity-farms">Why Gravity Farms?</Link></NavLink>
             <NavLink><Link to="/faq">FAQ</Link></NavLink>
-            <NavLink><a href="#">For Vet Professionals</a></NavLink>
+            <NavLink><Link to="#">For Vet Professionals</Link></NavLink>
             {isLoggedIn && (
               <NavLink><a href="#" onClick={onAccount}>Account</a></NavLink>
             )}
@@ -99,9 +123,12 @@ export const Header = ({ isLoggedIn, onLogin, onLogout, onAccount }: HeaderProps
                 <a href="#" onClick={onLogin}>Log In</a>
               )}
             </NavLink>
+            {showSignup && (
+              <NavLink><GetStartedButton to="/signup">Get Started</GetStartedButton></NavLink>
+            )}
           </NavLinks>
         </div>
       </CenteredHeader>
     </NavBar>
   );
-}; 
+};

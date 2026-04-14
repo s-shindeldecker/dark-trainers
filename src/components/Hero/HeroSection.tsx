@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { useTrialDays } from '../../hooks/useTrialDays';
+import { useIsIdentifying } from '../../context/ContextVersion';
+import { HeroSkeleton } from './HeroSkeleton';
 import styled from '@emotion/styled';
 
 const HeroContainer = styled.div`
@@ -36,17 +38,16 @@ const HeroImage = styled.img`
   }
 `;
 
-const HeroText = styled.div<{ horiz: string; vert: string; color: string }>(
-  ({ horiz, vert, color }) => ({
+const HeroText = styled.div<{ color: string }>(
+  ({ color }) => ({
     position: 'absolute',
     left: '50%',
     transform: 'translateX(-50%)',
     zIndex: 2,
     color: color,
-    textAlign: horiz as any,
+    textAlign: 'center' as const,
     width: '100%',
-    top: vert === 'top' ? '5%' : vert === 'center' ? '40%' : 'auto',
-    bottom: vert === 'bottom' ? '15%' : 'auto',
+    top: '5%',
   })
 );
 
@@ -62,12 +63,10 @@ const HeroTextOverlay = styled.div`
   margin: 0 auto;
 `;
 
-const SubBannerText = styled.p<{ color: string }>(
-  ({ color }) => ({
-    marginTop: '0.5em',
-    color: color,
-  })
-);
+const SubBannerText = styled.p`
+  margin-top: 0.5em;
+  color: #FFFFFF;
+`;
 
 const HeroButtonWrapper = styled.div`
   position: absolute;
@@ -123,6 +122,7 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background: white;
+  color: #35524A;
   padding: 2em;
   border-radius: 12px;
   max-width: 400px;
@@ -134,56 +134,28 @@ const DEFAULT_BANNER = {
   'banner-text': 'Fresh, healthy meals crafted in Gravity Falls',
   'banner-text-color': '#FFFFFF',
   'sub-banner-text': "Start your pup's journey to better health with our free trial",
-  'sub-banner-text-color': '#FFFFFF',
-  'horiz-justification': 'center',
-  'vert-justification': 'top',
   'image-file': 'hero-control.jpeg',
 };
 
 export const HeroSection = () => {
   const { value: showTrialButton, isLoading: isButtonLoading } = useFeatureFlag('show-trial-button', false);
-  const { value: bannerConfig = DEFAULT_BANNER } = useFeatureFlag('hero-banner-text', DEFAULT_BANNER);
+  const { value: bannerConfig = DEFAULT_BANNER, isLoading: isBannerLoading } = useFeatureFlag('hero-banner-text', DEFAULT_BANNER);
   const { trialDays, isLoading: isTrialDaysLoading } = useTrialDays(7);
+  const isIdentifying = useIsIdentifying();
   const [showModal, setShowModal] = useState(false);
+
+  if (isBannerLoading || isIdentifying) {
+    return <HeroSkeleton />;
+  }
 
   const imageFile = bannerConfig['image-file'] || DEFAULT_BANNER['image-file'];
   const isFlagValid = imageFile && typeof imageFile === 'string' && imageFile.trim() !== '';
-
-  // Defensive: fallback to defaults if any field is missing
   const bannerText = bannerConfig['banner-text'] || DEFAULT_BANNER['banner-text'];
   const bannerTextColor = bannerConfig['banner-text-color'] || DEFAULT_BANNER['banner-text-color'];
   const subBannerText = bannerConfig['sub-banner-text'] || DEFAULT_BANNER['sub-banner-text'];
-  const subBannerTextColor = bannerConfig['sub-banner-text-color'] || DEFAULT_BANNER['sub-banner-text-color'];
-  const horiz = bannerConfig['horiz-justification'] || DEFAULT_BANNER['horiz-justification'];
-  const vert = bannerConfig['vert-justification'] || DEFAULT_BANNER['vert-justification'];
 
-  // Create dynamic trial text
   const trialButtonText = `Try ${trialDays} Days Free`;
   const trialModalText = `Get ${trialDays} days of fresh, customized meals for your dog.`;
-
-  useEffect(() => {
-    console.log('[LD] Hero Section Render:', {
-      timestamp: new Date().toISOString(),
-      showTrialButton,
-      bannerConfig,
-      isButtonLoading,
-      trialDays,
-      isTrialDaysLoading,
-      defaultBannerConfig: DEFAULT_BANNER,
-      isFlagValid,
-      computedValues: {
-        bannerText,
-        bannerTextColor,
-        subBannerText,
-        subBannerTextColor,
-        horiz,
-        vert,
-        imageFile,
-        trialButtonText,
-        trialModalText
-      }
-    });
-  }, [showTrialButton, bannerConfig, isButtonLoading, trialDays, isTrialDaysLoading, isFlagValid, bannerText, bannerTextColor, subBannerText, subBannerTextColor, horiz, vert, imageFile, trialButtonText, trialModalText]);
 
   return (
     <HeroContainer>
@@ -194,10 +166,10 @@ export const HeroSection = () => {
           LaunchDarkly flag not set or not working. No hero image to display.
         </FallbackBanner>
       )}
-      <HeroText horiz={horiz} vert={vert} color={bannerTextColor}>
+      <HeroText color={bannerTextColor}>
         <HeroTextOverlay>
           <h1>{bannerText}</h1>
-          <SubBannerText color={subBannerTextColor}>{subBannerText}</SubBannerText>
+          <SubBannerText>{subBannerText}</SubBannerText>
         </HeroTextOverlay>
       </HeroText>
       {(!isButtonLoading && !isTrialDaysLoading && showTrialButton) && (
@@ -223,4 +195,4 @@ export const HeroSection = () => {
       )}
     </HeroContainer>
   );
-}; 
+};

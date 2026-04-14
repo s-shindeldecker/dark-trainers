@@ -22,6 +22,7 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background: white;
+  color: #35524A;
   padding: 2em;
   border-radius: 12px;
   max-width: 400px;

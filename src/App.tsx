@@ -2,11 +2,14 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { LDContextProvider } from './context/LDContext';
 import { UserProvider, useUser } from './context/UserContext';
 import type { UserProfile } from './context/UserContext';
+import { useFeatureFlag } from './hooks/useFeatureFlag';
 import { HeroSection } from './components/Hero/HeroSection';
 import { Header } from './components/Layout/Header';
 import { Footer } from './components/Layout/Footer';
 import { SeasonalBanner } from './components/Layout/SeasonalBanner';
 import { Account } from './pages/Account';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
 import styled from '@emotion/styled';
 import { useState } from 'react';
 import { Modal } from './components/common/Modal';
@@ -14,12 +17,14 @@ import AboutUs from './pages/About';
 import WhyGravityFarms from './pages/WhyGravityFarms';
 import FAQ from './pages/FAQ';
 import Reviews from './pages/Reviews';
+import OurFood from './pages/OurFood';
+import Signup from './pages/Signup';
+import { ChatWidget } from './components/Chat/ChatWidget';
 
 const MainContent = styled.main`
   flex: 1;
 `;
 
-// Updated personas for demo/testing, cleaned up by AI on 2025-06-18.
 const personas = [
   {
     label: 'Kat Purrstein (Cat, UK, Basic, PayPal)',
@@ -133,6 +138,11 @@ function AppContent() {
   const navigate = useNavigate();
   const [showPersonaModal, setShowPersonaModal] = useState(false);
 
+  const { value: showProductCatalog } = useFeatureFlag('show-product-catalog', false);
+  const { value: showChatbot } = useFeatureFlag('show-chatbot', false);
+  const { value: showOurFood } = useFeatureFlag('show-our-food', false);
+  const { value: showAiSignup } = useFeatureFlag('show-ai-signup', false);
+
   const handlePersonaSelect = (profile: UserProfile) => {
     login(profile);
     setShowPersonaModal(false);
@@ -146,11 +156,18 @@ function AppContent() {
         onLogin={() => setShowPersonaModal(true)}
         onLogout={logout}
         onAccount={() => navigate('/account')}
+        showProducts={showProductCatalog}
+        showOurFood={showOurFood}
+        showSignup={showAiSignup}
       />
       <MainContent>
         <Routes>
           <Route path="/" element={<HeroSection />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/our-food" element={<OurFood />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/why-gravity-farms" element={<WhyGravityFarms />} />
           <Route path="/faq" element={<FAQ />} />
@@ -158,10 +175,11 @@ function AppContent() {
         </Routes>
       </MainContent>
       <Footer />
-      <PersonaModal 
-        open={showPersonaModal} 
+      {showChatbot && <ChatWidget />}
+      <PersonaModal
+        open={showPersonaModal}
         onClose={() => setShowPersonaModal(false)}
-        onSelect={handlePersonaSelect} 
+        onSelect={handlePersonaSelect}
       />
     </LDContextProvider>
   );
