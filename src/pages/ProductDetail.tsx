@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { getProductById } from '../components/Products/productData';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
@@ -76,11 +77,49 @@ const Countdown = styled.div`
   color: #c8f000;
 `;
 
+const shake = keyframes`
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  18% {
+    transform: translateX(-7px);
+  }
+  36% {
+    transform: translateX(7px);
+  }
+  54% {
+    transform: translateX(-4px);
+  }
+  72% {
+    transform: translateX(4px);
+  }
+  90% {
+    transform: translateX(-2px);
+  }
+`;
+
 const SelectRow = styled.div`
   margin: 1rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+`;
+
+const SizeSelectWrap = styled.div`
+  width: 100%;
+  max-width: 280px;
+  &.shake {
+    animation: ${shake} 0.48s ease;
+  }
+`;
+
+const SizeErrorText = styled.p`
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #c8f000;
+  font-weight: 500;
 `;
 
 const Actions = styled.div`
@@ -110,13 +149,38 @@ export default function ProductDetail() {
   const { value: ctaCopy } = useFeatureFlag(LD_FLAGS.vipUpgradeCtaCopy, 'Join VIP');
 
   const [size, setSize] = useState<number | ''>('');
+  const [sizeError, setSizeError] = useState(false);
+  const sizeSelectWrapRef = useRef<HTMLDivElement>(null);
+
+  const triggerSizeShake = useCallback(() => {
+    const el = sizeSelectWrapRef.current;
+    if (!el) return;
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+  }, []);
+
+  const clearSizeError = useCallback(() => setSizeError(false), []);
+
+  useEffect(() => {
+    if (!sizeError) return;
+    const t = window.setTimeout(() => setSizeError(false), 3000);
+    return () => window.clearTimeout(t);
+  }, [sizeError]);
+
+  const requireSizeOrShowError = useCallback((): boolean => {
+    if (size !== '') return true;
+    setSizeError(true);
+    triggerSizeShake();
+    return false;
+  }, [size, triggerSizeShake]);
 
   const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
   const lockedDrop = product?.isDropExclusive && !isVip && !showDropToNonVip;
 
   useEffect(() => {
     if (!product || !ldClient) return;
-    ldClient.track('product_viewed', { value: product.price });
+    ldClient.track('product_viewed', null, product.price);
   }, [product, ldClient]);
 
   const releaseMs = useMemo(() => (product ? new Date(product.releaseDate).getTime() : 0), [product]);
@@ -143,12 +207,12 @@ export default function ProductDetail() {
   const showCd = product.isDropExclusive && showCountdown && isVip && msLeft > 0;
 
   const openVipWithOptionalPending = () => {
-    if (size === '') return;
+    if (!requireSizeOrShowError()) return;
     openVipModal({ product, size: size as number });
   };
 
   const handleAddToCart = () => {
-    if (size === '') return;
+    if (!requireSizeOrShowError()) return;
     if (lockedDrop) {
       openVipWithOptionalPending();
       return;
@@ -159,7 +223,7 @@ export default function ProductDetail() {
       return;
     }
     if (ldClient) {
-      ldClient.track('add_to_cart', { value: product.price });
+      ldClient.track('add_to_cart', null, product.price);
     }
   };
 
@@ -201,23 +265,41 @@ export default function ProductDetail() {
             )}
           </PriceBlock>
           <SelectRow>
-            <label style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>US size</label>
-            <select value={size} onChange={(e) => setSize(e.target.value === '' ? '' : Number(e.target.value))}>
-              <option value="">Select size</option>
-              {product.sizes.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <label htmlFor="pdp-size" style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>
+              US size
+            </label>
+            <SizeSelectWrap ref={sizeSelectWrapRef}>
+              <select
+                id="pdp-size"
+                value={size}
+                aria-invalid={sizeError}
+                aria-describedby={sizeError ? 'pdp-size-error' : undefined}
+                onChange={(e) => {
+                  setSize(e.target.value === '' ? '' : Number(e.target.value));
+                  clearSizeError();
+                }}
+              >
+                <option value="">Select size</option>
+                {product.sizes.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </SizeSelectWrap>
+            {sizeError && (
+              <SizeErrorText id="pdp-size-error" role="alert">
+                Please select a size to continue
+              </SizeErrorText>
+            )}
           </SelectRow>
           <Actions>
             {!lockedDrop ? (
-              <button type="button" onClick={handleAddToCart} disabled={size === ''}>
+              <button type="button" onClick={handleAddToCart}>
                 Add to cart
               </button>
             ) : (
-              <button type="button" onClick={openVipWithOptionalPending} disabled={size === ''}>
+              <button type="button" onClick={openVipWithOptionalPending}>
                 Unlock with VIP
               </button>
             )}

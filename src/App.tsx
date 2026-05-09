@@ -44,7 +44,7 @@ function AppShell() {
       const p = getProductById(vip.pendingCartAdd.productId);
       if (p) {
         addItemAfterVipTransition(p, vip.pendingCartAdd.size);
-        ldClient.track('add_to_cart', { value: p.price });
+        ldClient.track('add_to_cart', null, p.price);
       }
     }
     vip.clearPendingCartAdd();
