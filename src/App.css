@@ -1,37 +1,16 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  background: #F6E7CB;
-}
-
-.card {
-  padding: 2em;
-  background: #fff;
-  border: 2px solid #35524A;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(53, 82, 74, 0.07);
-}
-
-.cta-button {
-  background: #FFD166;
-  color: #35524A;
-  border: none;
-  border-radius: 8px;
-  padding: 1em 2em;
-  font-size: 1.2em;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.cta-button:hover {
-  background: #D7263D;
-  color: #fff;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: initial;
+  background: var(--dt-bg, #0d0d0d);
 }
 
 .centered-container {
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }

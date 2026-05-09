@@ -1,25 +1,24 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 
 const FooterBar = styled.footer`
   width: 100%;
-  background: #F6E7CB;
-  border-top: 1px solid #eee;
-  padding: 2em 0 1em 0;
+  background: #0d0d0d;
+  border-top: 1px solid #2a2a2a;
+  padding: 2rem 0 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.95em;
-  color: #555;
+  font-size: 0.9rem;
+  color: #a3a3a3;
 `;
 
 const FooterLinks = styled.ul`
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5em;
-  margin: 0 0 1em 0;
+  gap: 1.25rem;
+  margin: 0 0 1rem;
   padding: 0;
   justify-content: center;
 `;
@@ -27,48 +26,52 @@ const FooterLinks = styled.ul`
 const FooterLink = styled.li`
   a {
     text-decoration: none;
-    color: #555;
+    color: #a3a3a3;
     transition: color 0.2s;
     &:hover {
-      color: #4caf50;
+      color: #c8f000;
     }
   }
 `;
 
 const Copyright = styled.div`
-  font-size: 0.85em;
-  color: #aaa;
+  font-size: 0.8rem;
+  color: #737373;
 `;
 
 const Tagline = styled.div`
-  font-size: 0.85em;
-  color: #35524A;
-  margin-top: 0.5em;
+  font-size: 0.85rem;
+  color: #c8f000;
+  margin-top: 0.5rem;
   font-weight: 500;
 `;
 
 export const Footer = () => {
-  const { value: tagline = "Crafted in Gravity Falls, delivered to your door", isLoading } = useFeatureFlag('site-tagline', "Crafted in Gravity Falls, delivered to your door");
-
   return (
     <FooterBar>
       <div className="centered-container">
         <FooterLinks>
-          <FooterLink><Link to="/reviews">Reviews</Link></FooterLink>
-          <FooterLink><Link to="/about">About Us</Link></FooterLink>
-          <FooterLink><Link to="/faq">FAQ</Link></FooterLink>
-          <FooterLink><a href="#">Careers</a></FooterLink>
-          <FooterLink><a href="#">Affiliates</a></FooterLink>
-          <FooterLink><a href="#">For Vet Professionals</a></FooterLink>
-          <FooterLink><a href="#">Privacy</a></FooterLink>
-          <FooterLink><a href="#">Terms</a></FooterLink>
-          <FooterLink><a href="#">Accessibility</a></FooterLink>
-          <FooterLink><a href="#">Do Not Sell My Personal Information</a></FooterLink>
+          <FooterLink>
+            <Link to="/reviews">Reviews</Link>
+          </FooterLink>
+          <FooterLink>
+            <Link to="/about">About</Link>
+          </FooterLink>
+          <FooterLink>
+            <Link to="/faq">FAQ</Link>
+          </FooterLink>
+          <FooterLink>
+            <Link to="/products">Shop</Link>
+          </FooterLink>
+          <FooterLink>
+            <a href="#">Privacy</a>
+          </FooterLink>
+          <FooterLink>
+            <a href="#">Terms</a>
+          </FooterLink>
         </FooterLinks>
-        <Copyright>
-          &copy; {new Date().getFullYear()} Gravity Farms Petfood. All rights reserved.
-        </Copyright>
-        {!isLoading && <Tagline>{tagline}</Tagline>}
+        <Copyright>&copy; {new Date().getFullYear()} DarkTrainers. All rights reserved.</Copyright>
+        <Tagline>Drop-Ready, just a toggle away.</Tagline>
       </div>
     </FooterBar>
   );

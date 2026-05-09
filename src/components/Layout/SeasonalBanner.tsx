@@ -2,11 +2,12 @@ import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
+import { LD_FLAGS } from '../../lib/ldFlagKeys';
 
 const BannerContainer = styled.div`
   width: 100%;
-  background: linear-gradient(135deg, #FFD166 0%, #6A994E 100%);
-  color: white;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #111 100%);
+  color: #f5f5f5;
   text-align: center;
   padding: 0.75em 1em;
   font-weight: 600;
@@ -18,7 +19,7 @@ const BannerContainer = styled.div`
   transition: all 0.2s ease;
   
   &:hover {
-    background: linear-gradient(135deg, #FFC233 0%, #5A8A3E 100%);
+    background: linear-gradient(135deg, #222 0%, #333 100%);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   }
@@ -36,7 +37,7 @@ const BannerText = styled.span`
 `;
 
 export const SeasonalBanner = () => {
-  const { value: bannerText, isLoading } = useFeatureFlag('seasonal-sale-banner-text', '');
+  const { value: bannerText, isLoading } = useFeatureFlag(LD_FLAGS.promoBannerText, '');
   const ldClient = useLDClient();
   const navigate = useNavigate();
 

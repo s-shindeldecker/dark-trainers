@@ -1,81 +1,67 @@
 import styled from '@emotion/styled';
 
-const ReviewsContainer = styled.div`
-  max-width: 700px;
-  margin: 2em auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(53, 82, 74, 0.07);
-  padding: 2.5em 2em;
-  color: #35524A;
-  font-size: 1.15em;
+const Page = styled.div`
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem 3rem;
 `;
 
-const ReviewsTitle = styled.h1`
-  font-size: 2.2em;
-  margin-bottom: 0.5em;
+const Title = styled.h1`
   text-align: center;
+  font-size: 2.25rem;
+  margin-bottom: 2rem;
+  color: #f5f5f5;
 `;
 
-const ReviewBlock = styled.div`
-  margin-bottom: 2em;
-  padding-bottom: 1em;
-  border-bottom: 1px solid #F6E7CB;
+const Grid = styled.div`
+  display: grid;
+  gap: 1.25rem;
 `;
 
-const Stars = styled.div`
-  font-size: 1.3em;
-  color: #FFD166;
-  margin-bottom: 0.3em;
+const Card = styled.blockquote`
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  color: #d4d4d4;
+  font-size: 1rem;
+  line-height: 1.55;
 `;
 
-const Quote = styled.blockquote`
-  font-style: italic;
-  margin: 0.5em 0 0.5em 0;
-  padding-left: 1em;
-  border-left: 4px solid #FFD166;
-`;
-
-const Reviewer = styled.div`
-  font-size: 0.98em;
-  color: #6A994E;
-  margin-bottom: 0.2em;
+const Reviewer = styled.footer`
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #c8f000;
 `;
 
 const Reviews = () => (
-  <ReviewsContainer>
-    <ReviewsTitle>🌟 Customer Reviews</ReviewsTitle>
-    <ReviewBlock>
-      <Stars>⭐⭐⭐⭐⭐</Stars>
-      <Quote>“My dog licked the bowl clean... and then tried to eat the bowl.”</Quote>
-      <Reviewer>— Sarah T., Oregon</Reviewer>
-      <p>Gravity Farms has completely ruined other pet food for us. Luna used to be a picky eater — now she sits by the fridge like she's waiting for her DoorDash order.</p>
-    </ReviewBlock>
-    <ReviewBlock>
-      <Stars>⭐⭐⭐⭐⭐</Stars>
-      <Quote>“You'd think we were serving steak.”</Quote>
-      <Reviewer>— Marcus D., Illinois</Reviewer>
-      <p>Our lab, Moose, went full Gordon Ramsay on his old kibble after trying Gravity Farms. He flipped the bowl and everything. Now it's fresh or nothing.</p>
-    </ReviewBlock>
-    <ReviewBlock>
-      <Stars>⭐⭐⭐⭐☆</Stars>
-      <Quote>“Love the food. The box became my cat's new apartment.”</Quote>
-      <Reviewer>— Emily R., California</Reviewer>
-      <p>Okay, I know this is for dogs, but I accidentally left the delivery box open and my cat moved in. The food smells amazing — if I didn't know better, I'd say it was Sunday dinner.</p>
-    </ReviewBlock>
-    <ReviewBlock>
-      <Stars>⭐⭐⭐⭐⭐</Stars>
-      <Quote>“Our vet asked what we were feeding him. I panicked and said 'love.'”</Quote>
-      <Reviewer>— James P., New York</Reviewer>
-      <p>But seriously, our golden retriever, Bowie, has more energy, shinier fur, and fewer tummy issues since switching. 10/10 would recommend (and have, to everyone at the dog park).</p>
-    </ReviewBlock>
-    <ReviewBlock>
-      <Stars>⭐⭐⭐⭐⭐</Stars>
-      <Quote>“Finally, a food worthy of a dog named Mabel.”</Quote>
-      <Reviewer>— Anonymous, Gravity Falls</Reviewer>
-      <p>Mabel knows quality, and this is it. She hasn't tried to bury a single meal since we made the switch. Even Wendy seems impressed — and Wendy is hard to impress.</p>
-    </ReviewBlock>
-  </ReviewsContainer>
+  <Page>
+    <Title className="font-display">From the community</Title>
+    <Grid>
+      <Card>
+        <p>
+          “First DarkTrainers drop I hit was the VOLT-1. Packaging felt premium, shoe is insane in hand — photos
+          didn’t oversell it.”
+        </p>
+        <Reviewer>— M. Reyes, Brooklyn</Reviewer>
+      </Card>
+      <Card>
+        <p>
+          “VIP paid for itself on two pairs. Early access is no joke; I checked out before the public link even
+          tweeted.”
+        </p>
+        <Reviewer>— K. Okafor, Atlanta</Reviewer>
+      </Card>
+      <Card>
+        <p>
+          “I live in my APEX LOWs. Clean lines, no loud branding — just quality leather and a silhouette that works with
+          everything.”
+        </p>
+        <Reviewer>— Sam T., Portland</Reviewer>
+      </Card>
+    </Grid>
+  </Page>
 );
 
-export default Reviews; 
+export default Reviews;

@@ -1,113 +1,156 @@
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
+import type { Product } from './productData';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { LD_FLAGS } from '../../lib/ldFlagKeys';
+import { useUser } from '../../context/UserContext';
+import { isIdentifiedUser } from '../../types/darktrainers';
 
-export interface Product {
-  id: string;
-  name: string;
-  tagline: string;
-  price: string;
-  interval: string;
-  features: string[];
-  highlighted?: boolean;
-}
-
-const Card = styled.div<{ highlighted?: boolean }>(({ highlighted }) => ({
-  background: highlighted ? '#35524A' : '#fff',
-  color: highlighted ? '#fff' : '#35524A',
-  borderRadius: 16,
-  boxShadow: highlighted
-    ? '0 8px 32px rgba(53, 82, 74, 0.25)'
-    : '0 2px 12px rgba(53, 82, 74, 0.07)',
-  padding: '2.5em 2em',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  textAlign: 'center',
-  transition: 'transform 0.2s, box-shadow 0.2s',
-  flex: '1 1 280px',
-  maxWidth: 360,
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 36px rgba(53, 82, 74, 0.18)',
-  },
-}));
-
-const PlanName = styled.h2`
-  font-size: 1.6em;
-  margin: 0 0 0.25em;
+const Card = styled.article`
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-width: 340px;
+  transition: border-color 0.2s, transform 0.2s;
+  &:hover {
+    border-color: #444;
+    transform: translateY(-3px);
+  }
 `;
 
-const Tagline = styled.p<{ highlighted?: boolean }>(({ highlighted }) => ({
-  fontSize: '0.95em',
-  color: highlighted ? 'rgba(255,255,255,0.8)' : '#6A994E',
-  marginBottom: '1.5em',
-}));
-
-const Price = styled.div`
-  font-size: 2.4em;
-  font-weight: bold;
-  margin-bottom: 0.1em;
-`;
-
-const Interval = styled.div<{ highlighted?: boolean }>(({ highlighted }) => ({
-  fontSize: '0.85em',
-  color: highlighted ? 'rgba(255,255,255,0.7)' : '#999',
-  marginBottom: '1.5em',
-}));
-
-const FeatureList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2em;
+const Img = styled.img`
   width: 100%;
-  text-align: left;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #0d0d0d;
 `;
 
-const Feature = styled.li<{ highlighted?: boolean }>(({ highlighted }) => ({
-  padding: '0.5em 0',
-  borderBottom: `1px solid ${highlighted ? 'rgba(255,255,255,0.15)' : '#F6E7CB'}`,
-  fontSize: '0.95em',
-  '&::before': {
-    content: '"✓ "',
-    color: highlighted ? '#FFD166' : '#6A994E',
-    fontWeight: 'bold',
-  },
-}));
+const Body = styled.div`
+  padding: 1rem 1.1rem 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
 
-const SelectButton = styled(Link)<{ highlighted?: boolean }>(({ highlighted }) => ({
-  display: 'inline-block',
-  padding: '0.8em 2em',
-  borderRadius: 8,
-  fontWeight: 'bold',
-  fontSize: '1.05em',
-  textDecoration: 'none',
-  cursor: 'pointer',
-  transition: 'background 0.2s, color 0.2s',
-  background: highlighted ? '#FFD166' : '#35524A',
-  color: highlighted ? '#35524A' : '#fff',
-  border: 'none',
-  '&:hover': {
-    background: highlighted ? '#FFC233' : '#6A994E',
-  },
-}));
+const Cat = styled.span`
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c8f000;
+`;
+
+const Name = styled.h2`
+  margin: 0.35rem 0 0.25rem;
+  font-size: 1.35rem;
+  line-height: 1.1;
+`;
+
+const Colorway = styled.p`
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #a3a3a3;
+`;
+
+const PriceRow = styled.div`
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const Price = styled.span`
+  font-size: 1.35rem;
+  font-weight: 700;
+`;
+
+const MemberPrice = styled.span`
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #c8f000;
+`;
+
+const Strike = styled.span`
+  text-decoration: line-through;
+  color: #737373;
+  font-size: 0.95rem;
+`;
+
+const Badge = styled.span`
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #2a2a2a;
+  color: #d4d4d4;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+`;
+
+const Cta = styled(Link)`
+  display: block;
+  text-align: center;
+  margin-top: 0.85rem;
+  padding: 0.65em;
+  background: #c8f000;
+  color: #0d0d0d;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  &:hover {
+    filter: brightness(1.05);
+  }
+`;
+
+const Locked = styled.div`
+  margin-top: 0.85rem;
+  padding: 0.65em;
+  text-align: center;
+  background: #1a1a1a;
+  color: #a3a3a3;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  border: 1px dashed #444;
+`;
 
 interface ProductCardProps {
   product: Product;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => (
-  <Card highlighted={product.highlighted}>
-    <PlanName>{product.name}</PlanName>
-    <Tagline highlighted={product.highlighted}>{product.tagline}</Tagline>
-    <Price>{product.price}</Price>
-    <Interval highlighted={product.highlighted}>{product.interval}</Interval>
-    <FeatureList>
-      {product.features.map((f) => (
-        <Feature key={f} highlighted={product.highlighted}>{f}</Feature>
-      ))}
-    </FeatureList>
-    <SelectButton to={`/products/${product.id}`} highlighted={product.highlighted}>
-      View Plan
-    </SelectButton>
-  </Card>
-);
+export function ProductCard({ product }: ProductCardProps) {
+  const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
+  const { value: showDropToNonVip } = useFeatureFlag(LD_FLAGS.showDropExclusiveProducts, false);
+  const { user } = useUser();
+
+  const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
+  const lockedDrop = product.isDropExclusive && !isVip && !showDropToNonVip;
+
+  return (
+    <Card>
+      <Img src={product.imageUrl} alt="" loading="lazy" />
+      <Body>
+        <Cat>{product.category}</Cat>
+        <Name className="font-display">{product.name}</Name>
+        <Colorway>{product.colorway}</Colorway>
+        {product.isDropExclusive && <Badge style={{ marginBottom: '0.35rem', alignSelf: 'flex-start' }}>Drop</Badge>}
+        <PriceRow>
+          {isVip && showVipPricing ? (
+            <>
+              <Strike>${product.price}</Strike>
+              <MemberPrice>${product.memberPrice}</MemberPrice>
+            </>
+          ) : (
+            <Price>${product.price}</Price>
+          )}
+        </PriceRow>
+        {lockedDrop ? (
+          <Locked>VIP early access — sign in as VIP or upgrade to view.</Locked>
+        ) : (
+          <Cta to={`/products/${product.id}`}>View drop</Cta>
+        )}
+      </Body>
+    </Card>
+  );
+}

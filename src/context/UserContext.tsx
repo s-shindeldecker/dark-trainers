@@ -1,87 +1,100 @@
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
-
-export type UserProfile = {
-  key: string;
-  anonymous: boolean;
-  name?: string;
-  country?: string;
-  state?: string;
-  petType?: string;
-  planType?: string;
-  paymentType?: string;
-};
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import {
+  type AppUser,
+  type IdentifiedUserProfile,
+  STANDARD_DEMO_USER,
+  VIP_DEMO_USER,
+  newAnonymousKey,
+} from '../types/darktrainers';
 
 interface UserContextType {
-  user: UserProfile;
-  isLoggedIn: boolean;
-  login: (profile: UserProfile) => void;
-  logout: () => void;
-  setUser: (profile: UserProfile) => void;
+  user: AppUser;
+  /** True when browsing as anonymous Guest (not Standard/VIP). */
+  isAnonymousGuest: boolean;
+  /** True when identified Standard or VIP. */
+  isIdentified: boolean;
   previousAnonymousKey?: string;
+  setUser: (user: AppUser) => void;
+  setPreviousAnonymousKey: (key: string | undefined) => void;
+  resetToGuest: () => void;
+  setIdentifiedStandard: () => void;
+  setIdentifiedVip: () => void;
+  /** Standard → VIP; clears multi stitch key. */
+  upgradeIdentifiedToVip: () => void;
+  /** Guest → Standard with LD multi context (call while still anonymous). */
+  transitionGuestToStandard: () => void;
+  /** Guest → VIP with LD multi context (call while still anonymous). */
+  transitionGuestToVip: () => void;
+  /** Same as resetToGuest — for header “Log out”. */
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const getRandomUserProfile = (): UserProfile => {
-  const countries = ['US', 'CA', 'FR', 'UK'];
-  const petTypes = ['dog', 'cat', 'both'];
-  const planTypes = ['basic', 'premium', 'deluxe'];
-  const paymentTypes = ['credit_card', 'paypal', 'apple_pay'];
-  
-  const country = countries[Math.floor(Math.random() * countries.length)];
-  const petType = petTypes[Math.floor(Math.random() * petTypes.length)];
-  const planType = planTypes[Math.floor(Math.random() * planTypes.length)];
-  const paymentType = paymentTypes[Math.floor(Math.random() * paymentTypes.length)];
-  
-  let state = '';
-  if (country === 'US') state = 'California';
-  else if (country === 'CA') state = 'Ontario';
-  else if (country === 'FR') state = 'Paris';
-  else if (country === 'UK') state = 'Greater London';
-  
-  return {
-    key: 'user-' + Math.random().toString(36).substring(2) + Date.now(),
-    anonymous: false,
-    name: 'Demo User',
-    country,
-    state,
-    petType,
-    planType,
-    paymentType,
-  };
-};
-
-const getAnonymousProfile = (): UserProfile => ({
-  key: Math.random().toString(36).substring(2) + Date.now(),
+const anonymousProfile = (): AppUser => ({
   anonymous: true,
+  key: newAnonymousKey(),
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserProfile>(getAnonymousProfile());
+  const [user, setUser] = useState<AppUser>(anonymousProfile);
   const [previousAnonymousKey, setPreviousAnonymousKey] = useState<string | undefined>();
-  const isLoggedIn = !user.anonymous;
 
-  const login = (profile: UserProfile) => {
-    // Store the current anonymous key before setting the new user
-    setPreviousAnonymousKey(user.key);
-    setUser(profile);
-  };
-
-  const logout = () => {
-    setUser(getAnonymousProfile());
+  const resetToGuest = useCallback(() => {
     setPreviousAnonymousKey(undefined);
-  };
+    setUser(anonymousProfile());
+  }, []);
+
+  const setIdentifiedStandard = useCallback(() => {
+    setPreviousAnonymousKey(undefined);
+    setUser({ ...STANDARD_DEMO_USER });
+  }, []);
+
+  const setIdentifiedVip = useCallback(() => {
+    setPreviousAnonymousKey(undefined);
+    setUser({ ...VIP_DEMO_USER });
+  }, []);
+
+  const upgradeIdentifiedToVip = useCallback(() => {
+    setPreviousAnonymousKey(undefined);
+    setUser({ ...VIP_DEMO_USER });
+  }, []);
+
+  const transitionGuestToStandard = useCallback(() => {
+    if (!user.anonymous) return;
+    const anonKey = user.key;
+    setPreviousAnonymousKey(anonKey);
+    setUser({ ...STANDARD_DEMO_USER });
+  }, [user]);
+
+  const transitionGuestToVip = useCallback(() => {
+    if (!user.anonymous) return;
+    const anonKey = user.key;
+    setPreviousAnonymousKey(anonKey);
+    setUser({ ...VIP_DEMO_USER });
+  }, [user]);
+
+  const isAnonymousGuest = user.anonymous === true;
+  const isIdentified = user.anonymous === false;
 
   return (
-    <UserContext.Provider value={{ 
-      user, 
-      isLoggedIn, 
-      login, 
-      logout, 
-      setUser,
-      previousAnonymousKey 
-    }}>
+    <UserContext.Provider
+      value={{
+        user,
+        isAnonymousGuest,
+        isIdentified,
+        previousAnonymousKey,
+        setUser,
+        setPreviousAnonymousKey,
+        resetToGuest,
+        setIdentifiedStandard,
+        setIdentifiedVip,
+        upgradeIdentifiedToVip,
+        transitionGuestToStandard,
+        transitionGuestToVip,
+        logout: resetToGuest,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
@@ -91,4 +104,7 @@ export const useUser = () => {
   const ctx = useContext(UserContext);
   if (!ctx) throw new Error('useUser must be used within a UserProvider');
   return ctx;
-}; 
+};
+
+/** @deprecated use IdentifiedUserProfile / AppUser from types/darktrainers */
+export type UserProfile = IdentifiedUserProfile;

@@ -12,7 +12,7 @@ import random
 import signal
 import sys
 import argparse
-from gravityfarms_simulation import simulate_user_journey_v2, generate_user_context, get_snowflake_connection
+from darktrainers_simulation import simulate_user_journey_v2, get_snowflake_connection
 from ldclient import LDClient, Config, Context
 from faker import Faker
 from collections import defaultdict
@@ -156,7 +156,7 @@ def run_simulation(duration, records_per_second, mode='launchdarkly'):
             if mode == 'snowflake' and snowflake_events:
                 results["snowflakeEvents"] += len(snowflake_events)
                 # Actually insert the events into Snowflake
-                from gravityfarms_simulation import insert_metric_event_to_snowflake
+                from darktrainers_simulation import insert_metric_event_to_snowflake
                 for event_data in snowflake_events:
                     try:
                         insert_metric_event_to_snowflake(snowflake_conn, event_data)
