@@ -129,7 +129,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Card>
-      <Img src={product.imageUrl} alt="" loading="lazy" />
+      <Img src={product.imageUrl} alt="" width={800} height={800} loading="lazy" />
       <Body>
         <Cat>{product.category}</Cat>
         <Name className="font-display">{product.name}</Name>
