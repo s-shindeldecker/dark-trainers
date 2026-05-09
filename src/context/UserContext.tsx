@@ -7,8 +7,15 @@ import {
   newAnonymousKey,
 } from '../types/darktrainers';
 
+export type AuthState = {
+  user: AppUser;
+  previousAnonymousKey?: string;
+};
+
 interface UserContextType {
   user: AppUser;
+  /** Combined slice — updates atomically with transitions; prefer for LD multi-context. */
+  authState: AuthState;
   /** True when browsing as anonymous Guest (not Standard/VIP). */
   isAnonymousGuest: boolean;
   /** True when identified Standard or VIP. */
@@ -37,42 +44,68 @@ const anonymousProfile = (): AppUser => ({
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AppUser>(anonymousProfile);
-  const [previousAnonymousKey, setPreviousAnonymousKey] = useState<string | undefined>();
+  const [authState, setAuthState] = useState<AuthState>({
+    user: anonymousProfile(),
+    previousAnonymousKey: undefined,
+  });
+
+  const { user, previousAnonymousKey } = authState;
+
+  const setUser = useCallback((next: AppUser) => {
+    setAuthState((prev) => ({ ...prev, user: next }));
+  }, []);
+
+  const setPreviousAnonymousKey = useCallback((key: string | undefined) => {
+    setAuthState((prev) => ({ ...prev, previousAnonymousKey: key }));
+  }, []);
 
   const resetToGuest = useCallback(() => {
-    setPreviousAnonymousKey(undefined);
-    setUser(anonymousProfile());
+    setAuthState({
+      user: anonymousProfile(),
+      previousAnonymousKey: undefined,
+    });
   }, []);
 
   const setIdentifiedStandard = useCallback(() => {
-    setPreviousAnonymousKey(undefined);
-    setUser({ ...STANDARD_DEMO_USER });
+    setAuthState({
+      user: { ...STANDARD_DEMO_USER },
+      previousAnonymousKey: undefined,
+    });
   }, []);
 
   const setIdentifiedVip = useCallback(() => {
-    setPreviousAnonymousKey(undefined);
-    setUser({ ...VIP_DEMO_USER });
+    setAuthState({
+      user: { ...VIP_DEMO_USER },
+      previousAnonymousKey: undefined,
+    });
   }, []);
 
   const upgradeIdentifiedToVip = useCallback(() => {
-    setPreviousAnonymousKey(undefined);
-    setUser({ ...VIP_DEMO_USER });
+    setAuthState({
+      user: { ...VIP_DEMO_USER },
+      previousAnonymousKey: undefined,
+    });
   }, []);
 
   const transitionGuestToStandard = useCallback(() => {
-    if (!user.anonymous) return;
-    const anonKey = user.key;
-    setPreviousAnonymousKey(anonKey);
-    setUser({ ...STANDARD_DEMO_USER });
-  }, [user]);
+    setAuthState((prev) => {
+      if (!prev.user.anonymous) return prev;
+      return {
+        user: { ...STANDARD_DEMO_USER },
+        previousAnonymousKey: prev.user.key,
+      };
+    });
+  }, []);
 
   const transitionGuestToVip = useCallback(() => {
-    if (!user.anonymous) return;
-    const anonKey = user.key;
-    setPreviousAnonymousKey(anonKey);
-    setUser({ ...VIP_DEMO_USER });
-  }, [user]);
+    setAuthState((prev) => {
+      if (!prev.user.anonymous) return prev;
+      return {
+        user: { ...VIP_DEMO_USER },
+        previousAnonymousKey: prev.user.key,
+      };
+    });
+  }, []);
 
   const isAnonymousGuest = user.anonymous === true;
   const isIdentified = user.anonymous === false;
@@ -81,6 +114,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     <UserContext.Provider
       value={{
         user,
+        authState,
         isAnonymousGuest,
         isIdentified,
         previousAnonymousKey,

@@ -41,7 +41,8 @@ interface LDContextProps {
 
 export const LDContextProvider = ({ children }: LDContextProps) => {
   const clientSideID = import.meta.env.LAUNCHDARKLY_CLIENT_KEY;
-  const { user, previousAnonymousKey } = useUser();
+  const { authState } = useUser();
+  const { user, previousAnonymousKey } = authState;
 
   const context = useMemo(() => {
     if (user.anonymous) {
@@ -67,7 +68,7 @@ export const LDContextProvider = ({ children }: LDContextProps) => {
     }
 
     return identified;
-  }, [user, previousAnonymousKey]);
+  }, [authState]);
 
   return (
     <LDProvider
