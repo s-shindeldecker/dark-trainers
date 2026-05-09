@@ -47,6 +47,8 @@ npm run dev:server
 
 ## LaunchDarkly Integration
 
+For **Snowflake native Experimentation** (Live Events vs Results, export cadence, and Snowflake checks), see [docs/snowflake-native-experimentation-debug.md](docs/snowflake-native-experimentation-debug.md).
+
 ### Observability SDK
 The app integrates `@launchdarkly/observability` and `@launchdarkly/session-replay` as plugins to the React SDK. These automatically capture Web Vitals (CLS, FCP, LCP, TTFB, INP), errors, and session replays without manual instrumentation.
 
@@ -105,3 +107,4 @@ npm run build
 ```
 
 Output goes to the `dist` directory.
+ 
