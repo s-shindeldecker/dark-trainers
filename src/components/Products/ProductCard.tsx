@@ -136,7 +136,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <Colorway>{product.colorway}</Colorway>
         {product.isDropExclusive && <Badge style={{ marginBottom: '0.35rem', alignSelf: 'flex-start' }}>Drop</Badge>}
         <PriceRow>
-          {isVip && showVipPricing ? (
+          {showVipPricing ? (
             <>
               <Strike>${product.price}</Strike>
               <MemberPrice>${product.memberPrice}</MemberPrice>
