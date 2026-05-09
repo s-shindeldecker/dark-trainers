@@ -6,33 +6,33 @@ import {
   VIP_DEMO_USER,
   newAnonymousKey,
 } from '../types/darktrainers';
+import { getOrCreateLdSessionKey, rotateLdSessionKey } from '../lib/ldSessionKey';
 
 export type AuthState = {
   user: AppUser;
-  previousAnonymousKey?: string;
 };
 
 interface UserContextType {
   user: AppUser;
-  /** Combined slice — updates atomically with transitions; prefer for LD multi-context. */
+  /** Combined slice — updates atomically; used by LDContext. */
   authState: AuthState;
+  /** Persisted browser-session key for LD `kind: "session"` (pre- and post-login). */
+  sessionKey: string;
   /** True when browsing as anonymous Guest (not Standard/VIP). */
   isAnonymousGuest: boolean;
   /** True when identified Standard or VIP. */
   isIdentified: boolean;
-  previousAnonymousKey?: string;
   setUser: (user: AppUser) => void;
-  setPreviousAnonymousKey: (key: string | undefined) => void;
   resetToGuest: () => void;
   setIdentifiedStandard: () => void;
   setIdentifiedVip: () => void;
-  /** Standard → VIP; clears multi stitch key. */
+  /** Standard → VIP; same session key, updated user in LD multi-context. */
   upgradeIdentifiedToVip: () => void;
-  /** Guest → Standard with LD multi context (call while still anonymous). */
+  /** Guest → Standard; LD identifies with multi(session + user). */
   transitionGuestToStandard: () => void;
-  /** Guest → VIP with LD multi context (call while still anonymous). */
+  /** Guest → VIP; LD identifies with multi(session + user). */
   transitionGuestToVip: () => void;
-  /** Same as resetToGuest — for header “Log out”. */
+  /** Same as resetToGuest — for header “Log out”. Rotates session key. */
   logout: () => void;
 }
 
@@ -44,46 +44,39 @@ const anonymousProfile = (): AppUser => ({
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+  const [sessionKey, setSessionKey] = useState(() => getOrCreateLdSessionKey());
   const [authState, setAuthState] = useState<AuthState>({
     user: anonymousProfile(),
-    previousAnonymousKey: undefined,
   });
 
-  const { user, previousAnonymousKey } = authState;
+  const { user } = authState;
 
   const setUser = useCallback((next: AppUser) => {
     setAuthState((prev) => ({ ...prev, user: next }));
   }, []);
 
-  const setPreviousAnonymousKey = useCallback((key: string | undefined) => {
-    setAuthState((prev) => ({ ...prev, previousAnonymousKey: key }));
-  }, []);
-
   const resetToGuest = useCallback(() => {
+    setSessionKey(rotateLdSessionKey());
     setAuthState({
       user: anonymousProfile(),
-      previousAnonymousKey: undefined,
     });
   }, []);
 
   const setIdentifiedStandard = useCallback(() => {
     setAuthState({
       user: { ...STANDARD_DEMO_USER },
-      previousAnonymousKey: undefined,
     });
   }, []);
 
   const setIdentifiedVip = useCallback(() => {
     setAuthState({
       user: { ...VIP_DEMO_USER },
-      previousAnonymousKey: undefined,
     });
   }, []);
 
   const upgradeIdentifiedToVip = useCallback(() => {
     setAuthState({
       user: { ...VIP_DEMO_USER },
-      previousAnonymousKey: undefined,
     });
   }, []);
 
@@ -92,7 +85,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (!prev.user.anonymous) return prev;
       return {
         user: { ...STANDARD_DEMO_USER },
-        previousAnonymousKey: prev.user.key,
       };
     });
   }, []);
@@ -102,7 +94,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (!prev.user.anonymous) return prev;
       return {
         user: { ...VIP_DEMO_USER },
-        previousAnonymousKey: prev.user.key,
       };
     });
   }, []);
@@ -115,11 +106,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         authState,
+        sessionKey,
         isAnonymousGuest,
         isIdentified,
-        previousAnonymousKey,
         setUser,
-        setPreviousAnonymousKey,
         resetToGuest,
         setIdentifiedStandard,
         setIdentifiedVip,

@@ -47,6 +47,8 @@ npm run dev:server
 
 ## LaunchDarkly Integration
 
+**Manual setup:** In the LaunchDarkly project, add a custom context kind named **`session`** (Context kinds / schema) so pre-login evaluation and `multi` payloads with `session` + `user` are valid for targeting and Live Events.
+
 For **Snowflake native Experimentation** (Live Events vs Results, export cadence, and Snowflake checks), see [docs/snowflake-native-experimentation-debug.md](docs/snowflake-native-experimentation-debug.md).
 
 ### Observability SDK
