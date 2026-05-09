@@ -97,7 +97,7 @@ const CheckoutBtn = styled.button`
 
 export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const ldClient = useLDClient();
-  const { lines, isOpen, closeCart, cartSubtotal, updateQty, removeLine } = useCart();
+  const { lines, isOpen, closeCart, clearCart, cartSubtotal, updateQty, removeLine } = useCart();
   const { user } = useUser();
   const { value: bannerJson } = useFeatureFlag(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER);
   const { value: ctaCopy } = useFeatureFlag(LD_FLAGS.vipUpgradeCtaCopy, 'Join VIP');
@@ -128,7 +128,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
     if (ldClient) {
       ldClient.track('checkout_initiated', null, displayTotal);
     }
-    closeCart();
+    clearCart();
   };
 
   return (
