@@ -240,7 +240,14 @@ export default function ProductDetail() {
       <Back to="/products">← All drops</Back>
       <Grid $editorial={editorial}>
         <div>
-          <HeroImg src={product.imageUrl} alt="" />
+          <HeroImg
+            src={product.imageUrl}
+            alt=""
+            width={800}
+            height={800}
+            loading="eager"
+            fetchPriority="high"
+          />
         </div>
         <div>
           <Title className="font-display">{product.name}</Title>
