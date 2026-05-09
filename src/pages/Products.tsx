@@ -9,9 +9,11 @@ import { isIdentifiedUser } from '../types/darktrainers';
 import { useUser } from '../context/UserContext';
 
 const PageContainer = styled.div`
-  max-width: 1200px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem 1rem 3rem;
+  box-sizing: border-box;
 `;
 
 const Title = styled.h1`
@@ -31,7 +33,7 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
-  justify-items: center;
+  width: 100%;
 `;
 
 const Banner = styled.div`
