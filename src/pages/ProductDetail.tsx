@@ -35,7 +35,9 @@ const Grid = styled.div<{ $editorial: boolean }>`
 `;
 
 const HeroImg = styled.img`
+  display: block;
   width: 100%;
+  height: auto;
   border-radius: 12px;
   border: 1px solid #2a2a2a;
 `;
@@ -240,14 +242,7 @@ export default function ProductDetail() {
       <Back to="/products">← All drops</Back>
       <Grid $editorial={editorial}>
         <div>
-          <HeroImg
-            src={product.imageUrl}
-            alt=""
-            width={800}
-            height={800}
-            loading="eager"
-            fetchPriority="high"
-          />
+          <HeroImg src={product.imageUrl} alt="" loading="eager" fetchPriority="high" />
         </div>
         <div>
           <Title className="font-display">{product.name}</Title>
