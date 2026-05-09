@@ -23,6 +23,7 @@ interface CartContextValue {
   updateQty: (productId: string, size: number, qty: number) => void;
   removeLine: (productId: string, size: number) => void;
   cartSubtotal: number;
+  /** Remove all line items and close the drawer. */
   clearCart: () => void;
 }
 
@@ -91,7 +92,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLines((prev) => prev.filter((l) => !(l.productId === productId && l.size === size)));
   }, []);
 
-  const clearCart = useCallback(() => setLines([]), []);
+  const clearCart = useCallback(() => {
+    setLines([]);
+    setIsOpen(false);
+  }, []);
 
   const cartSubtotal = useMemo(
     () => lines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0),
