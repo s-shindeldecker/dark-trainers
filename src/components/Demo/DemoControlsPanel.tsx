@@ -73,7 +73,10 @@ export function DemoControlsPanel() {
         </Select>
         {!user.anonymous && <MemberBadge tier={user.memberTier} />}
       </Row>
-      <Hint>Guest uses a fresh anonymous LD context. Standard/VIP use fixed demo keys. Add to cart or Join VIP from Guest triggers multi-context identify.</Hint>
+      <Hint>
+        Guest: LD uses a session context only (new session key on reset). Standard/VIP: multi(session + user) with the same session key for attribution. Add to
+        cart or Join VIP from Guest identifies with multi.
+      </Hint>
     </Panel>
   );
 }

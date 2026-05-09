@@ -41,34 +41,22 @@ interface LDContextProps {
 
 export const LDContextProvider = ({ children }: LDContextProps) => {
   const clientSideID = import.meta.env.LAUNCHDARKLY_CLIENT_KEY;
-  const { authState } = useUser();
-  const { user, previousAnonymousKey } = authState;
+  const { authState, sessionKey } = useUser();
+  const { user } = authState;
 
   const context = useMemo(() => {
+    const sessionLd = { kind: 'session' as const, key: sessionKey };
+
     if (user.anonymous) {
-      return {
-        kind: 'user' as const,
-        key: user.key,
-        anonymous: true,
-      };
+      return sessionLd;
     }
 
-    const identified = identifiedLdFields(user);
-
-    if (previousAnonymousKey) {
-      return {
-        kind: 'multi' as const,
-        user: identified,
-        anonymous: {
-          kind: 'user' as const,
-          key: previousAnonymousKey,
-          anonymous: true,
-        },
-      };
-    }
-
-    return identified;
-  }, [authState]);
+    return {
+      kind: 'multi' as const,
+      session: sessionLd,
+      user: identifiedLdFields(user),
+    };
+  }, [authState, sessionKey]);
 
   return (
     <LDProvider
