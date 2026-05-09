@@ -126,7 +126,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
 
   const handleCheckout = () => {
     if (ldClient) {
-      ldClient.track('checkout_initiated', { value: displayTotal });
+      ldClient.track('checkout_initiated', null, displayTotal);
     }
     closeCart();
   };

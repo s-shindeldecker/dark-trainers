@@ -51,7 +51,7 @@ export function VIPUpgradeModal({ open, onClose, onConfirmed }: VIPUpgradeModalP
 
   const handleConfirm = () => {
     if (ldClient) {
-      ldClient.track('vip_upgrade', { value: 14.99 });
+      ldClient.track('vip_upgrade', null, 14.99);
     }
     if (isAnonymousGuest) {
       transitionGuestToVip();
