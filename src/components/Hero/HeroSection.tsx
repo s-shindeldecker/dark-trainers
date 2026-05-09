@@ -14,10 +14,11 @@ const HeroContainer = styled.section`
   align-items: center;
   justify-content: center;
   isolation: isolate;
-  background:
-    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(200, 240, 0, 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 85% 15%, rgba(200, 240, 0, 0.04) 0%, transparent 50%),
-    linear-gradient(165deg, #050505 0%, #101010 42%, #0a0a0a 100%);
+  background-color: #0d0d0d;
+  background-image: url('/images/hero-shoes.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   @media (max-width: 900px) {
     min-height: 420px;
   }
@@ -27,30 +28,7 @@ const HeroContainer = styled.section`
     position: absolute;
     inset: 0;
     z-index: 0;
-    opacity: 0.12;
-    background-image:
-      linear-gradient(90deg, rgba(200, 240, 0, 0.22) 1px, transparent 1px),
-      linear-gradient(rgba(200, 240, 0, 0.15) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: linear-gradient(to bottom, black 0%, rgba(0, 0, 0, 0.35) 75%, transparent 100%);
-    pointer-events: none;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    opacity: 0.35;
-    background-image: repeating-radial-gradient(
-      circle at 20% 30%,
-      transparent 0,
-      transparent 2px,
-      rgba(255, 255, 255, 0.03) 2px,
-      rgba(255, 255, 255, 0.03) 3px
-    );
-    background-size: 8px 8px;
-    mix-blend-mode: overlay;
+    background: rgba(0, 0, 0, 0.55);
     pointer-events: none;
   }
 `;
