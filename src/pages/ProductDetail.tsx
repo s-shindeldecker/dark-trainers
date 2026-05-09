@@ -190,7 +190,7 @@ export default function ProductDetail() {
             </Countdown>
           )}
           <PriceBlock>
-            {isVip && showVipPricing ? (
+            {showVipPricing ? (
               <>
                 <Strike>${product.price}</Strike>
                 <Volt>${product.memberPrice}</Volt>

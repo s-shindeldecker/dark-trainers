@@ -101,6 +101,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const { user } = useUser();
   const { value: bannerJson } = useFeatureFlag(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER);
   const { value: ctaCopy } = useFeatureFlag(LD_FLAGS.vipUpgradeCtaCopy, 'Join VIP');
+  const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
 
   const banner =
     typeof bannerJson === 'object' && bannerJson !== null
@@ -113,7 +114,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const savingsPct = 18;
 
   const displayTotal = useMemo(() => {
-    if (!isIdentifiedUser(user) || user.memberTier !== 'vip') {
+    if (!showVipPricing) {
       return cartSubtotal;
     }
     return lines.reduce((sum, l) => {
@@ -121,7 +122,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
       const unit = p?.memberPrice ?? l.unitPrice;
       return sum + unit * l.qty;
     }, 0);
-  }, [user, lines, cartSubtotal]);
+  }, [showVipPricing, lines, cartSubtotal]);
 
   const handleCheckout = () => {
     if (ldClient) {
@@ -147,7 +148,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
             lines.map((l) => {
               const p = getProductById(l.productId);
               const memberPrice = p?.memberPrice;
-              const showMember = isIdentifiedUser(user) && user.memberTier === 'vip' && memberPrice != null;
+              const showMember = showVipPricing && memberPrice != null;
               return (
                 <Line key={`${l.productId}-${l.size}`}>
                   <div style={{ fontWeight: 600 }}>{l.name}</div>
