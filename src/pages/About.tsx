@@ -10,7 +10,9 @@ const Page = styled.div`
 const HeroMascot = styled.img`
   display: block;
   width: 100%;
-  height: auto;
+  max-height: 480px;
+  object-fit: cover;
+  object-position: center;
   border-radius: 12px;
   border: 1px solid #2a2a2a;
   margin-bottom: 2rem;
