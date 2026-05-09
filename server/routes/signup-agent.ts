@@ -4,55 +4,60 @@ import type { LDAIClient } from '@launchdarkly/server-sdk-ai';
 
 const FALLBACK_CONFIG = { enabled: false };
 
-const PRODUCT_CATALOG = `Gravity Farms Petfood Plans:
+const PRODUCT_CATALOG = `DarkTrainers VIP Membership:
 
-1. Basic Bites ($29/month)
-   - Fresh meals delivered weekly
-   - Choose from 3 recipes
-   - Free shipping on all orders
-   - Flexible skip or cancel anytime
+VIP — $14.99/month
+- Early access to limited drops before public release
+- Member pricing on sneakers (typically 15–20% off standard price)
+- Priority support during high-traffic drop windows
 
-2. Premium Paws ($49/month) - Most Popular
-   - Everything in Basic Bites
-   - Choose from 8 rotating recipes
-   - Custom portion sizing
-   - Priority delivery windows
-   - Vet nutritionist support
+Customers may also shop as Standard members or browse as guests; VIP is the premium tier for serious collectors and athletes.`;
 
-3. Deluxe Den ($79/month)
-   - Everything in Premium Paws
-   - Unlimited recipe selection
-   - Allergy-friendly custom meals
-   - Monthly treat box included
-   - Dedicated account manager
-   - Early access to new recipes
-
-Recipes available: Chicken & Sweet Potato, Beef & Brown Rice, Turkey & Pumpkin, Pork & Green Bean.
-All recipes are human-grade, vet-formulated, complete and balanced, and gently cooked.`;
-
-const SYSTEM_INSTRUCTIONS = `You are a friendly signup assistant for Gravity Farms Petfood. Your job is to help a customer find the perfect meal plan for their pet through a natural conversation.
+const SYSTEM_INSTRUCTIONS = `You are a friendly signup assistant for DarkTrainers VIP membership. Help the customer decide if VIP is right for them through a short, natural conversation.
 
 Conversation flow:
-1. Greet the customer warmly and ask for their pet's name
-2. Ask what type of pet they have (dog or cat — note that cat food is "coming soon", but still help them)
-3. Ask about their pet's age/life stage (puppy, adult, senior)
-4. Ask about any dietary concerns or allergies
-5. Ask about activity level (low, moderate, high)
-6. Ask about budget preference (budget-friendly, mid-range, premium)
-7. Based on their answers, recommend ONE specific plan with a brief rationale
+1. Greet warmly and ask what they usually wear sneakers for (running, basketball, lifestyle, training).
+2. Ask how often they try to cop limited drops.
+3. Ask if member pricing and early access would matter for their rotation.
+4. When ready, recommend VIP membership with a brief rationale.
 
-When you make a recommendation, you MUST include a JSON block at the end of your message in exactly this format:
-|||RECOMMENDATION:{"planId":"basic"|"premium"|"deluxe","planName":"plan name"}|||
+When you recommend VIP, you MUST end your message with a JSON block in exactly this format:
+|||RECOMMENDATION:{"planId":"vip-monthly","planName":"DarkTrainers VIP"}|||
 
-Only include the recommendation block when you have gathered enough information and are ready to recommend. Do not include it in earlier messages.
-
-Be warm, conversational, and occasionally playful. Keep messages concise (2-3 sentences per turn). Ask only one question at a time.
+Only include that block on the final recommendation turn. Keep each message to 2–3 sentences; one question at a time.
 
 ${PRODUCT_CATALOG}`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+}
+
+function ldUserFromBody(userContext?: Record<string, unknown>) {
+  if (!userContext?.key) {
+    return { kind: 'user' as const, key: 'anonymous-signup-user', anonymous: true };
+  }
+  if (userContext.anonymous === true) {
+    return {
+      kind: 'user' as const,
+      key: String(userContext.key),
+      anonymous: true,
+    };
+  }
+  return {
+    kind: 'user' as const,
+    key: String(userContext.key),
+    name: userContext.name as string | undefined,
+    email: userContext.email as string | undefined,
+    country: userContext.country as string | undefined,
+    state: userContext.state as string | undefined,
+    memberTier: userContext.memberTier as string | undefined,
+    memberSince: userContext.memberSince as string | undefined,
+    lifetimeSpend: userContext.lifetimeSpend as number | undefined,
+    preferredCategory: userContext.preferredCategory as string | undefined,
+    earlyAccessEnabled: userContext.earlyAccessEnabled as boolean | undefined,
+    anonymous: false,
+  };
 }
 
 export function createSignupAgentRouter(ldClient: LDClient, aiClient: LDAIClient) {
@@ -63,7 +68,7 @@ export function createSignupAgentRouter(ldClient: LDClient, aiClient: LDAIClient
       const { message, history = [], userContext } = req.body as {
         message: string;
         history: ChatMessage[];
-        userContext?: Record<string, any>;
+        userContext?: Record<string, unknown>;
       };
 
       if (!message || typeof message !== 'string') {
@@ -71,16 +76,7 @@ export function createSignupAgentRouter(ldClient: LDClient, aiClient: LDAIClient
         return;
       }
 
-      const context = userContext?.key
-        ? {
-            kind: 'user' as const,
-            key: userContext.key,
-            name: userContext.name,
-            country: userContext.country,
-            petType: userContext.petType,
-            planType: userContext.planType,
-          }
-        : { kind: 'user' as const, key: 'anonymous-signup-user', anonymous: true };
+      const context = ldUserFromBody(userContext);
 
       let instructions: string = SYSTEM_INSTRUCTIONS;
       let modelName = 'gpt-4o-mini';
@@ -89,7 +85,7 @@ export function createSignupAgentRouter(ldClient: LDClient, aiClient: LDAIClient
 
       try {
         const agentConfig = await aiClient.agentConfig(
-          'gravity-farms-signup-agent',
+          'darktrainers-signup-agent',
           context,
           FALLBACK_CONFIG,
           { productCatalog: PRODUCT_CATALOG },
@@ -155,7 +151,7 @@ export function createSignupAgentRouter(ldClient: LDClient, aiClient: LDAIClient
           recommendedPlan = JSON.parse(recMatch[1]);
           reply = reply.replace(/\|\|\|RECOMMENDATION:.*?\|\|\|/, '').trim();
         } catch {
-          // Ignore parse errors — just return reply without recommendation
+          // ignore
         }
       }
 

@@ -4,25 +4,41 @@ import type { LDAIClient } from '@launchdarkly/server-sdk-ai';
 
 const FALLBACK_CONFIG = { enabled: false };
 
-const GRAVITY_FARMS_CONTEXT = `You are a friendly customer support assistant for Gravity Farms Petfood, a fresh pet food subscription company based in Gravity Falls. You help customers with questions about our products, plans, ingredients, delivery, and general pet nutrition.
-
-Key facts:
-- We offer three plans: Basic Bites ($29/mo), Premium Paws ($49/mo), and Deluxe Den ($79/mo)
-- All meals are made with human-grade, locally sourced ingredients
-- Meals arrive chilled and ready to serve
-- We currently focus on dog food, with cat food coming soon
-- Free shipping on all orders; flexible skip or cancel anytime
-- Founded by animal lovers in Gravity Falls who wanted better food for their dogs Wendy and Mabel
-- Recipes developed with real veterinarians and animal nutritionists
-
-Be helpful, warm, and occasionally playful. Keep answers concise.`;
+const DARKTRAINERS_CONTEXT = `You are the DarkTrainers virtual assistant. DarkTrainers is a premium limited-drop sneaker brand. You help customers find the right sneaker for their activity, understand our VIP membership benefits, and check on drop schedules. You are knowledgeable, direct, and speak like someone who genuinely loves sneaker culture. Keep responses concise — under 3 sentences unless the customer asks for detail.`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
 }
 
-export function createChatRouter(ldClient: LDClient, aiClient: LDAIClient) {
+function ldUserFromBody(userContext?: Record<string, unknown>) {
+  if (!userContext?.key) {
+    return { kind: 'user' as const, key: 'anonymous-chat-user', anonymous: true };
+  }
+  if (userContext.anonymous === true) {
+    return {
+      kind: 'user' as const,
+      key: String(userContext.key),
+      anonymous: true,
+    };
+  }
+  return {
+    kind: 'user' as const,
+    key: String(userContext.key),
+    name: userContext.name as string | undefined,
+    email: userContext.email as string | undefined,
+    country: userContext.country as string | undefined,
+    state: userContext.state as string | undefined,
+    memberTier: userContext.memberTier as string | undefined,
+    memberSince: userContext.memberSince as string | undefined,
+    lifetimeSpend: userContext.lifetimeSpend as number | undefined,
+    preferredCategory: userContext.preferredCategory as string | undefined,
+    earlyAccessEnabled: userContext.earlyAccessEnabled as boolean | undefined,
+    anonymous: false,
+  };
+}
+
+export function createChatRouter(_ldClient: LDClient, aiClient: LDAIClient) {
   const router = Router();
 
   router.post('/', async (req, res) => {
@@ -30,7 +46,7 @@ export function createChatRouter(ldClient: LDClient, aiClient: LDAIClient) {
       const { message, history = [], userContext } = req.body as {
         message: string;
         history: ChatMessage[];
-        userContext?: Record<string, any>;
+        userContext?: Record<string, unknown>;
       };
 
       if (!message || typeof message !== 'string') {
@@ -38,27 +54,19 @@ export function createChatRouter(ldClient: LDClient, aiClient: LDAIClient) {
         return;
       }
 
-      const context = userContext?.key
-        ? {
-            kind: 'user' as const,
-            key: userContext.key,
-            name: userContext.name,
-            country: userContext.country,
-            petType: userContext.petType,
-            planType: userContext.planType,
-          }
-        : { kind: 'user' as const, key: 'anonymous-chat-user', anonymous: true };
+      const context = ldUserFromBody(userContext);
 
       const aiConfig = await aiClient.completionConfig(
-        'gravity-farms-chatbot',
+        'darktrainers-chatbot',
         context,
         FALLBACK_CONFIG,
-        { productContext: GRAVITY_FARMS_CONTEXT },
+        { productContext: DARKTRAINERS_CONTEXT },
       );
 
       if (!aiConfig.enabled) {
         res.json({
-          reply: "I'm sorry, the chat assistant is currently unavailable. Please check back later or browse our FAQ page for answers to common questions.",
+          reply:
+            "I'm sorry, the chat assistant is currently unavailable. Please check back later or browse our FAQ page for answers to common questions.",
           source: 'fallback',
         });
         return;

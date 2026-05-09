@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { ChatMessage } from '../Chat/ChatMessage';
 import { useUser } from '../../context/UserContext';
+import { userToApiContext } from '../../context/LDContext';
 import { products } from '../Products/productData';
 
 const ConversationPanel = styled.div`
@@ -11,50 +12,51 @@ const ConversationPanel = styled.div`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 500px;
+  min-height: 480px;
 `;
 
 const MessageList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 1.5em 0;
+  padding: 1.25rem 0;
   display: flex;
   flex-direction: column;
-  gap: 1em;
-  max-height: 60vh;
+  gap: 1rem;
+  max-height: 58vh;
 `;
 
 const InputRow = styled.form`
   display: flex;
-  gap: 0.75em;
-  padding: 1em 0;
-  border-top: 1px solid #eee;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-top: 1px solid #2a2a2a;
 `;
 
 const Input = styled.input`
   flex: 1;
-  border: 2px solid #ddd;
+  border: 1px solid #333;
   border-radius: 10px;
-  padding: 0.8em 1em;
-  font-size: 1em;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
   outline: none;
+  background: #1a1a1a;
+  color: #f5f5f5;
   &:focus {
-    border-color: #6A994E;
+    border-color: #c8f000;
   }
 `;
 
 const SendButton = styled.button`
-  background: #FFD166;
-  color: #35524A;
+  background: #c8f000;
+  color: #0d0d0d;
   border: none;
   border-radius: 10px;
-  padding: 0.8em 1.5em;
-  font-weight: bold;
-  font-size: 1em;
+  padding: 0.75rem 1.35rem;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
   &:hover {
-    background: #FFC233;
+    filter: brightness(1.05);
   }
   &:disabled {
     opacity: 0.5;
@@ -64,98 +66,98 @@ const SendButton = styled.button`
 
 const TypingIndicator = styled.div`
   align-self: flex-start;
-  color: #999;
+  color: #737373;
   font-style: italic;
   font-size: 0.95em;
   padding: 0.5em 0;
 `;
 
 const RecommendationCard = styled.div`
-  background: #35524A;
-  color: #fff;
+  background: #1a1a1a;
+  color: #f5f5f5;
   border-radius: 16px;
-  padding: 2em;
-  margin: 1em 0;
+  padding: 1.75rem;
+  margin: 0.5rem 0;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(53, 82, 74, 0.25);
+  border: 1px solid #333;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 `;
 
 const RecPlanName = styled.h3`
-  font-size: 1.6em;
-  margin: 0 0 0.2em;
+  font-size: 1.5rem;
+  margin: 0 0 0.35rem;
 `;
 
 const RecTagline = styled.p`
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 0.8em;
+  color: #a3a3a3;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
 `;
 
 const RecPrice = styled.div`
-  font-size: 2.2em;
-  font-weight: bold;
-  margin-bottom: 0.1em;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #c8f000;
+  margin-bottom: 0.25rem;
 `;
 
 const RecInterval = styled.div`
-  font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 1.5em;
+  font-size: 0.85rem;
+  color: #737373;
+  margin-bottom: 1.25rem;
 `;
 
 const RecFeatures = styled.ul`
   list-style: none;
   padding: 0;
-  margin: 0 0 1.5em;
+  margin: 0 0 1.25rem;
   text-align: left;
 `;
 
 const RecFeature = styled.li`
-  padding: 0.4em 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  font-size: 0.95em;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 0.9rem;
+  color: #d4d4d4;
   &::before {
-    content: "✓ ";
-    color: #FFD166;
+    content: '✓ ';
+    color: #c8f000;
     font-weight: bold;
   }
 `;
 
 const RecSignupButton = styled.button`
-  background: #FFD166;
-  color: #35524A;
+  background: #c8f000;
+  color: #0d0d0d;
   border: none;
   border-radius: 8px;
-  padding: 0.9em 2.5em;
-  font-weight: bold;
-  font-size: 1.1em;
+  padding: 0.85rem 2rem;
+  font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
   &:hover {
-    background: #FFC233;
+    filter: brightness(1.06);
   }
 `;
 
 const StartOverLink = styled.button`
   background: none;
   border: none;
-  color: #6A994E;
-  font-size: 0.95em;
+  color: #c8f000;
+  font-size: 0.9rem;
   cursor: pointer;
-  margin-top: 1em;
+  margin-top: 1rem;
   text-decoration: underline;
-  &:hover {
-    color: #35524A;
-  }
 `;
 
 const BrowsePlansLink = styled(Link)`
   display: inline-block;
-  margin-top: 0.75em;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9em;
+  margin-top: 0.75rem;
+  color: #a3a3a3;
+  font-size: 0.9rem;
   text-decoration: underline;
   &:hover {
-    color: #fff;
+    color: #f5f5f5;
   }
 `;
 
@@ -171,7 +173,8 @@ interface RecommendedPlan {
 
 const INITIAL_MESSAGE: Message = {
   role: 'assistant',
-  content: "Hi! I'm here to help find the perfect Gravity Farms plan for your pet. Let's start — what's your pet's name?",
+  content:
+    "Hey — I'm here to help you decide if DarkTrainers VIP is worth it. What do you usually wear sneakers for: running, hoops, lifestyle, or training?",
 };
 
 export const SignupAgent = () => {
@@ -205,7 +208,7 @@ export const SignupAgent = () => {
         body: JSON.stringify({
           message: trimmed,
           history: messages,
-          userContext: user,
+          userContext: userToApiContext(user),
         }),
       });
       const data = await res.json();
@@ -229,7 +232,8 @@ export const SignupAgent = () => {
     setInput('');
   };
 
-  const recProduct = recommendation ? products.find((p) => p.id === recommendation.planId) : null;
+  const sneakerRec = recommendation ? products.find((p) => p.id === recommendation.planId) : null;
+  const isVipRec = recommendation?.planId === 'vip-monthly';
 
   return (
     <ConversationPanel>
@@ -238,22 +242,34 @@ export const SignupAgent = () => {
           <ChatMessage key={i} content={m.content} isUser={m.role === 'user'} />
         ))}
         {isLoading && <TypingIndicator>Thinking...</TypingIndicator>}
-        {recProduct && (
+        {isVipRec && (
           <RecommendationCard>
-            <RecPlanName>{recProduct.name}</RecPlanName>
-            <RecTagline>{recProduct.tagline}</RecTagline>
-            <RecPrice>{recProduct.price}</RecPrice>
-            <RecInterval>{recProduct.interval}</RecInterval>
+            <RecPlanName>DarkTrainers VIP</RecPlanName>
+            <RecTagline>Early access + member pricing on limited drops</RecTagline>
+            <RecPrice>$14.99</RecPrice>
+            <RecInterval>per month · cancel anytime (demo)</RecInterval>
             <RecFeatures>
-              {recProduct.features.map((f) => (
-                <RecFeature key={f}>{f}</RecFeature>
-              ))}
+              <RecFeature>Early access windows before public drops</RecFeature>
+              <RecFeature>Member pricing — typically 15–20% off</RecFeature>
+              <RecFeature>Priority support on release days</RecFeature>
             </RecFeatures>
-            <RecSignupButton onClick={() => alert('Thank you for your interest! This is a demo site.')}>
-              Sign Up for {recProduct.name}
+            <RecSignupButton type="button" onClick={() => alert('Demo only — no charge processed.')}>
+              Upgrade to VIP — $14.99/month
             </RecSignupButton>
             <br />
-            <BrowsePlansLink to="/products">Or browse all plans</BrowsePlansLink>
+            <BrowsePlansLink to="/products">Shop current drops</BrowsePlansLink>
+          </RecommendationCard>
+        )}
+        {sneakerRec && !isVipRec && (
+          <RecommendationCard>
+            <RecPlanName>{sneakerRec.name}</RecPlanName>
+            <RecTagline>{sneakerRec.colorway}</RecTagline>
+            <RecPrice>${sneakerRec.price}</RecPrice>
+            <RecInterval>Member ${sneakerRec.memberPrice} with VIP</RecInterval>
+            <RecSignupButton type="button" onClick={() => alert('Demo only.')}>
+              View product
+            </RecSignupButton>
+            <BrowsePlansLink to={`/products/${sneakerRec.id}`}>Open PDP</BrowsePlansLink>
           </RecommendationCard>
         )}
       </MessageList>
@@ -261,7 +277,7 @@ export const SignupAgent = () => {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Tell me about your pet..."
+          placeholder="Tell us how you buy sneakers..."
           disabled={isLoading}
           autoFocus
         />
@@ -269,7 +285,9 @@ export const SignupAgent = () => {
           Send
         </SendButton>
       </InputRow>
-      <StartOverLink onClick={handleStartOver}>Start over</StartOverLink>
+      <StartOverLink type="button" onClick={handleStartOver}>
+        Start over
+      </StartOverLink>
     </ConversationPanel>
   );
 };

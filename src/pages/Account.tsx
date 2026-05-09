@@ -1,43 +1,71 @@
 import styled from '@emotion/styled';
+import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { isIdentifiedUser } from '../types/darktrainers';
 
 const Card = styled.div`
-  max-width: 400px;
-  margin: 2em auto;
-  padding: 2em;
-  background: #fff;
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #111;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
   text-align: left;
 `;
 
 const Title = styled.h2`
-  margin-bottom: 1em;
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
 `;
 
 const InfoRow = styled.div`
-  margin-bottom: 0.7em;
-  font-size: 1.1em;
+  margin-bottom: 0.65rem;
+  font-size: 0.95rem;
+  color: #d4d4d4;
 `;
 
 export const Account = () => {
-  const { user, isLoggedIn } = useUser();
+  const { user, isIdentified } = useUser();
 
-  if (!isLoggedIn) {
-    return <Card><Title>Account</Title><div>You are not logged in.</div></Card>;
+  if (!isIdentified || !isIdentifiedUser(user)) {
+    return (
+      <Card>
+        <Title>Account</Title>
+        <p style={{ color: '#a3a3a3' }}>Sign in as a member from Demo Controls, or add to cart as a guest to become Standard.</p>
+        <Link to="/" style={{ color: '#c8f000' }}>
+          Home
+        </Link>
+      </Card>
+    );
   }
 
   return (
     <Card>
-      <Title>Account Profile</Title>
-      <InfoRow><strong>Name:</strong> {user.name}</InfoRow>
-      <InfoRow><strong>Country:</strong> {user.country}</InfoRow>
-      <InfoRow><strong>State/Province:</strong> {user.state}</InfoRow>
-      <InfoRow><strong>Pet Type:</strong> {user.petType}</InfoRow>
-      <InfoRow><strong>Plan Type:</strong> {user.planType}</InfoRow>
-      <InfoRow><strong>Payment Type:</strong> {user.paymentType}</InfoRow>
-      <InfoRow><strong>User Key:</strong> {user.key}</InfoRow>
-      <InfoRow><strong>Anonymous:</strong> {user.anonymous ? 'Yes' : 'No'}</InfoRow>
+      <Title>Member profile</Title>
+      <InfoRow>
+        <strong>Name:</strong> {user.name}
+      </InfoRow>
+      <InfoRow>
+        <strong>Email:</strong> {user.email}
+      </InfoRow>
+      <InfoRow>
+        <strong>Tier:</strong> {user.memberTier.toUpperCase()}
+      </InfoRow>
+      <InfoRow>
+        <strong>Member since:</strong> {user.memberSince}
+      </InfoRow>
+      <InfoRow>
+        <strong>Lifetime spend:</strong> ${user.lifetimeSpend.toLocaleString()}
+      </InfoRow>
+      <InfoRow>
+        <strong>Preferred category:</strong> {user.preferredCategory}
+      </InfoRow>
+      <InfoRow>
+        <strong>Early access:</strong> {user.earlyAccessEnabled ? 'Yes' : 'No'}
+      </InfoRow>
+      <InfoRow>
+        <strong>User key:</strong> {user.key}
+      </InfoRow>
     </Card>
   );
-}; 
+};

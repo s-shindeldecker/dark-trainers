@@ -7,8 +7,9 @@ const Bubble = styled.div<{ isUser: boolean }>(({ isUser }) => ({
   fontSize: '0.95em',
   lineHeight: 1.5,
   alignSelf: isUser ? 'flex-end' : 'flex-start',
-  background: isUser ? '#35524A' : '#F6E7CB',
-  color: isUser ? '#fff' : '#35524A',
+  background: isUser ? '#2a2a2a' : '#1a1a1a',
+  color: isUser ? '#f5f5f5' : '#d4d4d4',
+  border: `1px solid ${isUser ? '#404040' : '#333'}`,
   borderBottomRightRadius: isUser ? 2 : 12,
   borderBottomLeftRadius: isUser ? 12 : 2,
 }));

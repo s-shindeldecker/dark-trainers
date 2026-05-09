@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { ChatMessage } from './ChatMessage';
 import { useUser } from '../../context/UserContext';
+import { userToApiContext } from '../../context/LDContext';
 
 const FloatingButton = styled.button`
   position: fixed;
@@ -10,19 +11,19 @@ const FloatingButton = styled.button`
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #35524A;
-  color: #FFD166;
-  border: none;
-  font-size: 1.6em;
+  background: #111;
+  color: #c8f000;
+  border: 1px solid #333;
+  font-size: 1.5em;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(53, 82, 74, 0.35);
-  z-index: 999;
-  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 10020;
+  transition: transform 0.2s, border-color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   &:hover {
-    background: #6A994E;
+    border-color: #c8f000;
     transform: scale(1.05);
   }
 `;
@@ -33,10 +34,11 @@ const Panel = styled.div`
   right: 24px;
   width: 380px;
   max-height: 520px;
-  background: #fff;
+  background: #111;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(53, 82, 74, 0.2);
-  z-index: 999;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  z-index: 10020;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -48,20 +50,21 @@ const Panel = styled.div`
 `;
 
 const PanelHeader = styled.div`
-  background: #35524A;
-  color: #fff;
-  padding: 1em 1.25em;
+  background: #0d0d0d;
+  color: #f5f5f5;
+  padding: 0.85rem 1.1rem;
   font-weight: 600;
-  font-size: 1.05em;
+  font-size: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #2a2a2a;
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  color: #FFD166;
+  color: #c8f000;
   font-size: 1.2em;
   cursor: pointer;
   padding: 0;
@@ -81,34 +84,35 @@ const MessageList = styled.div`
 
 const InputRow = styled.form`
   display: flex;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #2a2a2a;
   padding: 0.5em;
   gap: 0.5em;
 `;
 
 const Input = styled.input`
   flex: 1;
-  border: 1px solid #ddd;
+  border: 1px solid #333;
   border-radius: 8px;
   padding: 0.6em 0.8em;
   font-size: 0.95em;
   outline: none;
+  background: #1a1a1a;
+  color: #f5f5f5;
   &:focus {
-    border-color: #6A994E;
+    border-color: #c8f000;
   }
 `;
 
 const SendButton = styled.button`
-  background: #FFD166;
-  color: #35524A;
+  background: #c8f000;
+  color: #0d0d0d;
   border: none;
   border-radius: 8px;
   padding: 0.6em 1.2em;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
   &:hover {
-    background: #FFC233;
+    filter: brightness(1.05);
   }
   &:disabled {
     opacity: 0.5;
@@ -118,7 +122,7 @@ const SendButton = styled.button`
 
 const TypingIndicator = styled.div`
   align-self: flex-start;
-  color: #999;
+  color: #737373;
   font-style: italic;
   font-size: 0.9em;
   padding: 0.5em 0;
@@ -132,7 +136,10 @@ interface Message {
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Hi! I'm the Gravity Farms assistant. How can I help you today?" },
+    {
+      role: 'assistant',
+      content: "Hi — I'm the DarkTrainers assistant. Ask about drops, sizing, or VIP.",
+    },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -162,7 +169,7 @@ export const ChatWidget = () => {
         body: JSON.stringify({
           message: trimmed,
           history: messages,
-          userContext: user,
+          userContext: userToApiContext(user),
         }),
       });
       const data = await res.json();
@@ -182,8 +189,10 @@ export const ChatWidget = () => {
       {isOpen && (
         <Panel>
           <PanelHeader>
-            Gravity Farms Assistant
-            <CloseButton onClick={() => setIsOpen(false)} aria-label="Close chat">&times;</CloseButton>
+            DarkTrainers assistant
+            <CloseButton type="button" onClick={() => setIsOpen(false)} aria-label="Close chat">
+              &times;
+            </CloseButton>
           </PanelHeader>
           <MessageList ref={listRef}>
             {messages.map((m, i) => (
@@ -195,7 +204,7 @@ export const ChatWidget = () => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about our products..."
+              placeholder="Ask about drops or VIP..."
               disabled={isLoading}
               autoFocus
             />
@@ -205,7 +214,7 @@ export const ChatWidget = () => {
           </InputRow>
         </Panel>
       )}
-      <FloatingButton onClick={() => setIsOpen(!isOpen)} aria-label="Toggle chat">
+      <FloatingButton type="button" onClick={() => setIsOpen(!isOpen)} aria-label="Toggle chat">
         {isOpen ? '✕' : '💬'}
       </FloatingButton>
     </>
