@@ -20,6 +20,22 @@ const B = 'DarkTrainers';
 
 export const products: Product[] = [
   {
+    id: 'phantom-hi-x-gravity-farms',
+    name: 'DarkTrainers PHANTOM HI x Gravity Farms',
+    brand: B,
+    category: 'lifestyle',
+    colorway: 'Cream / Forest / Gum',
+    price: 220,
+    memberPrice: 185,
+    isDropExclusive: true,
+    releaseDate: '2026-05-20',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/phantom-hi-x-gravity-farms.webp',
+    description:
+      'A one-time collab between DarkTrainers and Gravity Farms. Canvas upper, forest green toe cap, gum sole. 200 pairs. No restock.',
+    tags: ['collab', 'limited', 'lifestyle', 'early-access'],
+  },
+  {
     id: 'volt-1',
     name: 'DarkTrainers VOLT-1',
     brand: B,
