@@ -98,12 +98,13 @@ interface HeaderProps {
   isIdentified: boolean;
   onLogout: () => void;
   onAccount?: () => void;
+  showFeed?: boolean;
   showProducts?: boolean;
   showSignup?: boolean;
   onJoinVip: () => void;
 }
 
-export function Header({ isIdentified, onLogout, onAccount, showProducts, showSignup, onJoinVip }: HeaderProps) {
+export function Header({ isIdentified, onLogout, onAccount, showFeed, showProducts, showSignup, onJoinVip }: HeaderProps) {
   const { lines, openCart } = useCart();
   const { user } = useUser();
   const count = lines.reduce((n, l) => n + l.qty, 0);
@@ -122,6 +123,11 @@ export function Header({ isIdentified, onLogout, onAccount, showProducts, showSi
           {showProducts && (
             <NavLink>
               <Link to="/products">Shop</Link>
+            </NavLink>
+          )}
+          {showFeed && (
+            <NavLink>
+              <Link to="/drops">Feed</Link>
             </NavLink>
           )}
           <NavLink>
