@@ -156,6 +156,21 @@ export const products: Product[] = [
     description: 'Versatile trainer for HIIT and short runs. Low-profile stability cage.',
     tags: ['HIIT', 'Versatile'],
   },
+  {
+    id: 'apex-low-x-control-freak',                    // kebab-case, matches image filename
+    name: 'DarkTrainers Apex Low X Control Freak',
+    brand: B,
+    category: 'running',                   // running | basketball | lifestyle | training
+    colorway: 'Black / Neon',
+    price: 190,                            // standard price
+    memberPrice: 165,                      // VIP price (~15-20% off)
+    isDropExclusive: true,               // true = VIP early access only
+    releaseDate: '2026-05-22',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/apex-low-x-control-freak.webp',
+    description: 'I\'m about to lose control and I think I like it.  Tame the freak within with the new Control Freak Apex Low limited editiion drops.',
+    tags: ['collab', 'limited', 'lifestyle', 'early-access']
+  }
 ];
 
 export function getProductById(id: string): Product | undefined {
