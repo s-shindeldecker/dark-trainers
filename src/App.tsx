@@ -18,6 +18,7 @@ import AboutUs from './pages/About';
 import FAQ from './pages/FAQ';
 import Reviews from './pages/Reviews';
 import Signup from './pages/Signup';
+import DropsPage from './pages/DropsPage';
 import { ChatWidget } from './components/Chat/ChatWidget';
 import { DemoControlsPanel } from './components/Demo/DemoControlsPanel';
 import { CartDrawer } from './components/Cart/CartDrawer';
@@ -32,6 +33,7 @@ const MainContent = styled.main`
 function AppShell() {
   const navigate = useNavigate();
   const { isIdentified, logout } = useUser();
+  const { value: showAc26DropFeed } = useFeatureFlag(LD_FLAGS.showAc26DropFeed, false);
   const { value: showProductCatalog } = useFeatureFlag(LD_FLAGS.showProductCatalog, true);
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const { value: showVipSignup } = useFeatureFlag(LD_FLAGS.showVipSignup, true);
@@ -57,6 +59,7 @@ function AppShell() {
         isIdentified={isIdentified}
         onLogout={logout}
         onAccount={() => navigate('/account')}
+        showFeed={showAc26DropFeed}
         showProducts={showProductCatalog}
         showSignup={showVipSignup}
         onJoinVip={() => vip.openVipModal()}
@@ -68,6 +71,7 @@ function AppShell() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/drops" element={<DropsPage />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/reviews" element={<Reviews />} />

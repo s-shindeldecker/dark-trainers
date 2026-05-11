@@ -3,7 +3,9 @@ import type { ProductCategory } from '../../types/darktrainers';
 export interface Product {
   id: string;
   name: string;
+  subtitle?: string;
   brand: string;
+  collab?: string;
   category: ProductCategory;
   colorway: string;
   price: number;
@@ -12,6 +14,7 @@ export interface Product {
   releaseDate: string;
   sizes: number[];
   imageUrl: string;
+  teaserImage?: string;
   description: string;
   tags: string[];
 }
@@ -19,6 +22,97 @@ export interface Product {
 const B = 'DarkTrainers';
 
 export const products: Product[] = [
+  {
+    id: 'volt-hi-ac26-magenta',
+    name: 'VOLT-HI x AC26',
+    subtitle: 'Magenta Drop',
+    brand: B,
+    collab: "AgentControl '26",
+    category: 'lifestyle',
+    colorway: 'Hot Pink / Neon Lime / White',
+    price: 285,
+    memberPrice: 245,
+    isDropExclusive: true,
+    releaseDate: '2026-05-26',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/volt-hi-ac26-magenta.webp',
+    description:
+      "AgentControl '26 pushes the VOLT-HI into a hot pink spotlight with neon lime accents and a crisp white base. Drop-exclusive and built to stand out.",
+    tags: ['collab', 'limited', 'lifestyle', 'early-access'],
+  },
+  {
+    id: 'volt-hi-ac26-purple-wave',
+    name: 'VOLT-HI x AC26',
+    subtitle: 'Purple Wave',
+    brand: B,
+    collab: "AgentControl '26",
+    category: 'lifestyle',
+    colorway: 'Electric Purple / Neon Lime / White',
+    price: 285,
+    memberPrice: 245,
+    isDropExclusive: true,
+    releaseDate: '2026-05-26',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/volt-hi-ac26-purple-wave.webp',
+    description:
+      "A purple-led VOLT-HI from the AgentControl '26 capsule with neon lime hits and a clean white counterbalance. Limited pairs, no standard release.",
+    tags: ['collab', 'limited', 'lifestyle', 'early-access'],
+  },
+  {
+    id: 'volt-hi-ac26-full-campaign',
+    name: 'VOLT-HI x AC26',
+    subtitle: 'Full Campaign',
+    brand: B,
+    collab: "AgentControl '26",
+    category: 'lifestyle',
+    colorway: 'Black / Pink / Purple / Neon Lime',
+    price: 325,
+    memberPrice: 279,
+    isDropExclusive: true,
+    releaseDate: '2026-05-26',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/volt-hi-ac26-full-campaign.webp',
+    description:
+      "The loudest statement in the AgentControl '26 drop, layering the full black, pink, purple, and neon lime palette across the VOLT-HI silhouette.",
+    tags: ['collab', 'limited', 'lifestyle', 'early-access'],
+  },
+  {
+    id: 'apex-low-ac26-monstar',
+    name: 'APEX LOW x AC26',
+    subtitle: 'Monstar',
+    brand: B,
+    collab: "AgentControl '26",
+    category: 'lifestyle',
+    colorway: 'Black / White / Forest Green',
+    price: 265,
+    memberPrice: 225,
+    isDropExclusive: true,
+    releaseDate: '2026-05-26',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/apex-low-ac26-monstar.webp',
+    description:
+      "Monstar reworks the APEX LOW with a black and white base and forest green punch-through details. Part of the AgentControl '26 lifestyle drop.",
+    tags: ['collab', 'limited', 'lifestyle', 'early-access'],
+  },
+  {
+    id: 'apex-low-ac26-albert',
+    name: 'APEX LOW x AC26',
+    subtitle: 'Albert',
+    brand: B,
+    collab: "AgentControl '26",
+    category: 'lifestyle',
+    colorway: 'Black / Neon Lime / Pink / Purple',
+    price: 265,
+    memberPrice: 225,
+    isDropExclusive: true,
+    releaseDate: '2026-05-26',
+    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
+    imageUrl: '/images/products/apex-low-ac26-albert.webp',
+    teaserImage: '/images/products/apex-low-ac26-albert-splash.webp',
+    description:
+      "Albert brings the full AgentControl '26 energy to the APEX LOW with neon lime, pink, and purple against a black base, plus a dedicated splash teaser image.",
+    tags: ['collab', 'limited', 'lifestyle', 'early-access'],
+  },
   {
     id: 'phantom-hi-x-gravity-farms',
     name: 'DarkTrainers PHANTOM HI x Gravity Farms',

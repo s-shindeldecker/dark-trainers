@@ -8,6 +8,10 @@ import { LD_FLAGS } from '../lib/ldFlagKeys';
 import { isIdentifiedUser } from '../types/darktrainers';
 import { useUser } from '../context/UserContext';
 
+type DropAccess = 'teaser' | 'early-access' | 'full-access';
+
+const UNLOCKED_ACCESS: readonly DropAccess[] = ['early-access', 'full-access'];
+
 const PageContainer = styled.div`
   max-width: 1400px;
   width: 100%;
@@ -63,6 +67,7 @@ function sortProducts(list: typeof products, mode: 'featured' | 'price-low' | 'n
 
 export default function Products() {
   const { value: sortDefault } = useFeatureFlag(LD_FLAGS.plpSortDefault, 'featured');
+  const { value: ac26DropAccess } = useFeatureFlag(LD_FLAGS.ac26DropAccess, 'teaser');
   const { user } = useUser();
   const preferred = isIdentifiedUser(user) ? user.preferredCategory : undefined;
 
@@ -70,8 +75,10 @@ export default function Products() {
     const mode = (['featured', 'price-low', 'new'] as const).includes(sortDefault as any)
       ? (sortDefault as 'featured' | 'price-low' | 'new')
       : 'featured';
-    return sortProducts(products, mode, preferred);
-  }, [sortDefault, preferred]);
+    const hasDropAccess = UNLOCKED_ACCESS.includes(ac26DropAccess as DropAccess);
+    const visibleProducts = hasDropAccess ? products : products.filter((product) => !product.tags.includes('early-access'));
+    return sortProducts(visibleProducts, mode, preferred);
+  }, [sortDefault, ac26DropAccess, preferred]);
 
   return (
     <PageContainer>

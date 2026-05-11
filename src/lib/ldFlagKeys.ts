@@ -8,6 +8,8 @@ export const LD_FLAGS = {
   plpSortDefault: 'plp-sort-default',
   vipUpgradeCtaCopy: 'vip-upgrade-cta-copy',
   showDropExclusiveProducts: 'show-drop-exclusive-products',
+  showAc26DropFeed: 'show-ac26-drop-feed',
+  ac26DropAccess: 'ac26-drop-access',
   checkoutVipBanner: 'checkout-vip-banner',
   showChatbot: 'show-chatbot',
   showEarlyAccessCountdown: 'show-early-access-countdown',
