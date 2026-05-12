@@ -29,6 +29,13 @@ except ImportError:
     SNOWFLAKE_AVAILABLE = False
     print("Warning: snowflake-connector-python not installed. Snowflake mode will not be available.")
 
+try:
+    from google.cloud import bigquery
+    BIGQUERY_AVAILABLE = True
+except ImportError:
+    BIGQUERY_AVAILABLE = False
+    print("Warning: google-cloud-bigquery not installed. BigQuery mode will not be available.")
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -36,6 +43,21 @@ logging.basicConfig(
 logger = logging.getLogger('darktrainers-simulation')
 
 fake = Faker()
+
+def _get_env_float(name, default):
+    raw = os.getenv(name)
+    if raw in (None, ""):
+        return default
+
+    try:
+        value = float(raw)
+        if value < 0:
+            raise ValueError
+        return value
+    except ValueError:
+        logger.warning("Invalid %s=%r; using default %s", name, raw, default)
+        return default
+
 
 CONFIG = {
     "vip_csv_path": "vip_users.csv",
@@ -73,7 +95,7 @@ CONFIG = {
         },
     },
     "simulation": {
-        "delay_between_journeys": 2.0,
+        "delay_between_journeys": _get_env_float("DARKTRAINERS_SIMULATION_DELAY_BETWEEN_JOURNEYS", 2.0),
     },
 }
 
@@ -149,6 +171,33 @@ def get_snowflake_connection():
     return snowflake.connector.connect(**conn_params)
 
 
+def get_bigquery_client():
+    if not BIGQUERY_AVAILABLE:
+        raise ImportError("google-cloud-bigquery is not installed")
+
+    project_id = os.getenv('BIGQUERY_PROJECT_ID')
+    if not project_id:
+        raise ValueError("BIGQUERY_PROJECT_ID environment variable is required")
+
+    dataset_id = os.getenv('BIGQUERY_METRICS_DATASET', 'darktrainers_metrics')
+    table_id = os.getenv('BIGQUERY_METRICS_TABLE', 'metric_events')
+
+    return bigquery.Client(project=project_id), dataset_id, table_id
+
+
+def create_bq_table_if_not_exists(bq_client, project_id, dataset_id, table_id):
+    table_ref = f"{project_id}.{dataset_id}.{table_id}"
+    schema = [
+        bigquery.SchemaField("context_key", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("context_kind", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("event_key", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("event_value", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("received_time", "TIMESTAMP", mode="REQUIRED"),
+    ]
+    table = bigquery.Table(table_ref, schema=schema)
+    bq_client.create_table(table, exists_ok=True)
+
+
 def insert_metric_event_to_snowflake(conn, event_data):
     table_name = os.getenv('SNOWFLAKE_METRIC_EVENTS_TABLE')
     if not table_name:
@@ -177,6 +226,26 @@ def insert_metric_event_to_snowflake(conn, event_data):
         raise
     finally:
         cursor.close()
+
+
+def insert_metric_events_to_bigquery(bq_client, project_id, dataset_id, table_id, events):
+    if not events:
+        return
+
+    table_ref = f"{project_id}.{dataset_id}.{table_id}"
+    rows = [
+        {
+            "context_key": event["context_key"],
+            "context_kind": event["context_kind"],
+            "event_key": event["event_key"],
+            "event_value": event["event_value"],
+            "received_time": event["received_time"],
+        }
+        for event in events
+    ]
+    errors = bq_client.insert_rows_json(table_ref, rows)
+    if errors:
+        raise RuntimeError(f"Error inserting metric events into BigQuery: {errors}")
 
 
 def generate_metric_event_data(user_key, event_key, event_value=None, flag_eval_time=None):
@@ -343,21 +412,21 @@ def _eval_all_flags_on_multi(ld_client, multi_ctx) -> dict:
     return merged
 
 
-def _track(ld_client, mode, track_ctx, event_key, user_key_sf, snowflake_events, flag_eval_time, metric_value=None):
+def _track(ld_client, mode, track_ctx, event_key, user_key_sf, warehouse_events, flag_eval_time, metric_value=None):
     if mode == 'launchdarkly':
         if metric_value is not None:
             ld_client.track(event_key, track_ctx, metric_value=metric_value)
         else:
             ld_client.track(event_key, track_ctx)
     else:
-        snowflake_events.append(generate_metric_event_data(
+        warehouse_events.append(generate_metric_event_data(
             user_key_sf, event_key, event_value=metric_value, flag_eval_time=flag_eval_time
         ))
 
 
 def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_conn=None):
     events = []
-    snowflake_events = []
+    warehouse_events = []
     flag_eval_time = datetime.now(timezone.utc)
     flag_values = {}
     journey = _pick_journey_type()
@@ -372,17 +441,17 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         # Guest only — session context only
         flag_values.update(_eval_session_flags(ld_client, session_ctx))
 
-        _track(ld_client, mode, session_ctx, "product_viewed", session_key, snowflake_events, flag_eval_time, metric_value=product_price)
+        _track(ld_client, mode, session_ctx, "product_viewed", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
 
         gprob = CONFIG["event_probabilities"]["guest"]
         if random.random() < gprob["add_to_cart"]:
             events.append("add_to_cart")
-            _track(ld_client, mode, session_ctx, "add_to_cart", session_key, snowflake_events, flag_eval_time, metric_value=product_price)
+            _track(ld_client, mode, session_ctx, "add_to_cart", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         if random.random() < gprob["banner_click"] and flag_values.get("promoBanner"):
             events.append("banner_click")
-            _track(ld_client, mode, session_ctx, "banner_click", session_key, snowflake_events, flag_eval_time)
+            _track(ld_client, mode, session_ctx, "banner_click", session_key, warehouse_events, flag_eval_time)
 
         user_info = {
             "key": session_key,
@@ -396,7 +465,7 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         ld_client.identify(session_ctx)
         flag_values.update(_eval_session_flags(ld_client, session_ctx))
 
-        _track(ld_client, mode, session_ctx, "product_viewed", session_key, snowflake_events, flag_eval_time, metric_value=product_price)
+        _track(ld_client, mode, session_ctx, "product_viewed", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
 
         vip_record = _pick_vip_record_or_none()
@@ -412,20 +481,20 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
 
         if random.random() < probs["add_to_cart"]:
             events.append("add_to_cart")
-            _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, snowflake_events, flag_eval_time, metric_value=product_price)
+            _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         if random.random() < probs["checkout_initiated"]:
             cart_total = _sample_checkout_total(tier)
             events.append("checkout_initiated")
-            _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, snowflake_events, flag_eval_time, metric_value=cart_total)
+            _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, warehouse_events, flag_eval_time, metric_value=cart_total)
 
         if tier == "standard" and random.random() < probs["vip_upgrade"]:
             events.append("vip_upgrade")
-            _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, snowflake_events, flag_eval_time, metric_value=14.99)
+            _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
         if flag_values.get("promoBanner") and random.random() < probs["banner_click"]:
             events.append("banner_click")
-            _track(ld_client, mode, multi_ctx, "banner_click", sf_key, snowflake_events, flag_eval_time)
+            _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
         user_info["journeyType"] = "guest_transition"
         user_info["sessionKey"] = session_key
@@ -443,25 +512,25 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         probs = CONFIG["event_probabilities"][tier]
         sf_key = user_info["key"]
 
-        _track(ld_client, mode, multi_ctx, "product_viewed", sf_key, snowflake_events, flag_eval_time, metric_value=product_price)
+        _track(ld_client, mode, multi_ctx, "product_viewed", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
 
         if random.random() < probs["add_to_cart"]:
             events.append("add_to_cart")
-            _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, snowflake_events, flag_eval_time, metric_value=product_price)
+            _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         if random.random() < probs["checkout_initiated"]:
             cart_total = _sample_checkout_total(tier)
             events.append("checkout_initiated")
-            _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, snowflake_events, flag_eval_time, metric_value=cart_total)
+            _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, warehouse_events, flag_eval_time, metric_value=cart_total)
 
         if tier == "standard" and random.random() < probs["vip_upgrade"]:
             events.append("vip_upgrade")
-            _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, snowflake_events, flag_eval_time, metric_value=14.99)
+            _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
         if flag_values.get("promoBanner") and random.random() < probs["banner_click"]:
             events.append("banner_click")
-            _track(ld_client, mode, multi_ctx, "banner_click", sf_key, snowflake_events, flag_eval_time)
+            _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
         user_info["journeyType"] = "identified_start"
         user_info["sessionKey"] = session_key
@@ -470,13 +539,14 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         ld_client.flush()
         time.sleep(CONFIG["simulation"]["delay_between_journeys"])
 
-    return user_info, flag_values, events, snowflake_events
+    return user_info, flag_values, events, warehouse_events
 
 
 def main():
     parser = argparse.ArgumentParser(description='DarkTrainers LaunchDarkly simulation')
     parser.add_argument('--records', type=int, default=300, help='Number of user journeys')
-    parser.add_argument('--mode', choices=['launchdarkly', 'snowflake'], default='launchdarkly')
+    parser.add_argument('--mode', choices=['launchdarkly', 'snowflake', 'bigquery'], default='launchdarkly')
+    parser.add_argument('--create-table', action='store_true', help='Create the BigQuery metrics table before running')
     args = parser.parse_args()
 
     sdk_key = os.getenv('LAUNCHDARKLY_SDK_KEY')
@@ -493,6 +563,10 @@ def main():
 
         log_filename = f'darktrainers_simulation_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
         logger.info(f"Logging to {log_filename}")
+        logger.info(
+            "Delay between journeys: %ss (env: DARKTRAINERS_SIMULATION_DELAY_BETWEEN_JOURNEYS)",
+            CONFIG["simulation"]["delay_between_journeys"],
+        )
 
         for i in range(args.records):
             user_info, flag_values, events, _ = simulate_user_journey_v2(ld_client, fake, mode='launchdarkly')
@@ -532,6 +606,33 @@ def main():
                     logger.info("Processed %s/%s", i + 1, args.records)
         finally:
             conn.close()
+            ld_client.close()
+        return 0
+
+    if args.mode == 'bigquery':
+        if not BIGQUERY_AVAILABLE:
+            logger.error("BigQuery mode requires google-cloud-bigquery")
+            return 1
+        ldclient.set_config(Config(sdk_key))
+        ld_client = ldclient.get()
+        if not ld_client.is_initialized():
+            logger.error("LaunchDarkly client failed to initialize")
+            return 1
+        bq_client, dataset_id, table_id = get_bigquery_client()
+        project_id = bq_client.project
+        try:
+            if args.create_table:
+                create_bq_table_if_not_exists(bq_client, project_id, dataset_id, table_id)
+            for i in range(args.records):
+                _, _, _, warehouse_events = simulate_user_journey_v2(
+                    ld_client, fake, mode='bigquery'
+                )
+                insert_metric_events_to_bigquery(
+                    bq_client, project_id, dataset_id, table_id, warehouse_events
+                )
+                if (i + 1) % 50 == 0:
+                    logger.info("Processed %s/%s", i + 1, args.records)
+        finally:
             ld_client.close()
         return 0
 
