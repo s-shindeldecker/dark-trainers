@@ -72,6 +72,7 @@ export const products: Product[] = [
     releaseDate: '2026-05-26',
     sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
     imageUrl: '/images/products/volt-hi-ac26-full-campaign.webp',
+    teaserImage: '/images/products/volt-hi-ac26-full-campaign.webp',
     description:
       "The loudest statement in the AgentControl '26 drop, layering the full black, pink, purple, and neon lime palette across the VOLT-HI silhouette.",
     tags: ['collab', 'limited', 'lifestyle', 'early-access'],
@@ -108,7 +109,6 @@ export const products: Product[] = [
     releaseDate: '2026-05-26',
     sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12],
     imageUrl: '/images/products/apex-low-ac26-albert.webp',
-    teaserImage: '/images/products/apex-low-ac26-albert-splash.webp',
     description:
       "Albert brings the full AgentControl '26 energy to the APEX LOW with neon lime, pink, and purple against a black base, plus a dedicated splash teaser image.",
     tags: ['collab', 'limited', 'lifestyle', 'early-access'],
