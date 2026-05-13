@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { LD_FLAGS, DEFAULT_CHECKOUT_VIP_BANNER } from '../../lib/ldFlagKeys';
-import { useCart } from '../../context/CartContext';
+import { useCart, VIP_MEMBERSHIP_UPGRADE_USD } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
 import { isIdentifiedUser } from '../../types/darktrainers';
 import { getProductById } from '../Products/productData';
@@ -70,6 +70,34 @@ const Line = styled.div`
   font-size: 0.9rem;
 `;
 
+const MembershipBadge = styled.span`
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c8f000;
+  border: 1px solid #4d5c00;
+  border-radius: 4px;
+  background: rgba(200, 240, 0, 0.08);
+  vertical-align: middle;
+`;
+
+const VipUpgradeLine = styled(Line)`
+  background: rgba(200, 240, 0, 0.04);
+  margin: 0 -1.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-bottom: 1px solid #2a2a2a;
+`;
+
+const LockedNote = styled.span`
+  font-size: 0.72rem;
+  color: #737373;
+`;
+
 const Upsell = styled.div`
   margin: 1rem 0;
   padding: 1rem;
@@ -97,7 +125,7 @@ const CheckoutBtn = styled.button`
 
 export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const ldClient = useLDClient();
-  const { lines, isOpen, closeCart, clearCart, cartSubtotal, updateQty, removeLine } = useCart();
+  const { lines, isOpen, closeCart, clearCart, cartSubtotal, updateQty, removeLine, vipUpgradeLineActive } = useCart();
   const { user } = useUser();
   const { value: bannerJson } = useFeatureFlag(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER);
   const { value: ctaCopy } = useFeatureFlag(LD_FLAGS.vipUpgradeCtaCopy, 'Join VIP');
@@ -114,15 +142,19 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const savingsPct = 18;
 
   const displayTotal = useMemo(() => {
+    const fee = vipUpgradeLineActive ? VIP_MEMBERSHIP_UPGRADE_USD : 0;
     if (!showVipPricing) {
       return cartSubtotal;
     }
-    return lines.reduce((sum, l) => {
+    const productTotal = lines.reduce((sum, l) => {
       const p = getProductById(l.productId);
       const unit = p?.memberPrice ?? l.unitPrice;
       return sum + unit * l.qty;
     }, 0);
-  }, [showVipPricing, lines, cartSubtotal]);
+    return productTotal + fee;
+  }, [showVipPricing, lines, cartSubtotal, vipUpgradeLineActive]);
+
+  const hasCartContents = lines.length > 0 || vipUpgradeLineActive;
 
   const handleCheckout = () => {
     if (ldClient) {
@@ -142,47 +174,61 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
           </CloseBtn>
         </Head>
         <Body>
-          {lines.length === 0 ? (
+          {!hasCartContents ? (
             <p style={{ color: '#737373' }}>Your cart is empty.</p>
           ) : (
-            lines.map((l) => {
-              const p = getProductById(l.productId);
-              const memberPrice = p?.memberPrice;
-              const showMember = showVipPricing && memberPrice != null;
-              return (
-                <Line key={`${l.productId}-${l.size}`}>
-                  <div style={{ fontWeight: 600 }}>{l.name}</div>
-                  <div style={{ color: '#a3a3a3', fontSize: '0.85rem' }}>
-                    Size {l.size} × {l.qty}
+            <>
+              {lines.map((l) => {
+                const p = getProductById(l.productId);
+                const memberPrice = p?.memberPrice;
+                const showMember = showVipPricing && memberPrice != null;
+                return (
+                  <Line key={`${l.productId}-${l.size}`}>
+                    <div style={{ fontWeight: 600 }}>{l.name}</div>
+                    <div style={{ color: '#a3a3a3', fontSize: '0.85rem' }}>
+                      Size {l.size} × {l.qty}
+                    </div>
+                    <div style={{ marginTop: '0.35rem' }}>
+                      {showMember ? (
+                        <>
+                          <span style={{ textDecoration: 'line-through', color: '#737373', marginRight: '0.5rem' }}>
+                            ${(l.unitPrice * l.qty).toFixed(2)}
+                          </span>
+                          <span style={{ color: '#c8f000' }}>${((memberPrice ?? l.unitPrice) * l.qty).toFixed(2)} VIP</span>
+                        </>
+                      ) : (
+                        <span>${(l.unitPrice * l.qty).toFixed(2)}</span>
+                      )}
+                    </div>
+                    <div style={{ marginTop: '0.35rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#a3a3a3' }}>Qty</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={l.qty}
+                        onChange={(e) => updateQty(l.productId, l.size, Number(e.target.value) || 1)}
+                        style={{ width: '4rem', padding: '0.25rem' }}
+                      />
+                      <button type="button" className="secondary" style={{ fontSize: '0.75rem' }} onClick={() => removeLine(l.productId, l.size)}>
+                        Remove
+                      </button>
+                    </div>
+                  </Line>
+                );
+              })}
+              {vipUpgradeLineActive && (
+                <VipUpgradeLine>
+                  <div style={{ fontWeight: 600 }}>
+                    VIP Membership Upgrade
+                    <MembershipBadge>Membership</MembershipBadge>
                   </div>
+                  <div style={{ marginTop: '0.35rem', color: '#c8f000' }}>${VIP_MEMBERSHIP_UPGRADE_USD.toFixed(2)}</div>
                   <div style={{ marginTop: '0.35rem' }}>
-                    {showMember ? (
-                      <>
-                        <span style={{ textDecoration: 'line-through', color: '#737373', marginRight: '0.5rem' }}>
-                          ${(l.unitPrice * l.qty).toFixed(2)}
-                        </span>
-                        <span style={{ color: '#c8f000' }}>${((memberPrice ?? l.unitPrice) * l.qty).toFixed(2)} VIP</span>
-                      </>
-                    ) : (
-                      <span>${(l.unitPrice * l.qty).toFixed(2)}</span>
-                    )}
+                    <LockedNote>Non-removable — clears if your account is no longer VIP.</LockedNote>
                   </div>
-                  <div style={{ marginTop: '0.35rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#a3a3a3' }}>Qty</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={l.qty}
-                      onChange={(e) => updateQty(l.productId, l.size, Number(e.target.value) || 1)}
-                      style={{ width: '4rem', padding: '0.25rem' }}
-                    />
-                    <button type="button" className="secondary" style={{ fontSize: '0.75rem' }} onClick={() => removeLine(l.productId, l.size)}>
-                      Remove
-                    </button>
-                  </div>
-                </Line>
-              );
-            })
+                </VipUpgradeLine>
+              )}
+            </>
           )}
           {showUpsell && (
             <Upsell>
@@ -202,7 +248,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
             <span>Subtotal</span>
             <span>${displayTotal.toFixed(2)}</span>
           </Total>
-          <CheckoutBtn type="button" onClick={handleCheckout} disabled={lines.length === 0}>
+          <CheckoutBtn type="button" onClick={handleCheckout} disabled={!hasCartContents}>
             Checkout
           </CheckoutBtn>
         </Foot>

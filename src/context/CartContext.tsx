@@ -1,6 +1,18 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useUser } from './UserContext';
+import { isIdentifiedUser } from '../types/darktrainers';
 import type { Product } from '../components/Products/productData';
+
+/** Shown in cart after accepting the VIP upgrade modal; cleared when VIP is revoked or cart is cleared. */
+export const VIP_MEMBERSHIP_UPGRADE_USD = 14.99;
 
 export type CartLine = {
   productId: string;
@@ -23,6 +35,10 @@ interface CartContextValue {
   updateQty: (productId: string, size: number, qty: number) => void;
   removeLine: (productId: string, size: number) => void;
   cartSubtotal: number;
+  /** True after user confirms the VIP upgrade modal while VIP; cleared when tier drops or cart clears. */
+  vipUpgradeLineActive: boolean;
+  /** Call when the VIP upgrade modal is confirmed (visual cart line only). */
+  activateVipUpgradeLineItem: () => void;
   /** Remove all line items and close the drawer. */
   clearCart: () => void;
 }
@@ -32,7 +48,15 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const { transitionGuestToStandard, isAnonymousGuest } = useUser();
+  const [vipUpgradeLineActive, setVipUpgradeLineActive] = useState(false);
+  const { transitionGuestToStandard, isAnonymousGuest, user } = useUser();
+
+  useEffect(() => {
+    const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
+    if (!isVip) {
+      setVipUpgradeLineActive(false);
+    }
+  }, [user]);
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
@@ -92,15 +116,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLines((prev) => prev.filter((l) => !(l.productId === productId && l.size === size)));
   }, []);
 
+  const activateVipUpgradeLineItem = useCallback(() => {
+    setVipUpgradeLineActive(true);
+  }, []);
+
   const clearCart = useCallback(() => {
     setLines([]);
+    setVipUpgradeLineActive(false);
     setIsOpen(false);
   }, []);
 
-  const cartSubtotal = useMemo(
-    () => lines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0),
-    [lines],
-  );
+  const cartSubtotal = useMemo(() => {
+    const products = lines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
+    return products + (vipUpgradeLineActive ? VIP_MEMBERSHIP_UPGRADE_USD : 0);
+  }, [lines, vipUpgradeLineActive]);
 
   const value = useMemo(
     () => ({
@@ -113,6 +142,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateQty,
       removeLine,
       cartSubtotal,
+      vipUpgradeLineActive,
+      activateVipUpgradeLineItem,
       clearCart,
     }),
     [
@@ -125,6 +156,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateQty,
       removeLine,
       cartSubtotal,
+      vipUpgradeLineActive,
+      activateVipUpgradeLineItem,
       clearCart,
     ],
   );

@@ -39,9 +39,10 @@ function AppShell() {
   const { value: showVipSignup } = useFeatureFlag(LD_FLAGS.showVipSignup, true);
   const ldClient = useLDClient();
   const vip = useVipModal();
-  const { addItemAfterVipTransition } = useCart();
+  const { addItemAfterVipTransition, activateVipUpgradeLineItem } = useCart();
 
   const handleVipConfirmed = () => {
+    activateVipUpgradeLineItem();
     if (vip.pendingCartAdd && ldClient) {
       const p = getProductById(vip.pendingCartAdd.productId);
       if (p) {

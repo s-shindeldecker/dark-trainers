@@ -105,9 +105,9 @@ interface HeaderProps {
 }
 
 export function Header({ isIdentified, onLogout, onAccount, showFeed, showProducts, showSignup, onJoinVip }: HeaderProps) {
-  const { lines, openCart } = useCart();
+  const { lines, openCart, vipUpgradeLineActive } = useCart();
   const { user } = useUser();
-  const count = lines.reduce((n, l) => n + l.qty, 0);
+  const count = lines.reduce((n, l) => n + l.qty, 0) + (vipUpgradeLineActive ? 1 : 0);
 
   return (
     <NavBar>
