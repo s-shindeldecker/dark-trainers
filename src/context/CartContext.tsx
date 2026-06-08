@@ -49,7 +49,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [vipUpgradeLineActive, setVipUpgradeLineActive] = useState(false);
-  const { transitionGuestToStandard, isAnonymousGuest, user } = useUser();
+  const { isAnonymousGuest, user, registerClearCart } = useUser();
+
+  const clearCart = useCallback(() => {
+    setLines([]);
+    setVipUpgradeLineActive(false);
+    setIsOpen(false);
+  }, []);
+
+  useEffect(() => {
+    registerClearCart(clearCart);
+  }, [registerClearCart, clearCart]);
 
   useEffect(() => {
     const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
@@ -88,13 +98,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (isAnonymousGuest && product.isDropExclusive) {
         return { needsVipModal: true };
       }
-      if (isAnonymousGuest && !product.isDropExclusive) {
-        transitionGuestToStandard();
-      }
       mergeLine(product, size, qty);
       return { needsVipModal: false };
     },
-    [isAnonymousGuest, mergeLine, transitionGuestToStandard],
+    [isAnonymousGuest, mergeLine],
   );
 
   const addItemAfterVipTransition = useCallback(
@@ -118,12 +125,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const activateVipUpgradeLineItem = useCallback(() => {
     setVipUpgradeLineActive(true);
-  }, []);
-
-  const clearCart = useCallback(() => {
-    setLines([]);
-    setVipUpgradeLineActive(false);
-    setIsOpen(false);
   }, []);
 
   const cartSubtotal = useMemo(() => {

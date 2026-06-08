@@ -25,6 +25,7 @@
     "launchdarkly-js-client-sdk": "^3.8.1",
     "launchdarkly-react-client-sdk": "^3.8.1",
     "openai": "^6.33.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2"

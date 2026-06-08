@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import {
   type AppUser,
   type IdentifiedUserProfile,
@@ -22,10 +22,16 @@ interface UserContextType {
   isAnonymousGuest: boolean;
   /** True when identified Standard or VIP. */
   isIdentified: boolean;
+  /** Called by CartProvider to wire persona transitions to clearCart(). */
+  registerClearCart: (fn: () => void) => void;
   setUser: (user: AppUser) => void;
   resetToGuest: () => void;
   setIdentifiedStandard: () => void;
   setIdentifiedVip: () => void;
+  /** Identified → random Standard user (UUID key); guest → identified preserves cart. */
+  setRandomStandard: (userData: IdentifiedUserProfile) => void;
+  /** Identified → random VIP user (UUID key); guest → identified preserves cart. */
+  setRandomVip: (userData: IdentifiedUserProfile) => void;
   /** Standard → VIP; same session key, updated user in LD multi-context. */
   upgradeIdentifiedToVip: () => void;
   /** Guest → Standard; LD identifies with multi(session + user). */
@@ -44,6 +50,7 @@ const anonymousProfile = (): AppUser => ({
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+  const clearCartRef = useRef<(() => void) | null>(null);
   const [sessionKey, setSessionKey] = useState(() => getOrCreateLdSessionKey());
   const [authState, setAuthState] = useState<AuthState>({
     user: anonymousProfile(),
@@ -51,28 +58,79 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const { user } = authState;
 
+  const registerClearCart = useCallback((fn: () => void) => {
+    clearCartRef.current = fn;
+  }, []);
+
+  const clearCartIfDifferentIdentifiedUser = useCallback((prev: AppUser, next: IdentifiedUserProfile) => {
+    if (!prev.anonymous && prev.key !== next.key) {
+      clearCartRef.current?.();
+    }
+  }, []);
+
   const setUser = useCallback((next: AppUser) => {
-    setAuthState((prev) => ({ ...prev, user: next }));
+    setAuthState((prev) => {
+      const prevUser = prev.user;
+      if (!prevUser.anonymous && next.anonymous) {
+        clearCartRef.current?.();
+      } else if (!prevUser.anonymous && !next.anonymous && prevUser.key !== next.key) {
+        clearCartRef.current?.();
+      }
+      return { ...prev, user: next };
+    });
   }, []);
 
   const resetToGuest = useCallback(() => {
-    setSessionKey(rotateLdSessionKey());
-    setAuthState({
-      user: anonymousProfile(),
+    setAuthState((prev) => {
+      if (!prev.user.anonymous) {
+        clearCartRef.current?.();
+      }
+      return { user: anonymousProfile() };
     });
+    setSessionKey(rotateLdSessionKey());
   }, []);
 
   const setIdentifiedStandard = useCallback(() => {
-    setAuthState({
-      user: { ...STANDARD_DEMO_USER },
+    setAuthState((prev) => {
+      if (!prev.user.anonymous) {
+        clearCartIfDifferentIdentifiedUser(prev.user, STANDARD_DEMO_USER);
+      }
+      return { user: { ...STANDARD_DEMO_USER } };
     });
-  }, []);
+  }, [clearCartIfDifferentIdentifiedUser]);
 
   const setIdentifiedVip = useCallback(() => {
-    setAuthState({
-      user: { ...VIP_DEMO_USER },
+    setAuthState((prev) => {
+      if (!prev.user.anonymous) {
+        clearCartIfDifferentIdentifiedUser(prev.user, VIP_DEMO_USER);
+      }
+      return { user: { ...VIP_DEMO_USER } };
     });
-  }, []);
+  }, [clearCartIfDifferentIdentifiedUser]);
+
+  const setRandomStandard = useCallback(
+    (userData: IdentifiedUserProfile) => {
+      setAuthState((prev) => {
+        if (!prev.user.anonymous) {
+          clearCartIfDifferentIdentifiedUser(prev.user, userData);
+        }
+        return { user: { ...userData } };
+      });
+    },
+    [clearCartIfDifferentIdentifiedUser],
+  );
+
+  const setRandomVip = useCallback(
+    (userData: IdentifiedUserProfile) => {
+      setAuthState((prev) => {
+        if (!prev.user.anonymous) {
+          clearCartIfDifferentIdentifiedUser(prev.user, userData);
+        }
+        return { user: { ...userData } };
+      });
+    },
+    [clearCartIfDifferentIdentifiedUser],
+  );
 
   const upgradeIdentifiedToVip = useCallback(() => {
     setAuthState({
@@ -109,10 +167,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         sessionKey,
         isAnonymousGuest,
         isIdentified,
+        registerClearCart,
         setUser,
         resetToGuest,
         setIdentifiedStandard,
         setIdentifiedVip,
+        setRandomStandard,
+        setRandomVip,
         upgradeIdentifiedToVip,
         transitionGuestToStandard,
         transitionGuestToVip,
