@@ -14,6 +14,7 @@ import csv
 import random
 import argparse
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from faker import Faker
 import ldclient
@@ -35,6 +36,13 @@ try:
 except ImportError:
     BIGQUERY_AVAILABLE = False
     print("Warning: google-cloud-bigquery not installed. BigQuery mode will not be available.")
+
+try:
+    from databricks import sql as databricks_sql
+    DATABRICKS_AVAILABLE = True
+except ImportError:
+    DATABRICKS_AVAILABLE = False
+    print("Warning: databricks-sql-connector not installed. Databricks mode will not be available.")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,7 +69,9 @@ def _get_env_float(name, default):
 
 CONFIG = {
     "vip_csv_path": "vip_users.csv",
-    "vip_ratio": 0.50,
+    "standard_csv_path": "standard_users.csv",
+    "known_vip_ratio": 0.65,
+    "vip_ratio": 0.30,
     "guest_transition_ratio": 0.40,
     "flags": {
         "session_flags": ["promo-banner-text"],
@@ -112,9 +122,139 @@ def _load_vip_user_pool():
     return rows
 
 
+def _load_standard_user_pool():
+    path = os.path.join(_SCRIPT_DIR, CONFIG["standard_csv_path"])
+    rows = []
+    with open(path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+    return rows
+
+
 VIP_USER_POOL = _load_vip_user_pool()
+STANDARD_USER_POOL = _load_standard_user_pool()
 
 CATEGORIES = ["running", "basketball", "lifestyle", "training"]
+
+
+@dataclass(frozen=True)
+class SimulationProfile:
+    name: str
+    ld_sdk_key_env: str
+    warehouse: str | None  # bigquery | databricks | snowflake; None = LD-only
+
+
+PROFILES: dict[str, SimulationProfile] = {
+    "production-bq": SimulationProfile(
+        name="production-bq",
+        ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY",
+        warehouse="bigquery",
+    ),
+    "test-databricks": SimulationProfile(
+        name="test-databricks",
+        ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY_TEST",
+        warehouse="databricks",
+    ),
+}
+
+LEGACY_SNOWFLAKE_PROFILE = SimulationProfile(
+    name="snowflake-legacy",
+    ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY",
+    warehouse="snowflake",
+)
+
+LD_ONLY_PROFILE = SimulationProfile(
+    name="launchdarkly-only",
+    ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY",
+    warehouse=None,
+)
+
+
+def resolve_ld_sdk_key(profile: SimulationProfile) -> str:
+    sdk_key = os.getenv(profile.ld_sdk_key_env)
+    if not sdk_key:
+        raise ValueError(
+            f"{profile.ld_sdk_key_env} environment variable is required for profile '{profile.name}'"
+        )
+    return sdk_key
+
+
+def init_ld_client(sdk_key: str):
+    ldclient.set_config(Config(sdk_key))
+    ld_client = ldclient.get()
+    if not ld_client.is_initialized():
+        raise RuntimeError("LaunchDarkly client failed to initialize")
+    return ld_client
+
+
+def get_databricks_connection():
+    if not DATABRICKS_AVAILABLE:
+        raise ImportError("databricks-sql-connector is not installed")
+
+    host = os.getenv("DATABRICKS_HOST")
+    http_path = os.getenv("DATABRICKS_HTTP_PATH")
+    token = os.getenv("DATABRICKS_TOKEN")
+    if not all([host, http_path, token]):
+        raise ValueError(
+            "DATABRICKS_HOST, DATABRICKS_HTTP_PATH, and DATABRICKS_TOKEN are required"
+        )
+
+    return databricks_sql.connect(
+        server_hostname=host,
+        http_path=http_path,
+        access_token=token,
+    )
+
+
+def get_databricks_table_ref():
+    catalog = os.getenv("DATABRICKS_CATALOG")
+    if not catalog:
+        raise ValueError("DATABRICKS_CATALOG environment variable is required")
+    schema = os.getenv("DATABRICKS_SCHEMA", "darktrainers_metrics")
+    table = os.getenv("DATABRICKS_METRICS_TABLE", "metric_events")
+    return catalog, schema, table
+
+
+def create_databricks_table_if_not_exists(conn, catalog, schema, table):
+    table_ref = f"{catalog}.{schema}.{table}"
+    ddl = f"""
+    CREATE TABLE IF NOT EXISTS {table_ref} (
+        context_key STRING NOT NULL,
+        context_kind STRING NOT NULL,
+        event_key STRING NOT NULL,
+        event_value DOUBLE,
+        received_time TIMESTAMP NOT NULL
+    )
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(ddl)
+
+
+def insert_metric_events_to_databricks(conn, catalog, schema, table, events, chunk_size=25):
+    if not events:
+        return
+
+    table_ref = f"{catalog}.{schema}.{table}"
+
+    rows = [
+        (
+            event["context_key"],
+            event["context_kind"],
+            event["event_key"],
+            event["event_value"],
+            event["received_time"],
+        )
+        for event in events
+    ]
+
+    with conn.cursor() as cursor:
+        for i in range(0, len(rows), chunk_size):
+            chunk = rows[i:i + chunk_size]
+            placeholders = ", ".join(["(?, ?, ?, ?, ?)"] * len(chunk))
+            insert_sql = f"INSERT INTO {table_ref} (context_key, context_kind, event_key, event_value, received_time) VALUES {placeholders}"
+            flat_params = [val for row in chunk for val in row]
+            cursor.execute(insert_sql, flat_params)
 
 
 def get_snowflake_connection():
@@ -273,16 +413,18 @@ def _session_context(session_key: str) -> Context:
 def _identified_context_from_vip_record(record: dict):
     key = record["user_key"]
     lifetime_spend = float(record["lifetimeSpend"])
+    member_tier = record["memberTier"]
+    early_access = member_tier == "vip"
     ctx = Context.builder(key) \
         .kind("user") \
         .name(record["name"]) \
         .set("country", "US") \
         .set("state", "CA") \
-        .set("memberTier", "vip") \
+        .set("memberTier", member_tier) \
         .set("memberSince", record["memberSince"]) \
         .set("lifetimeSpend", round(lifetime_spend, 2)) \
         .set("preferredCategory", record["preferredCategory"]) \
-        .set("earlyAccessEnabled", True) \
+        .set("earlyAccessEnabled", early_access) \
         .build()
     user_info = {
         "key": key,
@@ -290,11 +432,11 @@ def _identified_context_from_vip_record(record: dict):
         "email": "",
         "country": "US",
         "state": "CA",
-        "memberTier": "vip",
+        "memberTier": member_tier,
         "memberSince": record["memberSince"],
         "lifetimeSpend": round(lifetime_spend, 2),
         "preferredCategory": record["preferredCategory"],
-        "earlyAccessEnabled": True,
+        "earlyAccessEnabled": early_access,
     }
     return ctx, user_info
 
@@ -302,19 +444,32 @@ def _identified_context_from_vip_record(record: dict):
 def generate_user_context(user_record=None):
     """
     Build a kind:user Context and user_info dict.
-    If user_record is provided (VIP CSV row), use stable user_key and row attributes.
+    If user_record is a VIP CSV row, use stable user_key and row attributes.
+    If user_record is 'unknown_vip', generate a UUID-keyed VIP user.
     If not, generate a random standard user with a UUID key.
     """
-    if user_record is not None:
+    if user_record is not None and user_record not in ("unknown_vip", "unknown_standard"):
         return _identified_context_from_vip_record(user_record)
+
+    is_unknown_vip = (user_record == "unknown_vip")
+    is_unknown_standard = (user_record == "unknown_standard")
 
     context_key = str(uuid.uuid4())
     name = fake.name()
     email = fake.email()
     state = fake.state_abbr()
     preferred = random.choice(CATEGORIES)
-    lifetime_spend = random.uniform(40, 520)
-    member_since = fake.date_between(start_date='-2y', end_date='-30d').isoformat()
+
+    if is_unknown_vip:
+        lifetime_spend = random.uniform(800, 4500)
+        member_tier = "vip"
+        early_access = True
+        member_since = fake.date_between(start_date='-4y', end_date='-90d').isoformat()
+    else:
+        lifetime_spend = random.uniform(40, 520)
+        member_tier = "standard"
+        early_access = False
+        member_since = fake.date_between(start_date='-2y', end_date='-30d').isoformat()
 
     ctx = Context.builder(context_key) \
         .kind("user") \
@@ -322,11 +477,11 @@ def generate_user_context(user_record=None):
         .set("email", email) \
         .set("country", "US") \
         .set("state", state) \
-        .set("memberTier", "standard") \
+        .set("memberTier", member_tier) \
         .set("memberSince", member_since) \
         .set("lifetimeSpend", round(lifetime_spend, 2)) \
         .set("preferredCategory", preferred) \
-        .set("earlyAccessEnabled", False) \
+        .set("earlyAccessEnabled", early_access) \
         .build()
 
     user_info = {
@@ -335,11 +490,11 @@ def generate_user_context(user_record=None):
         "email": email,
         "country": "US",
         "state": state,
-        "memberTier": "standard",
+        "memberTier": member_tier,
         "memberSince": member_since,
         "lifetimeSpend": round(lifetime_spend, 2),
         "preferredCategory": preferred,
-        "earlyAccessEnabled": False,
+        "earlyAccessEnabled": early_access,
     }
     return ctx, user_info
 
@@ -359,11 +514,24 @@ def _pick_journey_type() -> str:
     return "C"
 
 
-def _pick_vip_record_or_none():
-    """Return a VIP CSV row dict with probability vip_ratio, else None (standard UUID user)."""
-    if VIP_USER_POOL and random.random() < CONFIG["vip_ratio"]:
-        return random.choice(VIP_USER_POOL)
-    return None
+def _pick_user_record():
+    """
+    Returns:
+      - A VIP CSV row dict (known VIP, stable key)
+      - The sentinel "unknown_vip" (new high-value customer, UUID key)
+      - A standard CSV row dict (known standard user, stable key)
+      - The sentinel "unknown_standard" (new standard customer, UUID key)
+    """
+    if random.random() < CONFIG["vip_ratio"]:
+        if VIP_USER_POOL and random.random() < CONFIG["known_vip_ratio"]:
+            return random.choice(VIP_USER_POOL)
+        else:
+            return "unknown_vip"
+    else:
+        known_standard_ratio = 0.20
+        if STANDARD_USER_POOL and random.random() < known_standard_ratio:
+            return random.choice(STANDARD_USER_POOL)
+        return "unknown_standard"
 
 
 def _sample_product_price() -> float:
@@ -382,12 +550,13 @@ def _sample_checkout_total(tier: str) -> float:
 def _eval_session_flags(ld_client, eval_ctx) -> dict:
     out = {}
     for flag_key in CONFIG["flags"]["session_flags"]:
-        default = "" if "promo" in flag_key else "standard"
-        val = ld_client.variation(flag_key, eval_ctx, default)
         if flag_key == "promo-banner-text":
-            out["promoBanner"] = val
+            detail = ld_client.variation_detail("promo-banner-text", eval_ctx, "")
+            out["promoBanner"] = detail.value
+            out["promoBannerVariationIndex"] = detail.variation_index
         else:
-            out[flag_key] = val
+            default = "standard"
+            out[flag_key] = ld_client.variation(flag_key, eval_ctx, default)
     return out
 
 
@@ -449,9 +618,11 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             events.append("add_to_cart")
             _track(ld_client, mode, session_ctx, "add_to_cart", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
-        if random.random() < gprob["banner_click"] and flag_values.get("promoBanner"):
-            events.append("banner_click")
-            _track(ld_client, mode, session_ctx, "banner_click", session_key, warehouse_events, flag_eval_time)
+        if flag_values.get("promoBanner"):
+            banner_prob = min(1.0, gprob["banner_click"] * (1.15 if flag_values.get("promoBannerVariationIndex") == 2 else 1.0))
+            if random.random() < banner_prob:
+                events.append("banner_click")
+                _track(ld_client, mode, session_ctx, "banner_click", session_key, warehouse_events, flag_eval_time)
 
         user_info = {
             "key": session_key,
@@ -468,8 +639,8 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         _track(ld_client, mode, session_ctx, "product_viewed", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
 
-        vip_record = _pick_vip_record_or_none()
-        user_ctx, user_info = generate_user_context(vip_record)
+        user_record = _pick_user_record()
+        user_ctx, user_info = generate_user_context(user_record)
         multi_ctx = _multi_context(session_ctx, user_ctx)
         ld_client.identify(multi_ctx)
 
@@ -483,7 +654,8 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             events.append("add_to_cart")
             _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
-        if random.random() < probs["checkout_initiated"]:
+        checkout_prob = min(1.0, probs["checkout_initiated"] * (1.10 if flag_values.get("pdpHeroLayout") == "editorial" else 1.0))
+        if random.random() < checkout_prob:
             cart_total = _sample_checkout_total(tier)
             events.append("checkout_initiated")
             _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, warehouse_events, flag_eval_time, metric_value=cart_total)
@@ -492,17 +664,19 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             events.append("vip_upgrade")
             _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
-        if flag_values.get("promoBanner") and random.random() < probs["banner_click"]:
-            events.append("banner_click")
-            _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
+        if flag_values.get("promoBanner"):
+            banner_prob = min(1.0, probs["banner_click"] * (1.15 if flag_values.get("promoBannerVariationIndex") == 2 else 1.0))
+            if random.random() < banner_prob:
+                events.append("banner_click")
+                _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
         user_info["journeyType"] = "guest_transition"
         user_info["sessionKey"] = session_key
 
     else:
         # Identified from start — multi(session + user) immediately
-        vip_record = _pick_vip_record_or_none()
-        user_ctx, user_info = generate_user_context(vip_record)
+        user_record = _pick_user_record()
+        user_ctx, user_info = generate_user_context(user_record)
         multi_ctx = _multi_context(session_ctx, user_ctx)
         ld_client.identify(multi_ctx)
 
@@ -519,7 +693,8 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             events.append("add_to_cart")
             _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
-        if random.random() < probs["checkout_initiated"]:
+        checkout_prob = min(1.0, probs["checkout_initiated"] * (1.10 if flag_values.get("pdpHeroLayout") == "editorial" else 1.0))
+        if random.random() < checkout_prob:
             cart_total = _sample_checkout_total(tier)
             events.append("checkout_initiated")
             _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, warehouse_events, flag_eval_time, metric_value=cart_total)
@@ -528,115 +703,188 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             events.append("vip_upgrade")
             _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
-        if flag_values.get("promoBanner") and random.random() < probs["banner_click"]:
-            events.append("banner_click")
-            _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
+        if flag_values.get("promoBanner"):
+            banner_prob = min(1.0, probs["banner_click"] * (1.15 if flag_values.get("promoBannerVariationIndex") == 2 else 1.0))
+            if random.random() < banner_prob:
+                events.append("banner_click")
+                _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
         user_info["journeyType"] = "identified_start"
         user_info["sessionKey"] = session_key
 
-    if mode == 'launchdarkly':
-        ld_client.flush()
-        time.sleep(CONFIG["simulation"]["delay_between_journeys"])
+    ld_client.flush()
+    time.sleep(CONFIG["simulation"]["delay_between_journeys"])
 
     return user_info, flag_values, events, warehouse_events
 
 
-def main():
-    parser = argparse.ArgumentParser(description='DarkTrainers LaunchDarkly simulation')
-    parser.add_argument('--records', type=int, default=300, help='Number of user journeys')
-    parser.add_argument('--mode', choices=['launchdarkly', 'snowflake', 'bigquery'], default='launchdarkly')
-    parser.add_argument('--create-table', action='store_true', help='Create the BigQuery metrics table before running')
-    args = parser.parse_args()
+def resolve_profile_from_args(args) -> SimulationProfile:
+    if args.profile:
+        return PROFILES[args.profile]
+    if args.mode == "bigquery":
+        logger.warning(
+            "--mode bigquery is deprecated; use --profile production-bq instead"
+        )
+        return PROFILES["production-bq"]
+    if args.mode == "snowflake":
+        return LEGACY_SNOWFLAKE_PROFILE
+    return LD_ONLY_PROFILE
 
-    sdk_key = os.getenv('LAUNCHDARKLY_SDK_KEY')
-    if not sdk_key and args.mode == 'launchdarkly':
-        logger.error("LAUNCHDARKLY_SDK_KEY environment variable is not set")
+
+def run_ld_only_simulation(ld_client, records: int) -> None:
+    log_filename = f'darktrainers_simulation_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+    logger.info("Logging to %s", log_filename)
+    logger.info(
+        "Delay between journeys: %ss (env: DARKTRAINERS_SIMULATION_DELAY_BETWEEN_JOURNEYS)",
+        CONFIG["simulation"]["delay_between_journeys"],
+    )
+    for i in range(records):
+        user_info, flag_values, events, _ = simulate_user_journey_v2(
+            ld_client, fake, mode="launchdarkly"
+        )
+        with open(log_filename, "a", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "user": user_info["key"],
+                "tier": user_info["memberTier"],
+                "knownVip": user_info["key"].startswith("vip-user-"),
+                "knownStandard": user_info["key"].startswith("standard-user-"),
+                "lifetimeSpend": user_info.get("lifetimeSpend", 0),
+                "journeyType": user_info.get("journeyType", "unknown"),
+                "events": events,
+                "flags": flag_values,
+            }) + "\n")
+        if (i + 1) % 50 == 0:
+            logger.info("Processed %s/%s", i + 1, records)
+
+
+def run_profile(profile: SimulationProfile, records: int, create_table: bool) -> int:
+    try:
+        sdk_key = resolve_ld_sdk_key(profile)
+    except ValueError as e:
+        logger.error("%s", e)
         return 1
 
-    if args.mode == 'launchdarkly':
-        ldclient.set_config(Config(sdk_key))
-        ld_client = ldclient.get()
-        if not ld_client.is_initialized():
-            logger.error("LaunchDarkly client failed to initialize")
-            return 1
+    logger.info("Profile: %s (LD key env: %s)", profile.name, profile.ld_sdk_key_env)
 
-        log_filename = f'darktrainers_simulation_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
-        logger.info(f"Logging to {log_filename}")
-        logger.info(
-            "Delay between journeys: %ss (env: DARKTRAINERS_SIMULATION_DELAY_BETWEEN_JOURNEYS)",
-            CONFIG["simulation"]["delay_between_journeys"],
-        )
+    try:
+        ld_client = init_ld_client(sdk_key)
+    except RuntimeError as e:
+        logger.error("%s", e)
+        return 1
 
-        for i in range(args.records):
-            user_info, flag_values, events, _ = simulate_user_journey_v2(ld_client, fake, mode='launchdarkly')
-            with open(log_filename, 'a') as f:
-                f.write(json.dumps({
-                    "user": user_info["key"],
-                    "tier": user_info["memberTier"],
-                    "lifetimeSpend": user_info.get("lifetimeSpend", 0),
-                    "events": events,
-                    "flags": flag_values,
-                }) + "\n")
-            if (i + 1) % 50 == 0:
-                logger.info("Processed %s/%s", i + 1, args.records)
-
-        ld_client.close()
-        logger.info("Simulation complete.")
-        return 0
-
-    if args.mode == 'snowflake':
-        if not SNOWFLAKE_AVAILABLE:
-            logger.error("Snowflake mode requires snowflake-connector-python")
-            return 1
-        ldclient.set_config(Config(sdk_key))
-        ld_client = ldclient.get()
-        if not ld_client.is_initialized():
-            logger.error("LaunchDarkly client failed to initialize")
-            return 1
-        conn = get_snowflake_connection()
+    if profile.warehouse is None:
         try:
-            for i in range(args.records):
-                _, _, _, snowflake_events = simulate_user_journey_v2(
-                    ld_client, fake, mode='snowflake', snowflake_conn=conn
-                )
-                for event_data in snowflake_events:
-                    insert_metric_event_to_snowflake(conn, event_data)
-                if (i + 1) % 50 == 0:
-                    logger.info("Processed %s/%s", i + 1, args.records)
+            run_ld_only_simulation(ld_client, records)
+            logger.info("Simulation complete.")
+            return 0
         finally:
-            conn.close()
             ld_client.close()
-        return 0
 
-    if args.mode == 'bigquery':
-        if not BIGQUERY_AVAILABLE:
-            logger.error("BigQuery mode requires google-cloud-bigquery")
-            return 1
-        ldclient.set_config(Config(sdk_key))
-        ld_client = ldclient.get()
-        if not ld_client.is_initialized():
-            logger.error("LaunchDarkly client failed to initialize")
-            return 1
-        bq_client, dataset_id, table_id = get_bigquery_client()
-        project_id = bq_client.project
-        try:
-            if args.create_table:
+    journey_mode = profile.warehouse
+
+    try:
+        if journey_mode == "bigquery":
+            if not BIGQUERY_AVAILABLE:
+                logger.error("BigQuery requires google-cloud-bigquery")
+                return 1
+            bq_client, dataset_id, table_id = get_bigquery_client()
+            project_id = bq_client.project
+            if create_table:
                 create_bq_table_if_not_exists(bq_client, project_id, dataset_id, table_id)
-            for i in range(args.records):
+            for i in range(records):
                 _, _, _, warehouse_events = simulate_user_journey_v2(
-                    ld_client, fake, mode='bigquery'
+                    ld_client, fake, mode=journey_mode
                 )
                 insert_metric_events_to_bigquery(
                     bq_client, project_id, dataset_id, table_id, warehouse_events
                 )
                 if (i + 1) % 50 == 0:
-                    logger.info("Processed %s/%s", i + 1, args.records)
-        finally:
-            ld_client.close()
-        return 0
+                    logger.info("Processed %s/%s", i + 1, records)
 
-    return 0
+        elif journey_mode == "databricks":
+            if not DATABRICKS_AVAILABLE:
+                logger.error("Databricks requires databricks-sql-connector")
+                return 1
+            catalog, schema, table = get_databricks_table_ref()
+            conn = get_databricks_connection()
+            try:
+                if create_table:
+                    create_databricks_table_if_not_exists(conn, catalog, schema, table)
+                pending_events = []
+                for i in range(records):
+                    _, _, _, warehouse_events = simulate_user_journey_v2(
+                        ld_client, fake, mode=journey_mode
+                    )
+                    pending_events.extend(warehouse_events)
+                    if len(pending_events) >= 25:
+                        insert_metric_events_to_databricks(
+                            conn, catalog, schema, table, pending_events
+                        )
+                        pending_events = []
+                    if (i + 1) % 50 == 0:
+                        logger.info("Processed %s/%s", i + 1, records)
+                if pending_events:
+                    insert_metric_events_to_databricks(
+                        conn, catalog, schema, table, pending_events
+                    )
+            finally:
+                conn.close()
+
+        elif journey_mode == "snowflake":
+            if not SNOWFLAKE_AVAILABLE:
+                logger.error("Snowflake requires snowflake-connector-python")
+                return 1
+            conn = get_snowflake_connection()
+            try:
+                for i in range(records):
+                    _, _, _, snowflake_events = simulate_user_journey_v2(
+                        ld_client, fake, mode=journey_mode, snowflake_conn=conn
+                    )
+                    for event_data in snowflake_events:
+                        insert_metric_event_to_snowflake(conn, event_data)
+                    if (i + 1) % 50 == 0:
+                        logger.info("Processed %s/%s", i + 1, records)
+            finally:
+                conn.close()
+
+        else:
+            logger.error("Unknown warehouse backend: %s", journey_mode)
+            return 1
+
+        logger.info("Simulation complete.")
+        return 0
+    finally:
+        ld_client.close()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="DarkTrainers LaunchDarkly simulation")
+    parser.add_argument("--records", type=int, default=300, help="Number of user journeys")
+    parser.add_argument(
+        "--profile",
+        choices=list(PROFILES.keys()),
+        default=None,
+        help="Demo profile: production-bq (Production LD + BigQuery) or "
+        "test-databricks (Test LD + Databricks)",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["launchdarkly", "snowflake", "bigquery"],
+        default="launchdarkly",
+        help="Legacy mode selector (use --profile for warehouse runs)",
+    )
+    parser.add_argument(
+        "--create-table",
+        action="store_true",
+        help="Create the metrics table before running (BigQuery or Databricks)",
+    )
+    args = parser.parse_args()
+
+    if args.profile and args.mode == "bigquery":
+        logger.warning("Both --profile and --mode bigquery set; using --profile")
+
+    profile = resolve_profile_from_args(args)
+    return run_profile(profile, args.records, args.create_table)
 
 
 if __name__ == "__main__":

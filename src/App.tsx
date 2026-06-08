@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { LDContextProvider } from './context/LDContext';
 import { UserProvider, useUser } from './context/UserContext';
 import { CartProvider, useCart } from './context/CartContext';
@@ -21,6 +24,8 @@ import Signup from './pages/Signup';
 import DropsPage from './pages/DropsPage';
 import { ChatWidget } from './components/Chat/ChatWidget';
 import { DemoControlsPanel } from './components/Demo/DemoControlsPanel';
+import { PersonaSwitcher } from './components/Demo/PersonaSwitcher';
+import { QRCodeModal } from './components/Demo/QRCodeModal';
 import { CartDrawer } from './components/Cart/CartDrawer';
 import { VIPUpgradeModal } from './components/VIP/VIPUpgradeModal';
 import { getProductById } from './components/Products/productData';
@@ -33,6 +38,7 @@ const MainContent = styled.main`
 function AppShell() {
   const navigate = useNavigate();
   const { isIdentified, logout } = useUser();
+  const [personaSwitcherOpen, setPersonaSwitcherOpen] = useState(false);
   const { value: showAc26DropFeed } = useFeatureFlag(LD_FLAGS.showAc26DropFeed, false);
   const { value: showProductCatalog } = useFeatureFlag(LD_FLAGS.showProductCatalog, true);
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
@@ -60,6 +66,7 @@ function AppShell() {
         isIdentified={isIdentified}
         onLogout={logout}
         onAccount={() => navigate('/account')}
+        onLogin={() => setPersonaSwitcherOpen(true)}
         showFeed={showAc26DropFeed}
         showProducts={showProductCatalog}
         showSignup={showVipSignup}
@@ -82,6 +89,7 @@ function AppShell() {
       {showChatbot && <ChatWidget />}
       <CartDrawer onJoinVip={() => vip.openVipModal()} />
       <DemoControlsPanel />
+      <PersonaSwitcher open={personaSwitcherOpen} onOpenChange={setPersonaSwitcherOpen} />
       <VIPUpgradeModal
         open={vip.isOpen}
         onClose={() => {
@@ -107,8 +115,29 @@ function AppWithLd() {
 }
 
 function App() {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'd') {
+        event.preventDefault();
+        setQrModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDesktop]);
+
   return (
     <UserProvider>
+      {isDesktop && (
+        <QRCodeModal open={qrModalOpen} onClose={() => setQrModalOpen(false)} />
+      )}
       <Router>
         <AppWithLd />
       </Router>

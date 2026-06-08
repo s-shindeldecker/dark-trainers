@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 import styled from '@emotion/styled';
+import Box from '@mui/material/Box';
 import { useUser } from '../../context/UserContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { LD_FLAGS } from '../../lib/ldFlagKeys';
@@ -63,20 +64,22 @@ export function DemoControlsPanel() {
   };
 
   return (
-    <Panel $liftForChat={showChatbot} aria-label="Demo controls">
-      <Label>Demo controls</Label>
-      <Row>
-        <Select value={persona} onChange={onChange} aria-label="Demo persona">
-          <option value="guest">Guest (anonymous)</option>
-          <option value="standard">Standard member</option>
-          <option value="vip">VIP member</option>
-        </Select>
-        {!user.anonymous && <MemberBadge tier={user.memberTier} />}
-      </Row>
-      <Hint>
-        Guest: LD uses a session context only (new session key on reset). Standard/VIP: multi(session + user) with the same session key for attribution. Add to
-        cart or Join VIP from Guest identifies with multi.
-      </Hint>
-    </Panel>
+    <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+      <Panel $liftForChat={showChatbot} aria-label="Demo controls">
+        <Label>Demo controls</Label>
+        <Row>
+          <Select value={persona} onChange={onChange} aria-label="Demo persona">
+            <option value="guest">Guest (anonymous)</option>
+            <option value="standard">Standard member</option>
+            <option value="vip">VIP member</option>
+          </Select>
+          {!user.anonymous && <MemberBadge tier={user.memberTier} />}
+        </Row>
+        <Hint>
+          Guest: LD uses a session context only (new session key on reset). Standard/VIP: multi(session + user) with the same session key for attribution. Add to
+          cart or Join VIP from Guest identifies with multi.
+        </Hint>
+      </Panel>
+    </Box>
   );
 }

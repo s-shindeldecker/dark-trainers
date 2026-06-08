@@ -3,3 +3,4 @@ Faker
 python-dotenv
 snowflake-connector-python
 google-cloud-bigquery
+databricks-sql-connector
