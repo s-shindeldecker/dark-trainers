@@ -43,6 +43,12 @@ function AppShell() {
   const { value: showProductCatalog } = useFeatureFlag(LD_FLAGS.showProductCatalog, true);
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const { value: showVipSignup } = useFeatureFlag(LD_FLAGS.showVipSignup, true);
+  const { value: promoBannerPosition, isLoading: isLoadingPromoBannerPosition } = useFeatureFlag(
+    LD_FLAGS.promoBannerPosition,
+    'top',
+  );
+  const promoBannerAtBottom =
+    !isLoadingPromoBannerPosition && promoBannerPosition === 'bottom';
   const ldClient = useLDClient();
   const vip = useVipModal();
   const { addItemAfterVipTransition, activateVipUpgradeLineItem } = useCart();
@@ -61,7 +67,7 @@ function AppShell() {
 
   return (
     <>
-      <SeasonalBanner />
+      {!promoBannerAtBottom && <SeasonalBanner />}
       <Header
         isIdentified={isIdentified}
         onLogout={logout}
@@ -85,6 +91,7 @@ function AppShell() {
           <Route path="/reviews" element={<Reviews />} />
         </Routes>
       </MainContent>
+      {promoBannerAtBottom && <SeasonalBanner />}
       <Footer />
       {showChatbot && <ChatWidget />}
       <CartDrawer onJoinVip={() => vip.openVipModal()} />
