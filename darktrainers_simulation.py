@@ -74,7 +74,7 @@ CONFIG = {
     "vip_ratio": 0.30,
     "guest_transition_ratio": 0.40,
     "flags": {
-        "session_flags": ["promo-banner-text"],
+        "session_flags": ["promo-banner-text", "promo-banner-position"],
         "identified_flags": ["pdp-hero-layout", "vip-upgrade-cta-copy"],
     },
     "products": {
@@ -547,6 +547,15 @@ def _sample_checkout_total(tier: str) -> float:
     return max(0.0, round(random.gauss(cfg["mean"], cfg["stddev"]), 2))
 
 
+def _banner_click_probability(probs: dict, flag_values: dict) -> float:
+    banner_prob = probs["banner_click"]
+    if flag_values.get("promoBannerVariationIndex") == 2:
+        banner_prob = min(1.0, banner_prob * 1.15)
+    if flag_values.get("promoBannerPosition") == "bottom":
+        banner_prob = min(1.0, banner_prob * 1.28)
+    return banner_prob
+
+
 def _eval_session_flags(ld_client, eval_ctx) -> dict:
     out = {}
     for flag_key in CONFIG["flags"]["session_flags"]:
@@ -554,6 +563,9 @@ def _eval_session_flags(ld_client, eval_ctx) -> dict:
             detail = ld_client.variation_detail("promo-banner-text", eval_ctx, "")
             out["promoBanner"] = detail.value
             out["promoBannerVariationIndex"] = detail.variation_index
+        elif flag_key == "promo-banner-position":
+            detail = ld_client.variation_detail("promo-banner-position", eval_ctx, "top")
+            out["promoBannerPosition"] = detail.value
         else:
             default = "standard"
             out[flag_key] = ld_client.variation(flag_key, eval_ctx, default)
@@ -619,8 +631,7 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             _track(ld_client, mode, session_ctx, "add_to_cart", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         if flag_values.get("promoBanner"):
-            banner_prob = min(1.0, gprob["banner_click"] * (1.15 if flag_values.get("promoBannerVariationIndex") == 2 else 1.0))
-            if random.random() < banner_prob:
+            if random.random() < _banner_click_probability(gprob, flag_values):
                 events.append("banner_click")
                 _track(ld_client, mode, session_ctx, "banner_click", session_key, warehouse_events, flag_eval_time)
 
@@ -665,8 +676,7 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
         if flag_values.get("promoBanner"):
-            banner_prob = min(1.0, probs["banner_click"] * (1.15 if flag_values.get("promoBannerVariationIndex") == 2 else 1.0))
-            if random.random() < banner_prob:
+            if random.random() < _banner_click_probability(probs, flag_values):
                 events.append("banner_click")
                 _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
@@ -704,8 +714,7 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
             _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
         if flag_values.get("promoBanner"):
-            banner_prob = min(1.0, probs["banner_click"] * (1.15 if flag_values.get("promoBannerVariationIndex") == 2 else 1.0))
-            if random.random() < banner_prob:
+            if random.random() < _banner_click_probability(probs, flag_values):
                 events.append("banner_click")
                 _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 

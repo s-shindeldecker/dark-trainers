@@ -2,6 +2,8 @@
  * LaunchDarkly flag keys for DarkTrainers (create these in your LD project).
  * AI Config keys (LaunchDarkly AI): `darktrainers-chatbot`, `darktrainers-signup-agent`.
  */
+export const PROMO_BANNER_POSITION = 'promo-banner-position';
+
 export const LD_FLAGS = {
   showVipPricing: 'show-vip-pricing',
   pdpHeroLayout: 'pdp-hero-layout',
@@ -15,6 +17,8 @@ export const LD_FLAGS = {
   showEarlyAccessCountdown: 'show-early-access-countdown',
   /** Optional top promo strip; empty string hides banner */
   promoBannerText: 'promo-banner-text',
+  /** Promo banner placement: 'top' (default) | 'bottom' */
+  promoBannerPosition: PROMO_BANNER_POSITION,
   /** Nav: show shop link (default true in code) */
   showProductCatalog: 'show-product-catalog',
   /** Nav: VIP signup AI page */
