@@ -328,9 +328,16 @@ export function Header({
           )}
           {showSignup && (
             <NavLink>
-              <Link to="/signup" style={{ color: '#c8f000', fontWeight: 700 }}>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onJoinVip();
+                }}
+                style={{ color: '#c8f000', fontWeight: 700 }}
+              >
                 VIP signup
-              </Link>
+              </a>
             </NavLink>
           )}
         </NavLinks>
@@ -419,7 +426,7 @@ export function Header({
           )}
 
           {showSignup && (
-            <ListItemButton component={Link} to="/signup" onClick={closeDrawer} sx={drawerVipSignupSx}>
+            <ListItemButton onClick={() => runAction(onJoinVip)} sx={drawerVipSignupSx}>
               <ListItemText primary="VIP signup" />
             </ListItemButton>
           )}

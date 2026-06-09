@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
 import { HeroSkeleton } from './HeroSkeleton';
 import { useIsIdentifying } from '../../context/ContextVersion';
+import { useVipModal } from '../../context/VipModalContext';
 
 const VOLT = '#c8f000';
 
@@ -111,7 +112,7 @@ const Cta = styled(Link)`
   }
 `;
 
-const CtaGhost = styled(Link)`
+const ctaGhostStyles = `
   display: inline-block;
   padding: 0.9em 1.85em;
   font-size: 1rem;
@@ -128,8 +129,15 @@ const CtaGhost = styled(Link)`
   }
 `;
 
+const CtaGhostButton = styled.button`
+  ${ctaGhostStyles}
+  cursor: pointer;
+  font-family: inherit;
+`;
+
 export const HeroSection = () => {
   const isIdentifying = useIsIdentifying();
+  const { openVipModal } = useVipModal();
 
   if (isIdentifying) {
     return <HeroSkeleton />;
@@ -147,7 +155,9 @@ export const HeroSection = () => {
         <Sub>Premium limited releases. VIP gets early access and member pricing.</Sub>
         <CtaRow>
           <Cta to="/products">Shop drops</Cta>
-          <CtaGhost to="/signup">Join VIP</CtaGhost>
+          <CtaGhostButton type="button" onClick={() => openVipModal()}>
+            Join VIP
+          </CtaGhostButton>
         </CtaRow>
       </Inner>
     </HeroContainer>
