@@ -156,13 +156,12 @@ PROFILES: dict[str, SimulationProfile] = {
         ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY_TEST",
         warehouse="databricks",
     ),
+    "snowflake": SimulationProfile(
+        name="snowflake",
+        ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY_SNOWFLAKE",
+        warehouse="snowflake",
+    ),
 }
-
-LEGACY_SNOWFLAKE_PROFILE = SimulationProfile(
-    name="snowflake-legacy",
-    ld_sdk_key_env="LAUNCHDARKLY_SDK_KEY",
-    warehouse="snowflake",
-)
 
 LD_ONLY_PROFILE = SimulationProfile(
     name="launchdarkly-only",
@@ -311,6 +310,69 @@ def get_snowflake_connection():
     return snowflake.connector.connect(**conn_params)
 
 
+def get_snowflake_table_ref() -> str:
+    database = os.getenv("SNOWFLAKE_DATABASE")
+    schema = os.getenv("SNOWFLAKE_SCHEMA")
+    table = os.getenv(
+        "SNOWFLAKE_METRICS_TABLE",
+        os.getenv("SNOWFLAKE_METRIC_EVENTS_TABLE", "metric_events"),
+    )
+    if not database or not schema:
+        raise ValueError("SNOWFLAKE_DATABASE and SNOWFLAKE_SCHEMA environment variables are required")
+    if table.count(".") >= 2:
+        return table
+    return f"{database}.{schema}.{table}"
+
+
+def create_snowflake_table_if_not_exists(conn, table_ref: str) -> None:
+    ddl = f"""
+    CREATE TABLE IF NOT EXISTS {table_ref} (
+        EVENT_ID VARCHAR NOT NULL,
+        EVENT_KEY VARCHAR NOT NULL,
+        CONTEXT_KIND VARCHAR NOT NULL,
+        CONTEXT_KEY VARCHAR NOT NULL,
+        EVENT_VALUE FLOAT,
+        RECEIVED_TIME TIMESTAMP_NTZ NOT NULL
+    )
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(ddl)
+
+
+def insert_metric_events_to_snowflake(conn, table_ref: str, events, chunk_size: int = 25) -> None:
+    if not events:
+        return
+
+    insert_sql = f"""
+    INSERT INTO {table_ref} (
+        EVENT_ID, EVENT_KEY, CONTEXT_KIND, CONTEXT_KEY,
+        EVENT_VALUE, RECEIVED_TIME
+    ) VALUES (%s, %s, %s, %s, %s, %s)
+    """
+
+    with conn.cursor() as cursor:
+        for i in range(0, len(events), chunk_size):
+            chunk = events[i:i + chunk_size]
+            for event_data in chunk:
+                cursor.execute(
+                    insert_sql,
+                    (
+                        event_data["event_id"],
+                        event_data["event_key"],
+                        event_data["context_kind"],
+                        event_data["context_key"],
+                        event_data["event_value"],
+                        event_data["received_time"],
+                    ),
+                )
+        conn.commit()
+
+
+def insert_metric_event_to_snowflake(conn, event_data):
+    table_ref = get_snowflake_table_ref()
+    insert_metric_events_to_snowflake(conn, table_ref, [event_data], chunk_size=1)
+
+
 def get_bigquery_client():
     if not BIGQUERY_AVAILABLE:
         raise ImportError("google-cloud-bigquery is not installed")
@@ -336,36 +398,6 @@ def create_bq_table_if_not_exists(bq_client, project_id, dataset_id, table_id):
     ]
     table = bigquery.Table(table_ref, schema=schema)
     bq_client.create_table(table, exists_ok=True)
-
-
-def insert_metric_event_to_snowflake(conn, event_data):
-    table_name = os.getenv('SNOWFLAKE_METRIC_EVENTS_TABLE')
-    if not table_name:
-        raise ValueError("SNOWFLAKE_METRIC_EVENTS_TABLE environment variable is required")
-
-    cursor = conn.cursor()
-    insert_sql = f"""
-    INSERT INTO {table_name} (
-        EVENT_ID, EVENT_KEY, CONTEXT_KIND, CONTEXT_KEY,
-        EVENT_VALUE, RECEIVED_TIME
-    ) VALUES (%s, %s, %s, %s, %s, %s)
-    """
-    try:
-        cursor.execute(insert_sql, (
-            event_data['event_id'],
-            event_data['event_key'],
-            event_data['context_kind'],
-            event_data['context_key'],
-            event_data['event_value'],
-            event_data['received_time']
-        ))
-        conn.commit()
-    except Exception as e:
-        logger.error(f"Error inserting metric event: {e}")
-        conn.rollback()
-        raise
-    finally:
-        cursor.close()
 
 
 def insert_metric_events_to_bigquery(bq_client, project_id, dataset_id, table_id, events):
@@ -721,7 +753,6 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         user_info["journeyType"] = "identified_start"
         user_info["sessionKey"] = session_key
 
-    ld_client.flush()
     time.sleep(CONFIG["simulation"]["delay_between_journeys"])
 
     return user_info, flag_values, events, warehouse_events
@@ -736,7 +767,10 @@ def resolve_profile_from_args(args) -> SimulationProfile:
         )
         return PROFILES["production-bq"]
     if args.mode == "snowflake":
-        return LEGACY_SNOWFLAKE_PROFILE
+        logger.warning(
+            "--mode snowflake is deprecated; use --profile snowflake instead"
+        )
+        return PROFILES["snowflake"]
     return LD_ONLY_PROFILE
 
 
@@ -787,6 +821,7 @@ def run_profile(profile: SimulationProfile, records: int, create_table: bool) ->
             logger.info("Simulation complete.")
             return 0
         finally:
+            ld_client.flush()
             ld_client.close()
 
     journey_mode = profile.warehouse
@@ -843,16 +878,24 @@ def run_profile(profile: SimulationProfile, records: int, create_table: bool) ->
             if not SNOWFLAKE_AVAILABLE:
                 logger.error("Snowflake requires snowflake-connector-python")
                 return 1
+            table_ref = get_snowflake_table_ref()
             conn = get_snowflake_connection()
             try:
+                if create_table:
+                    create_snowflake_table_if_not_exists(conn, table_ref)
+                pending_events = []
                 for i in range(records):
                     _, _, _, snowflake_events = simulate_user_journey_v2(
                         ld_client, fake, mode=journey_mode, snowflake_conn=conn
                     )
-                    for event_data in snowflake_events:
-                        insert_metric_event_to_snowflake(conn, event_data)
+                    pending_events.extend(snowflake_events)
+                    if len(pending_events) >= 25:
+                        insert_metric_events_to_snowflake(conn, table_ref, pending_events)
+                        pending_events = []
                     if (i + 1) % 50 == 0:
                         logger.info("Processed %s/%s", i + 1, records)
+                if pending_events:
+                    insert_metric_events_to_snowflake(conn, table_ref, pending_events)
             finally:
                 conn.close()
 
@@ -863,6 +906,7 @@ def run_profile(profile: SimulationProfile, records: int, create_table: bool) ->
         logger.info("Simulation complete.")
         return 0
     finally:
+        ld_client.flush()
         ld_client.close()
 
 
@@ -873,8 +917,8 @@ def main():
         "--profile",
         choices=list(PROFILES.keys()),
         default=None,
-        help="Demo profile: production-bq (Production LD + BigQuery) or "
-        "test-databricks (Test LD + Databricks)",
+        help="Demo profile: production-bq (Production LD + BigQuery), "
+        "test-databricks (Test LD + Databricks), or snowflake (Snowflake LD + Snowflake)",
     )
     parser.add_argument(
         "--mode",
@@ -885,7 +929,7 @@ def main():
     parser.add_argument(
         "--create-table",
         action="store_true",
-        help="Create the metrics table before running (BigQuery or Databricks)",
+        help="Create the metrics table before running (BigQuery, Databricks, or Snowflake)",
     )
     args = parser.parse_args()
 
