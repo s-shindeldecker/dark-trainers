@@ -8,6 +8,7 @@ The primary script is [`darktrainers_simulation.py`](darktrainers_simulation.py)
 |---------|--------------------------|-----------|----------|
 | `production-bq` | `LAUNCHDARKLY_SDK_KEY` | BigQuery | Production LD + BigQuery native experimentation |
 | `test-databricks` | `LAUNCHDARKLY_SDK_KEY_TEST` | Databricks | Test LD + Databricks native experimentation |
+| `snowflake` | `LAUNCHDARKLY_SDK_KEY_SNOWFLAKE` | Snowflake | Snowflake LD + Snowflake native experimentation |
 
 ```bash
 # Production LD + BigQuery metric_events
@@ -16,11 +17,14 @@ python darktrainers_simulation.py --profile production-bq --records 300
 # Test LD + Databricks metric_events (create table on first run)
 python darktrainers_simulation.py --profile test-databricks --records 300 --create-table
 
+# Snowflake LD + Snowflake metric_events (create table on first run)
+python darktrainers_simulation.py --profile snowflake --records 300 --create-table
+
 # LD-only (events via SDK track; logs to JSONL file)
 python darktrainers_simulation.py --mode launchdarkly --records 100
 ```
 
-Legacy `--mode bigquery` maps to `production-bq` with a deprecation warning. `--mode snowflake` still uses Snowflake + `LAUNCHDARKLY_SDK_KEY`.
+Legacy `--mode bigquery` maps to `production-bq` with a deprecation warning. Legacy `--mode snowflake` maps to `snowflake` with a deprecation warning.
 
 ## Environment variables
 
@@ -30,10 +34,11 @@ Copy [`.env.example`](.env.example) to `.env` (gitignored) and fill in values.
 
 | Variable | Profiles |
 |----------|----------|
-| `LAUNCHDARKLY_SDK_KEY` | `production-bq`, `--mode launchdarkly`, `--mode snowflake` |
+| `LAUNCHDARKLY_SDK_KEY` | `production-bq`, `--mode launchdarkly` |
 | `LAUNCHDARKLY_SDK_KEY_TEST` | `test-databricks` |
+| `LAUNCHDARKLY_SDK_KEY_SNOWFLAKE` | `snowflake` |
 
-Each key must be the **server-side SDK key** for the target LD environment (Production vs Test).
+Each key must be the **server-side SDK key** for the target LD environment (Production, Test, or Snowflake).
 
 ### BigQuery (`production-bq`)
 
@@ -56,6 +61,21 @@ Authenticate with `GOOGLE_APPLICATION_CREDENTIALS` or Application Default Creden
 | `DATABRICKS_SCHEMA` | `darktrainers_metrics` | Schema |
 | `DATABRICKS_METRICS_TABLE` | `metric_events` | Table |
 
+### Snowflake (`snowflake`)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SNOWFLAKE_ACCOUNT` | (required) | Account identifier |
+| `SNOWFLAKE_USER` | (required) | Username |
+| `SNOWFLAKE_PASSWORD` | — | Password (or use key-pair auth) |
+| `SNOWFLAKE_PRIVATE_KEY` | — | PEM key path or content (alternative to password) |
+| `SNOWFLAKE_PRIVATE_KEY_PASSPHRASE` | — | Passphrase for encrypted private key |
+| `SNOWFLAKE_WAREHOUSE` | (required) | Warehouse |
+| `SNOWFLAKE_DATABASE` | (required) | Database |
+| `SNOWFLAKE_SCHEMA` | (required) | Schema |
+| `SNOWFLAKE_METRICS_TABLE` | `metric_events` | Table name (or use `SNOWFLAKE_METRIC_EVENTS_TABLE`) |
+| `SNOWFLAKE_ROLE` | `ACCOUNTADMIN` | Role |
+
 ### Optional tuning
 
 | Variable | Default | Description |
@@ -64,13 +84,22 @@ Authenticate with `GOOGLE_APPLICATION_CREDENTIALS` or Application Default Creden
 
 ## Metric table schema
 
-Both BigQuery and Databricks use the same columns (see [RUNBOOK_BQ_NATIVE_DEBUG.md](RUNBOOK_BQ_NATIVE_DEBUG.md)):
+BigQuery and Databricks use the same columns (see [RUNBOOK_BQ_NATIVE_DEBUG.md](RUNBOOK_BQ_NATIVE_DEBUG.md)):
 
 - `context_key` (STRING, required)
 - `context_kind` (STRING, required)
 - `event_key` (STRING, required)
 - `event_value` (FLOAT/DOUBLE, nullable)
 - `received_time` (TIMESTAMP, required)
+
+Snowflake uses LaunchDarkly's native experimentation schema (uppercase column names):
+
+- `EVENT_ID` (VARCHAR, required)
+- `EVENT_KEY` (VARCHAR, required)
+- `CONTEXT_KIND` (VARCHAR, required)
+- `CONTEXT_KEY` (VARCHAR, required)
+- `EVENT_VALUE` (FLOAT, nullable)
+- `RECEIVED_TIME` (TIMESTAMP_NTZ, required)
 
 ## Adding a new profile
 
