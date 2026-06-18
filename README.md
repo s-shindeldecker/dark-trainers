@@ -2,6 +2,7 @@
 
 A demo application for **Gravity Farms Petfood**, a premium pet food subscription service crafted in Gravity Falls, Oregon. Built with React, TypeScript, and LaunchDarkly to demonstrate feature flagging, experimentation, observability, and AI Configs.
 
+
 ## Setup
 
 1. Install dependencies:
