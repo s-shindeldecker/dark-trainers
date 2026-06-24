@@ -170,6 +170,43 @@ LD_ONLY_PROFILE = SimulationProfile(
 )
 
 
+@dataclass(frozen=True)
+class ForceWinner:
+    """Synthetic skew to 'force' an experiment winner.
+
+    When the served variation index for `flag_key` matches `variation_index`,
+    every probability-gated metric event in that journey gets `lift` added to
+    its firing probability (absolute percentage points, capped at 1.0). Used to
+    push a chosen arm of an experiment to win during demos/simulations.
+    """
+    flag_key: str
+    variation_index: int
+    lift: float
+
+
+# Set from CLI in main(); None disables the skew. Module-global because the
+# simulation is single-threaded and sequential, matching CONFIG/fake usage.
+FORCE_WINNER: ForceWinner | None = None
+
+
+def _record_index(variation_indices, flag_key, variation_index):
+    if variation_indices is not None:
+        variation_indices[flag_key] = variation_index
+
+
+def _forced_metric_lift(variation_indices) -> float:
+    """Lift (absolute prob points) to add to each metric event this journey."""
+    if FORCE_WINNER is None:
+        return 0.0
+    if variation_indices.get(FORCE_WINNER.flag_key) == FORCE_WINNER.variation_index:
+        return FORCE_WINNER.lift
+    return 0.0
+
+
+def _metric_fires(prob: float, lift: float) -> bool:
+    return random.random() < min(1.0, prob + lift)
+
+
 def resolve_ld_sdk_key(profile: SimulationProfile) -> str:
     sdk_key = os.getenv(profile.ld_sdk_key_env)
     if not sdk_key:
@@ -588,7 +625,7 @@ def _banner_click_probability(probs: dict, flag_values: dict) -> float:
     return banner_prob
 
 
-def _eval_session_flags(ld_client, eval_ctx) -> dict:
+def _eval_session_flags(ld_client, eval_ctx, variation_indices=None) -> dict:
     out = {}
     for flag_key in CONFIG["flags"]["session_flags"]:
         if flag_key == "promo-banner-text":
@@ -599,29 +636,32 @@ def _eval_session_flags(ld_client, eval_ctx) -> dict:
             detail = ld_client.variation_detail("promo-banner-position", eval_ctx, "top")
             out["promoBannerPosition"] = detail.value
         else:
-            default = "standard"
-            out[flag_key] = ld_client.variation(flag_key, eval_ctx, default)
+            detail = ld_client.variation_detail(flag_key, eval_ctx, "standard")
+            out[flag_key] = detail.value
+        _record_index(variation_indices, flag_key, detail.variation_index)
     return out
 
 
-def _eval_identified_flags(ld_client, eval_ctx) -> dict:
+def _eval_identified_flags(ld_client, eval_ctx, variation_indices=None) -> dict:
     out = {}
     for flag_key in CONFIG["flags"]["identified_flags"]:
         if flag_key == "pdp-hero-layout":
-            val = ld_client.variation(flag_key, eval_ctx, "standard")
-            out["pdpHeroLayout"] = val
+            detail = ld_client.variation_detail(flag_key, eval_ctx, "standard")
+            out["pdpHeroLayout"] = detail.value
         elif flag_key == "vip-upgrade-cta-copy":
-            val = ld_client.variation(flag_key, eval_ctx, "Join VIP")
-            out["vipUpgradeCtaCopy"] = val
+            detail = ld_client.variation_detail(flag_key, eval_ctx, "Join VIP")
+            out["vipUpgradeCtaCopy"] = detail.value
         else:
-            out[flag_key] = ld_client.variation(flag_key, eval_ctx, None)
+            detail = ld_client.variation_detail(flag_key, eval_ctx, None)
+            out[flag_key] = detail.value
+        _record_index(variation_indices, flag_key, detail.variation_index)
     return out
 
 
-def _eval_all_flags_on_multi(ld_client, multi_ctx) -> dict:
+def _eval_all_flags_on_multi(ld_client, multi_ctx, variation_indices=None) -> dict:
     merged = {}
-    merged.update(_eval_session_flags(ld_client, multi_ctx))
-    merged.update(_eval_identified_flags(ld_client, multi_ctx))
+    merged.update(_eval_session_flags(ld_client, multi_ctx, variation_indices))
+    merged.update(_eval_identified_flags(ld_client, multi_ctx, variation_indices))
     return merged
 
 
@@ -642,6 +682,7 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
     warehouse_events = []
     flag_eval_time = datetime.now(timezone.utc)
     flag_values = {}
+    variation_indices = {}
     journey = _pick_journey_type()
 
     pr_lo, pr_hi = CONFIG["products"]["price_range"]
@@ -652,18 +693,19 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
 
     if journey == "A":
         # Guest only — session context only
-        flag_values.update(_eval_session_flags(ld_client, session_ctx))
+        flag_values.update(_eval_session_flags(ld_client, session_ctx, variation_indices))
+        lift = _forced_metric_lift(variation_indices)
 
         _track(ld_client, mode, session_ctx, "product_viewed", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
 
         gprob = CONFIG["event_probabilities"]["guest"]
-        if random.random() < gprob["add_to_cart"]:
+        if _metric_fires(gprob["add_to_cart"], lift):
             events.append("add_to_cart")
             _track(ld_client, mode, session_ctx, "add_to_cart", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         if flag_values.get("promoBanner"):
-            if random.random() < _banner_click_probability(gprob, flag_values):
+            if _metric_fires(_banner_click_probability(gprob, flag_values), lift):
                 events.append("banner_click")
                 _track(ld_client, mode, session_ctx, "banner_click", session_key, warehouse_events, flag_eval_time)
 
@@ -677,7 +719,7 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
     elif journey == "B":
         # Guest → identified; same session_key across identify()
         ld_client.identify(session_ctx)
-        flag_values.update(_eval_session_flags(ld_client, session_ctx))
+        flag_values.update(_eval_session_flags(ld_client, session_ctx, variation_indices))
 
         _track(ld_client, mode, session_ctx, "product_viewed", session_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
@@ -687,28 +729,29 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         multi_ctx = _multi_context(session_ctx, user_ctx)
         ld_client.identify(multi_ctx)
 
-        flag_values.update(_eval_identified_flags(ld_client, multi_ctx))
+        flag_values.update(_eval_identified_flags(ld_client, multi_ctx, variation_indices))
+        lift = _forced_metric_lift(variation_indices)
 
         tier = user_info["memberTier"]
         probs = CONFIG["event_probabilities"][tier]
         sf_key = user_info["key"]
 
-        if random.random() < probs["add_to_cart"]:
+        if _metric_fires(probs["add_to_cart"], lift):
             events.append("add_to_cart")
             _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         checkout_prob = min(1.0, probs["checkout_initiated"] * (1.10 if flag_values.get("pdpHeroLayout") == "editorial" else 1.0))
-        if random.random() < checkout_prob:
+        if _metric_fires(checkout_prob, lift):
             cart_total = _sample_checkout_total(tier)
             events.append("checkout_initiated")
             _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, warehouse_events, flag_eval_time, metric_value=cart_total)
 
-        if tier == "standard" and random.random() < probs["vip_upgrade"]:
+        if tier == "standard" and _metric_fires(probs["vip_upgrade"], lift):
             events.append("vip_upgrade")
             _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
         if flag_values.get("promoBanner"):
-            if random.random() < _banner_click_probability(probs, flag_values):
+            if _metric_fires(_banner_click_probability(probs, flag_values), lift):
                 events.append("banner_click")
                 _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
@@ -722,7 +765,8 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         multi_ctx = _multi_context(session_ctx, user_ctx)
         ld_client.identify(multi_ctx)
 
-        flag_values.update(_eval_all_flags_on_multi(ld_client, multi_ctx))
+        flag_values.update(_eval_all_flags_on_multi(ld_client, multi_ctx, variation_indices))
+        lift = _forced_metric_lift(variation_indices)
 
         tier = user_info["memberTier"]
         probs = CONFIG["event_probabilities"][tier]
@@ -731,22 +775,22 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
         _track(ld_client, mode, multi_ctx, "product_viewed", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
         events.append("product_viewed")
 
-        if random.random() < probs["add_to_cart"]:
+        if _metric_fires(probs["add_to_cart"], lift):
             events.append("add_to_cart")
             _track(ld_client, mode, multi_ctx, "add_to_cart", sf_key, warehouse_events, flag_eval_time, metric_value=product_price)
 
         checkout_prob = min(1.0, probs["checkout_initiated"] * (1.10 if flag_values.get("pdpHeroLayout") == "editorial" else 1.0))
-        if random.random() < checkout_prob:
+        if _metric_fires(checkout_prob, lift):
             cart_total = _sample_checkout_total(tier)
             events.append("checkout_initiated")
             _track(ld_client, mode, multi_ctx, "checkout_initiated", sf_key, warehouse_events, flag_eval_time, metric_value=cart_total)
 
-        if tier == "standard" and random.random() < probs["vip_upgrade"]:
+        if tier == "standard" and _metric_fires(probs["vip_upgrade"], lift):
             events.append("vip_upgrade")
             _track(ld_client, mode, multi_ctx, "vip_upgrade", sf_key, warehouse_events, flag_eval_time, metric_value=14.99)
 
         if flag_values.get("promoBanner"):
-            if random.random() < _banner_click_probability(probs, flag_values):
+            if _metric_fires(_banner_click_probability(probs, flag_values), lift):
                 events.append("banner_click")
                 _track(ld_client, mode, multi_ctx, "banner_click", sf_key, warehouse_events, flag_eval_time)
 
@@ -931,10 +975,52 @@ def main():
         action="store_true",
         help="Create the metrics table before running (BigQuery, Databricks, or Snowflake)",
     )
+    parser.add_argument(
+        "--force-flag",
+        default=None,
+        help="Force an experiment winner: flag key whose winning arm gets a metric lift",
+    )
+    parser.add_argument(
+        "--force-variation",
+        type=int,
+        default=None,
+        help="Variation index (0-based) that should win; metrics lift when this variation is served",
+    )
+    parser.add_argument(
+        "--force-lift",
+        type=float,
+        default=None,
+        help="Absolute probability points added to each metric event on the winning arm "
+        "(e.g. 0.12 = +12 percentage points). Must be 0-1.",
+    )
     args = parser.parse_args()
 
     if args.profile and args.mode == "bigquery":
         logger.warning("Both --profile and --mode bigquery set; using --profile")
+
+    force_args = (args.force_flag, args.force_variation, args.force_lift)
+    if any(a is not None for a in force_args):
+        if any(a is None for a in force_args):
+            parser.error(
+                "--force-flag, --force-variation, and --force-lift must be used together"
+            )
+        if args.force_variation < 0:
+            parser.error("--force-variation must be >= 0")
+        if not 0.0 <= args.force_lift <= 1.0:
+            parser.error("--force-lift must be between 0.0 and 1.0")
+        global FORCE_WINNER
+        FORCE_WINNER = ForceWinner(
+            flag_key=args.force_flag,
+            variation_index=args.force_variation,
+            lift=args.force_lift,
+        )
+        logger.warning(
+            "FORCE WINNER ACTIVE: flag '%s' variation %d gets +%.1f pp on every metric "
+            "event. Output is intentionally skewed — do not use for real analysis.",
+            FORCE_WINNER.flag_key,
+            FORCE_WINNER.variation_index,
+            FORCE_WINNER.lift * 100,
+        )
 
     profile = resolve_profile_from_args(args)
     return run_profile(profile, args.records, args.create_table)
