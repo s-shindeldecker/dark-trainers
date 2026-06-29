@@ -1,5 +1,5 @@
 /**
- * Gravity Farms Experiment Simulator — Core Engine
+ * DarkTrainers Experiment Simulator — Core Engine
  *
  * Simulates user journeys using the LaunchDarkly server SDK.
  * Calls variationDetail() for every user so that LD's experiment
