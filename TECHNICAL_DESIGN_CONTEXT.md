@@ -23,7 +23,7 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | AI / LLM | OpenAI SDK (GPT-4o-mini) |
 | Feature flags | LaunchDarkly React Client SDK v3, LD Node Server SDK v9, LD Server SDK AI v0.16 |
 | Observability | `@launchdarkly/observability` (Web Vitals), `@launchdarkly/session-replay` |
-| Data warehouse | BigQuery (primary), Databricks (test), Snowflake (legacy) |
+| Data warehouse | BigQuery (primary), Databricks (test), Snowflake |
 | Simulation | Python 3.12 (`darktrainers_simulation.py`) |
 | Deployment | Vercel (SPA rewrite via `vercel.json`) |
 
@@ -146,6 +146,7 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 | `vip-upgrade-cta-copy` | String | VIP CTA button text |
 | `checkout-vip-banner` | JSON | VIP upsell banner config in checkout |
 | `promo-banner-text` | String | Top promo strip (empty string = hidden) |
+| `promo-banner-position` | String | Promo strip placement (`top` \| `bottom`) |
 
 ### AI Config Keys
 
@@ -267,8 +268,9 @@ ldClient.trackTokenUsage(...);
 | `add_to_cart` | Cart add action | product price |
 | `checkout_initiated` | Checkout start | cart total |
 | `vip_upgrade` | VIP upgrade confirm | `14.99` |
+| `vip_upgrade_modal_shown` | VIP upgrade modal open | — |
+| `product_viewed` | Product detail view | — |
 | `banner_click` | `SeasonalBanner.tsx` click | — |
-| `page_view` | Navigation events | — |
 
 ---
 
@@ -298,6 +300,9 @@ Generates synthetic user journeys and emits events to LaunchDarkly + data wareho
 |---|---|---|---|
 | `production-bq` (default) | Production | BigQuery | `darktrainers_metrics.metric_events` |
 | `test-databricks` | Test | Databricks Unity Catalog | configured via env |
+| `snowflake` | Snowflake | Snowflake | configured via env |
+
+See [SIMULATION.md](SIMULATION.md) for full profile and environment configuration.
 
 **Metric table schema (shared across backends):**
 
@@ -313,27 +318,35 @@ received_time  TIMESTAMP  — event timestamp
 
 ## Environment Variables
 
+App runtime (see [.env.example](.env.example) for the full list, including simulation warehouse keys):
+
 ```bash
 # LaunchDarkly
-VITE_LD_CLIENT_SIDE_ID=          # browser SDK key
-LD_SDK_KEY=                       # server-side SDK key (Node)
-LD_TEST_SDK_KEY=                  # test environment key
+LAUNCHDARKLY_CLIENT_KEY=          # browser React SDK client-side ID
+LAUNCHDARKLY_SDK_KEY=             # server-side SDK key (Express server)
+LAUNCHDARKLY_SDK_KEY_TEST=        # test environment server SDK key (simulation)
+LAUNCHDARKLY_SDK_KEY_SNOWFLAKE=   # snowflake environment server SDK key (simulation)
 
 # AI
 OPENAI_API_KEY=
 
-# BigQuery
-GOOGLE_APPLICATION_CREDENTIALS=  # path to service account JSON
-BQ_PROJECT_ID=
-BQ_DATASET=darktrainers_metrics
+# Server
+SERVER_PORT=3001                  # optional, defaults to 3001
 
-# Databricks
+# BigQuery (simulation profile: production-bq)
+BIGQUERY_PROJECT_ID=
+BIGQUERY_METRICS_DATASET=darktrainers_metrics
+BIGQUERY_METRICS_TABLE=metric_events
+# GOOGLE_APPLICATION_CREDENTIALS=  # path to service account JSON, or use ADC
+
+# Databricks (simulation profile: test-databricks)
 DATABRICKS_HOST=
+DATABRICKS_HTTP_PATH=
 DATABRICKS_TOKEN=
 DATABRICKS_CATALOG=
-DATABRICKS_SCHEMA=
+DATABRICKS_SCHEMA=darktrainers_metrics
 
-# Snowflake (legacy)
+# Snowflake (simulation profile: snowflake)
 SNOWFLAKE_ACCOUNT=
 SNOWFLAKE_USER=
 SNOWFLAKE_PASSWORD=
