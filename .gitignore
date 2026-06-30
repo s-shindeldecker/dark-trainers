@@ -31,6 +31,9 @@ server/dist
 *.sln
 *.sw?
 .env
+# Ignore every .env variant (e.g. .env.backup, .env.local) except the checked-in template
+.env.*
+!.env.example
 env.txt
 
 # Private keys
