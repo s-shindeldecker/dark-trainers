@@ -339,7 +339,7 @@ export const products: Product[] = [
     sizes: [],
     imageUrl: '/images/collectibles/togglemon-card-special.jpg',
     description: 'Rare special edition holographic card featuring the original Togglemon mascot.',
-    tags: ['collectible', 'trading-card'],
+    tags: ['collectible', 'trading-cards'],
   },
   {
     id: 'jumbo-mascot-plush',
