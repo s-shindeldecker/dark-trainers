@@ -7,6 +7,7 @@ import { useCart, VIP_MEMBERSHIP_UPGRADE_USD } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
 import { isIdentifiedUser } from '../../types/darktrainers';
 import { getProductById } from '../Products/productData';
+import { pushToDataLayer } from '../../lib/gtmStub';
 
 const Backdrop = styled.div<{ $open: boolean }>`
   position: fixed;
@@ -160,6 +161,11 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
     if (ldClient) {
       ldClient.track('checkout_initiated', null, displayTotal);
     }
+    pushToDataLayer({
+      event: 'ld_conversion',
+      eventKey: 'checkout_initiated',
+      value: displayTotal,
+    });
     clearCart();
   };
 
@@ -186,7 +192,7 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
                   <Line key={`${l.productId}-${l.size}`}>
                     <div style={{ fontWeight: 600 }}>{l.name}</div>
                     <div style={{ color: '#a3a3a3', fontSize: '0.85rem' }}>
-                      Size {l.size} × {l.qty}
+                      {l.size > 0 ? `Size ${l.size} × ${l.qty}` : `Qty ${l.qty}`}
                     </div>
                     <div style={{ marginTop: '0.35rem' }}>
                       {showMember ? (

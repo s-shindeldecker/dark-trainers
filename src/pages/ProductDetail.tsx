@@ -10,6 +10,7 @@ import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { useVipModal } from '../context/VipModalContext';
 import { isIdentifiedUser } from '../types/darktrainers';
+import { pushToDataLayer } from '../lib/gtmStub';
 
 const Page = styled.div`
   max-width: 1100px;
@@ -183,6 +184,12 @@ export default function ProductDetail() {
   useEffect(() => {
     if (!product || !ldClient) return;
     ldClient.track('product_viewed', null, product.price);
+    pushToDataLayer({
+      event: 'ld_conversion',
+      eventKey: 'product_viewed',
+      productId: product.id,
+      value: product.price,
+    });
   }, [product, ldClient]);
 
   const releaseMs = useMemo(() => (product ? new Date(product.releaseDate).getTime() : 0), [product]);
@@ -227,6 +234,12 @@ export default function ProductDetail() {
     if (ldClient) {
       ldClient.track('add_to_cart', null, product.price);
     }
+    pushToDataLayer({
+      event: 'ld_conversion',
+      eventKey: 'add_to_cart',
+      productId: product.id,
+      value: product.price,
+    });
   };
 
   const handleJoinVip = () => {
