@@ -121,9 +121,11 @@ const Locked = styled.div`
 
 interface ProductCardProps {
   product: Product;
+  /** Route prefix for the card CTA (e.g. '/products' or '/collectibles'). */
+  linkBase?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, linkBase = '/products' }: ProductCardProps) {
   const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
   const { value: showDropToNonVip } = useFeatureFlag(LD_FLAGS.showDropExclusiveProducts, false);
   const { user } = useUser();
@@ -152,7 +154,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {lockedDrop ? (
           <Locked>VIP early access — sign in as VIP or upgrade to view.</Locked>
         ) : (
-          <Cta to={`/products/${product.id}`}>View drop</Cta>
+          <Cta to={`${linkBase}/${product.id}`}>View drop</Cta>
         )}
       </Body>
     </Card>

@@ -16,6 +16,8 @@ import { SeasonalBanner } from './components/Layout/SeasonalBanner';
 import { Account } from './pages/Account';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
+import Collectibles from './pages/Collectibles';
+import CollectibleDetail from './pages/CollectibleDetail';
 import styled from '@emotion/styled';
 import AboutUs from './pages/About';
 import FAQ from './pages/FAQ';
@@ -29,6 +31,7 @@ import { QRCodeModal } from './components/Demo/QRCodeModal';
 import { CartDrawer } from './components/Cart/CartDrawer';
 import { VIPUpgradeModal } from './components/VIP/VIPUpgradeModal';
 import { getProductById } from './components/Products/productData';
+import { pushToDataLayer } from './lib/gtmStub';
 
 const MainContent = styled.main`
   flex: 1;
@@ -43,6 +46,7 @@ function AppShell() {
   const { value: showProductCatalog } = useFeatureFlag(LD_FLAGS.showProductCatalog, true);
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const { value: showVipSignup } = useFeatureFlag(LD_FLAGS.showVipSignup, true);
+  const { value: showCollectibles } = useFeatureFlag(LD_FLAGS.showCollectiblesCatalog, false);
   const { value: promoBannerPosition, isLoading: isLoadingPromoBannerPosition } = useFeatureFlag(
     LD_FLAGS.promoBannerPosition,
     'top',
@@ -60,6 +64,12 @@ function AppShell() {
       if (p) {
         addItemAfterVipTransition(p, vip.pendingCartAdd.size);
         ldClient.track('add_to_cart', null, p.price);
+        pushToDataLayer({
+          event: 'ld_conversion',
+          eventKey: 'add_to_cart',
+          productId: p.id,
+          value: p.price,
+        });
       }
     }
     vip.clearPendingCartAdd();
@@ -76,6 +86,7 @@ function AppShell() {
         showFeed={showAc26DropFeed}
         showProducts={showProductCatalog}
         showSignup={showVipSignup}
+        showCollectibles={showCollectibles}
         onJoinVip={() => vip.openVipModal()}
       />
       <MainContent>
@@ -85,6 +96,8 @@ function AppShell() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/collectibles" element={<Collectibles />} />
+          <Route path="/collectibles/:id" element={<CollectibleDetail />} />
           <Route path="/drops" element={<DropsPage />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/faq" element={<FAQ />} />

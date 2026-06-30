@@ -23,6 +23,8 @@ export const LD_FLAGS = {
   showProductCatalog: 'show-product-catalog',
   /** Nav: VIP signup AI page */
   showVipSignup: 'show-vip-signup',
+  /** Gates the entire Collectibles experience: nav link, routes, and pages. Default false. */
+  showCollectiblesCatalog: 'show-collectibles-catalog',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
