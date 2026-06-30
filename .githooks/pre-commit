@@ -13,7 +13,7 @@ fail=0
 # name|regex  (high-signal patterns; matched values are never printed)
 patterns='
 anthropic_api_key|sk-ant-[A-Za-z0-9_-]{20,}
-openai_api_key|sk-[A-Za-z0-9]{32,}
+openai_api_key|sk-(proj|svcacct|admin)-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{32,}
 aws_access_key_id|AKIA[0-9A-Z]{16}
 launchdarkly_server_or_mobile_key|(sdk|mob|api)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 github_token|gh[pousr]_[A-Za-z0-9]{20,}
@@ -41,10 +41,11 @@ for f in $staged; do
       fi
       ;;
   esac
-  [ "$base" = ".env.example" ] && continue
 
-  # 2) Content rule: scan the file's full STAGED content. Using full content (not just the
-  #    diff) means renamed/copied files — which introduce no '+' lines — are still scanned.
+  # 2) Content rule: scan the file's full STAGED content (INCLUDING .env.example — its
+  #    placeholders won't match the strict patterns, but real keys pasted there will).
+  #    Using full content (not just the diff) means renamed/copied files — which introduce
+  #    no '+' lines — are still scanned.
   content=$(git show ":$f" 2>/dev/null || true)
   [ -n "$content" ] || continue
   while IFS='|' read -r name regex; do
