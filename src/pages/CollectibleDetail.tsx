@@ -101,7 +101,9 @@ export default function CollectibleDetail() {
   const isCollectible = product?.category === 'collectibles';
 
   useEffect(() => {
-    if (!product || !isCollectible || !ldClient) return;
+    // Only emit view/conversion events when the catalog flag is on — otherwise
+    // the page redirects home and these events would leak for a gated feature.
+    if (!product || !isCollectible || !ldClient || !showCollectibles) return;
     ldClient.track('product_viewed', null, product.price);
     // GTM: collectible-specific view event (spec §3)...
     pushToDataLayer({
@@ -117,7 +119,7 @@ export default function CollectibleDetail() {
       productId: product.id,
       value: product.price,
     });
-  }, [product, isCollectible, ldClient]);
+  }, [product, isCollectible, ldClient, showCollectibles]);
 
   if (isLoadingFlag) {
     return (
