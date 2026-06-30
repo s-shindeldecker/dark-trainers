@@ -1,4 +1,5 @@
 import { LDProvider } from 'launchdarkly-react-client-sdk';
+import type { LDInspectionFlagUsedHandler } from 'launchdarkly-react-client-sdk';
 import type { ReactNode } from 'react';
 import { useUser } from './UserContext';
 import { useMemo } from 'react';
@@ -6,6 +7,27 @@ import LDContextSync from './LDContextSync';
 import Observability from '@launchdarkly/observability';
 import SessionReplay from '@launchdarkly/session-replay';
 import { isIdentifiedUser } from '../types/darktrainers';
+import { pushToDataLayer } from '../lib/gtmStub';
+
+/**
+ * SDK Inspector that mirrors every flag evaluation to the GTM dataLayer.
+ * Covers the whole app (not just Collectibles). Supported in
+ * launchdarkly-js-client-sdk >= 3.3.0 (installed: 3.8.1); passed via the
+ * `inspectors` option (member of LDOptions, alongside `plugins`).
+ */
+const gtmDataLayerInspector: LDInspectionFlagUsedHandler = {
+  type: 'flag-used',
+  name: 'gtm-dataLayer-inspector',
+  method: (flagKey, flagDetail) => {
+    pushToDataLayer({
+      event: 'ld_flag_evaluated',
+      flagKey,
+      flagValue: flagDetail.value,
+      variationIndex: flagDetail.variationIndex,
+      reason: flagDetail.reason?.kind,
+    });
+  },
+};
 
 function identifiedLdFields(profile: {
   key: string;
@@ -65,6 +87,7 @@ export const LDContextProvider = ({ children }: LDContextProps) => {
       options={{
         streaming: true,
         evaluationReasons: true,
+        inspectors: [gtmDataLayerInspector],
         plugins: [
           new Observability({ tracingOrigins: true, networkRecording: { enabled: true } }),
           new SessionReplay({ privacySetting: 'strict' }),

@@ -76,7 +76,9 @@ export default function Products() {
       ? (sortDefault as 'featured' | 'price-low' | 'new')
       : 'featured';
     const hasDropAccess = UNLOCKED_ACCESS.includes(ac26DropAccess as DropAccess);
-    const visibleProducts = hasDropAccess ? products : products.filter((product) => !product.tags.includes('early-access'));
+    // Collectibles live in the shared products array but have their own catalog page.
+    const sneakers = products.filter((product) => product.category !== 'collectibles');
+    const visibleProducts = hasDropAccess ? sneakers : sneakers.filter((product) => !product.tags.includes('early-access'));
     return sortProducts(visibleProducts, mode, preferred);
   }, [sortDefault, ac26DropAccess, preferred]);
 
