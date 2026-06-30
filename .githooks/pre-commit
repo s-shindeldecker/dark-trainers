@@ -1,7 +1,8 @@
 #!/bin/sh
 #
 # Pre-commit secret scan (dependency-free).
-# Blocks committing real .env files and content that looks like live credentials.
+# Blocks committing real .env files (in ANY directory) and content that looks like live
+# credentials, across added / modified / renamed / copied files.
 # Enable once per clone:   git config core.hooksPath .githooks
 # Bypass (only if you are CERTAIN it is a false positive):   git commit --no-verify
 #
@@ -9,24 +10,7 @@ set -eu
 
 fail=0
 
-# 1) Never commit env files that may hold secrets — only .env.example is allowed.
-staged_files=$(git diff --cached --name-only --diff-filter=ACM)
-for f in $staged_files; do
-  case "$f" in
-    .env|.env.*)
-      if [ "$f" != ".env.example" ]; then
-        echo "BLOCKED: refusing to commit env file (may contain secrets): $f"
-        fail=1
-      fi
-      ;;
-  esac
-done
-
-# 2) Scan newly added lines for credential-shaped tokens (skip the .env.example template).
-added=$(git diff --cached -U0 --diff-filter=ACM -- . ':(exclude).env.example' \
-        | grep -E '^\+' | grep -Ev '^\+\+\+' || true)
-
-# name|regex  (high-signal patterns; values are never printed)
+# name|regex  (high-signal patterns; matched values are never printed)
 patterns='
 anthropic_api_key|sk-ant-[A-Za-z0-9_-]{20,}
 openai_api_key|sk-[A-Za-z0-9]{32,}
@@ -38,20 +22,47 @@ slack_token|xox[baprs]-[A-Za-z0-9-]{10,}
 private_key_block|-----BEGIN ([A-Z ]+ )?PRIVATE KEY-----
 '
 
-while IFS='|' read -r name regex; do
-  [ -z "${name:-}" ] && continue
-  if printf '%s\n' "$added" | grep -Eq -e "$regex"; then
-    echo "BLOCKED: staged changes contain a likely secret (pattern: $name)."
-    fail=1
-  fi
-done <<EOF
+# Destination paths of staged changes, including renames (R) and copies (C).
+staged=$(git diff --cached --name-only --diff-filter=ACMRC -M -C)
+
+oldifs=$IFS
+IFS='
+'
+for f in $staged; do
+  base=${f##*/}   # basename — so the rules apply in any directory
+
+  # 1) Filename rule: never commit a .env / .env.* file anywhere, except the .env.example template.
+  case "$base" in
+    .env|.env.*)
+      if [ "$base" != ".env.example" ]; then
+        echo "BLOCKED: refusing to commit env file (may contain secrets): $f"
+        fail=1
+        continue
+      fi
+      ;;
+  esac
+  [ "$base" = ".env.example" ] && continue
+
+  # 2) Content rule: scan the file's full STAGED content. Using full content (not just the
+  #    diff) means renamed/copied files — which introduce no '+' lines — are still scanned.
+  content=$(git show ":$f" 2>/dev/null || true)
+  [ -n "$content" ] || continue
+  while IFS='|' read -r name regex; do
+    [ -z "${name:-}" ] && continue
+    if printf '%s\n' "$content" | grep -Eq -e "$regex"; then
+      echo "BLOCKED: $f contains a likely secret (pattern: $name)."
+      fail=1
+    fi
+  done <<EOF
 $patterns
 EOF
+done
+IFS=$oldifs
 
 if [ "$fail" -ne 0 ]; then
   echo ""
   echo "Commit aborted by .githooks/pre-commit secret scan."
-  echo "  - Keep secrets in an untracked .env (already gitignored); commit only .env.example with placeholders."
+  echo "  - Keep secrets in an untracked .env (gitignored); commit only .env.example placeholders."
   echo "  - Genuine false positive? Re-run with: git commit --no-verify"
   exit 1
 fi
