@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
@@ -180,9 +180,11 @@ export default function ProductDetail() {
 
   const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
   const lockedDrop = product?.isDropExclusive && !isVip && !showDropToNonVip;
+  // Collectibles are served by /collectibles/:id, not the sneaker PDP.
+  const isCollectible = product?.category === 'collectibles';
 
   useEffect(() => {
-    if (!product || !ldClient) return;
+    if (!product || !ldClient || isCollectible) return;
     ldClient.track('product_viewed', null, product.price);
     pushToDataLayer({
       event: 'ld_conversion',
@@ -190,7 +192,7 @@ export default function ProductDetail() {
       productId: product.id,
       value: product.price,
     });
-  }, [product, ldClient]);
+  }, [product, ldClient, isCollectible]);
 
   const releaseMs = useMemo(() => (product ? new Date(product.releaseDate).getTime() : 0), [product]);
   const [now, setNow] = useState(Date.now());
@@ -209,6 +211,12 @@ export default function ProductDetail() {
         </Link>
       </Page>
     );
+  }
+
+  // A collectible reached via /products/:id: send it to its canonical route,
+  // which enforces the show-collectibles-catalog flag and renders sizeless UI.
+  if (isCollectible) {
+    return <Navigate to={`/collectibles/${product.id}`} replace />;
   }
 
   const editorial = layout === 'editorial';
