@@ -25,6 +25,8 @@ export const LD_FLAGS = {
   showVipSignup: 'show-vip-signup',
   /** Gates the entire Collectibles experience: nav link, routes, and pages. Default false. */
   showCollectiblesCatalog: 'show-collectibles-catalog',
+  /** Unlocks VIP-gated collectibles content (e.g. unblurs the special-edition card in the drops feed). Default false; LD targets tier=vip → true. */
+  showCollectiblesVipContent: 'show-collectibles-vip-content',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
