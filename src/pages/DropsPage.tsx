@@ -23,6 +23,14 @@ const AC26_PRODUCTS = DROP_IDS.map((id) => products.find((product) => product.id
   (product): product is Product => Boolean(product)
 );
 
+// Collectibles feed entry: featured products + which are VIP-gated (blurred for non-VIP).
+const COLLECTIBLE_FEATURE_IDS = ['toggle-figure-glow', 'togglemon-holopack', 'togglemon-card-special'] as const;
+const VIP_GATED_COLLECTIBLE_IDS = new Set<string>(['togglemon-card-special']);
+
+const COLLECTIBLE_PRODUCTS = COLLECTIBLE_FEATURE_IDS.map((id) =>
+  products.find((product) => product.id === id)
+).filter((product): product is Product => Boolean(product));
+
 const PageShell = styled('div')(({ theme }) => ({
   position: 'relative',
   minHeight: '100%',
@@ -234,6 +242,14 @@ function formatCountdown(msLeft: number): string {
 export default function DropsPage() {
   const { value: showFeed, isLoading: isLoadingFeedFlag } = useFeatureFlag(LD_FLAGS.showAc26DropFeed, false);
   const { value: accessFlag, isLoading: isLoadingAccessFlag } = useFeatureFlag(LD_FLAGS.ac26DropAccess, 'teaser');
+  const { value: showCollectibles, isLoading: isLoadingCollectiblesFlag } = useFeatureFlag(
+    LD_FLAGS.showCollectiblesCatalog,
+    false,
+  );
+  const { value: showCollectiblesVipContent, isLoading: isLoadingVipContentFlag } = useFeatureFlag(
+    LD_FLAGS.showCollectiblesVipContent,
+    false,
+  );
   const teaserDropMs = useMemo(() => new Date(TEASER_DROP_DATE).getTime(), []);
   const [now, setNow] = useState(Date.now());
 
@@ -242,7 +258,7 @@ export default function DropsPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  if (isLoadingFeedFlag || isLoadingAccessFlag) {
+  if (isLoadingFeedFlag || isLoadingAccessFlag || isLoadingCollectiblesFlag || isLoadingVipContentFlag) {
     return (
       <PageShell>
         <LoadingShell>
@@ -267,6 +283,125 @@ export default function DropsPage() {
   return (
     <PageShell>
       <Container maxWidth="xl">
+        {showCollectibles && (
+          <Stack component="section" spacing={2} sx={{ mb: 4 }}>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={2}
+              sx={{ alignItems: { md: 'flex-end' }, justifyContent: 'space-between' }}
+            >
+              <div>
+                <Stack direction="row" spacing={1} sx={{ mb: 1 }} flexWrap="wrap" useFlexGap>
+                  <Chip
+                    label="New"
+                    sx={{
+                      bgcolor: alpha('#C8F000', 0.12),
+                      color: '#C8F000',
+                      border: `1px solid ${alpha('#C8F000', 0.24)}`,
+                      fontWeight: 700,
+                    }}
+                  />
+                  <Chip
+                    label="Collectibles"
+                    sx={{
+                      bgcolor: alpha('#FFFFFF', 0.06),
+                      color: '#f5f5f5',
+                      border: `1px solid ${alpha('#FFFFFF', 0.12)}`,
+                      fontWeight: 600,
+                    }}
+                  />
+                </Stack>
+                <Typography
+                  variant="h3"
+                  className="font-display"
+                  sx={{ color: '#F8F8F3', textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1 }}
+                >
+                  Togglemon Collectibles
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#9ca39a', maxWidth: 720, mt: 1 }}>
+                  Introducing Togglemon Collectibles — figures, plush, and trading cards. Now available in the
+                  DarkTrainers shop.
+                </Typography>
+              </div>
+              <Button
+                component={Link}
+                to="/collectibles"
+                variant="contained"
+                sx={{ ...CTA_BUTTON_SX, bgcolor: '#C8F000', color: '#0D0D0D', '&:hover': { bgcolor: '#d8ff38' } }}
+              >
+                Shop Collectibles
+              </Button>
+            </Stack>
+
+            <EditorialGrid>
+              {COLLECTIBLE_PRODUCTS.map((product, index) => {
+                const vipGated = VIP_GATED_COLLECTIBLE_IDS.has(product.id);
+                const blurred = vipGated && !showCollectiblesVipContent;
+
+                return (
+                  <FeedCard key={product.id} $slot={index}>
+                    <CardMedia>
+                      <CardImage $blurred={blurred} src={product.imageUrl} alt={product.name} />
+                      <CardOverlay $locked={blurred} />
+                      {blurred && <TeaserStamp>VIP Only</TeaserStamp>}
+                      <CardBadges>
+                        <Chip
+                          label="Collectible"
+                          size="small"
+                          sx={{
+                            bgcolor: alpha('#0D0D0D', 0.72),
+                            color: '#f5f5f5',
+                            border: `1px solid ${alpha('#FFFFFF', 0.12)}`,
+                            backdropFilter: 'blur(10px)',
+                          }}
+                        />
+                        {vipGated ? (
+                          <Chip
+                            label="VIP Exclusive"
+                            size="small"
+                            sx={{
+                              bgcolor: alpha('#C8F000', 0.16),
+                              color: '#C8F000',
+                              border: `1px solid ${alpha('#C8F000', 0.28)}`,
+                              fontWeight: 700,
+                            }}
+                          />
+                        ) : null}
+                      </CardBadges>
+                    </CardMedia>
+
+                    <CardBody>
+                      <div>
+                        <Typography
+                          variant="h4"
+                          className="font-display"
+                          sx={{ color: '#f5f5f5', lineHeight: 1, mb: 0.5 }}
+                        >
+                          {product.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#a8aca3', maxWidth: 520 }}>
+                          {product.colorway}
+                        </Typography>
+                      </div>
+
+                      <PriceText>${product.price}</PriceText>
+
+                      <Button
+                        component={Link}
+                        to={`/collectibles/${product.id}`}
+                        variant="contained"
+                        sx={{ ...CTA_BUTTON_SX, bgcolor: '#C8F000', color: '#0D0D0D', '&:hover': { bgcolor: '#d8ff38' } }}
+                      >
+                        View
+                      </Button>
+                    </CardBody>
+                  </FeedCard>
+                );
+              })}
+            </EditorialGrid>
+          </Stack>
+        )}
+
         <HeroSection>
           <HeroMeta>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -382,7 +517,8 @@ export default function DropsPage() {
         <EditorialGrid>
           {AC26_PRODUCTS.map((product, index) => {
             const lockedImage = isTeaser ? product.teaserImage ?? product.imageUrl : product.imageUrl;
-            const blurImage = isTeaser && !product.teaserImage;
+            // AC26 is now a previous drop — products are always fully visible (no blur).
+            const blurImage = false;
 
             return (
               <FeedCard key={product.id} $slot={index}>
