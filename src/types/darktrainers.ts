@@ -1,5 +1,5 @@
 export type MemberTier = 'standard' | 'vip';
-export type ProductCategory = 'running' | 'basketball' | 'lifestyle' | 'training';
+export type ProductCategory = 'running' | 'basketball' | 'lifestyle' | 'training' | 'collectibles';
 
 /** Identified user attributes sent to LaunchDarkly (Standard / VIP demo personas). */
 export type IdentifiedUserProfile = {

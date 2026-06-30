@@ -200,6 +200,7 @@ interface HeaderProps {
   showFeed?: boolean;
   showProducts?: boolean;
   showSignup?: boolean;
+  showCollectibles?: boolean;
   onJoinVip: () => void;
 }
 
@@ -235,6 +236,7 @@ export function Header({
   showFeed,
   showProducts,
   showSignup,
+  showCollectibles,
   onJoinVip,
 }: HeaderProps) {
   const { lines, openCart, vipUpgradeLineActive } = useCart();
@@ -269,6 +271,11 @@ export function Header({
           {showFeed && (
             <NavLink>
               <Link to="/drops">Feed</Link>
+            </NavLink>
+          )}
+          {showCollectibles && (
+            <NavLink>
+              <Link to="/collectibles">Collectibles</Link>
             </NavLink>
           )}
           <NavLink>
@@ -389,6 +396,11 @@ export function Header({
           {showFeed && (
             <ListItemButton component={Link} to="/drops" onClick={closeDrawer} sx={drawerItemSx}>
               <ListItemText primary="Feed" />
+            </ListItemButton>
+          )}
+          {showCollectibles && (
+            <ListItemButton component={Link} to="/collectibles" onClick={closeDrawer} sx={drawerItemSx}>
+              <ListItemText primary="Collectibles" />
             </ListItemButton>
           )}
           <ListItemButton component={Link} to="/reviews" onClick={closeDrawer} sx={drawerItemSx}>
