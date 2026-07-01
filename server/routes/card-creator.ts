@@ -16,6 +16,68 @@ interface TogglemonCard {
   imagePrompt: string;
 }
 
+const VALID_TYPES: TogglemonCard['type'][] = [
+  'Fire',
+  'Water',
+  'Electric',
+  'Shadow',
+  'Glitch',
+  'Void',
+];
+
+const VALID_RARITIES: TogglemonCard['rarity'][] = [
+  'Common',
+  'Uncommon',
+  'Rare',
+  'Holo Rare',
+  'Ultra Rare',
+];
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function validateMove(value: unknown): value is TogglemonCard['moves'][number] {
+  if (!value || typeof value !== 'object') return false;
+  const move = value as Record<string, unknown>;
+  return (
+    isNonEmptyString(move.name) &&
+    isFiniteNumber(move.damage) &&
+    typeof move.description === 'string'
+  );
+}
+
+function validateTogglemonCard(body: unknown): TogglemonCard | null {
+  if (!body || typeof body !== 'object') return null;
+  const card = body as Record<string, unknown>;
+
+  if (!isNonEmptyString(card.name)) return null;
+  if (!VALID_TYPES.includes(card.type as TogglemonCard['type'])) return null;
+  if (!isFiniteNumber(card.hp)) return null;
+  if (!VALID_RARITIES.includes(card.rarity as TogglemonCard['rarity'])) return null;
+  if (!Array.isArray(card.moves) || !card.moves.every(validateMove)) return null;
+  if (typeof card.weakness !== 'string') return null;
+  if (typeof card.resistance !== 'string') return null;
+  if (typeof card.flavorText !== 'string') return null;
+  if (typeof card.imagePrompt !== 'string') return null;
+
+  return {
+    name: card.name,
+    type: card.type as TogglemonCard['type'],
+    hp: card.hp,
+    rarity: card.rarity as TogglemonCard['rarity'],
+    moves: card.moves,
+    weakness: card.weakness,
+    resistance: card.resistance,
+    flavorText: card.flavorText,
+    imagePrompt: card.imagePrompt,
+  };
+}
+
 function ldUserFromBody(userContext?: Record<string, unknown>) {
   if (!userContext?.key) {
     return { kind: 'user' as const, key: 'anonymous-card-creator-user', anonymous: true };
@@ -113,11 +175,17 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
 
       const cleaned = responseText.replace(/```json|```/g, '').trim();
 
-      let card: TogglemonCard;
+      let parsed: unknown;
       try {
-        card = JSON.parse(cleaned) as TogglemonCard;
+        parsed = JSON.parse(cleaned);
       } catch {
         res.status(500).json({ error: 'Failed to parse card data', raw: responseText });
+        return;
+      }
+
+      const card = validateTogglemonCard(parsed);
+      if (!card) {
+        res.status(500).json({ error: 'Invalid card data from model', raw: responseText });
         return;
       }
 
