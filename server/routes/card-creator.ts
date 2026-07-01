@@ -226,7 +226,9 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         prompt: imagePrompt,
         n: 1,
         size: '1024x1024',
-        quality: 'medium',
+        // 'low' keeps generation well under the function timeout and shrinks
+        // the base64 payload; still looks great for card art.
+        quality: 'low',
       } as any);
 
       // gpt-image-1 returns base64; DALL·E returns a URL. Support either.
