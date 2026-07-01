@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
+import { useLDClient } from 'launchdarkly-react-client-sdk';
+import { toPng } from 'html-to-image';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -8,7 +10,10 @@ import Alert from '@mui/material/Alert';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
 import { useUser } from '../context/UserContext';
+import { useCart } from '../context/CartContext';
 import { userToApiContext } from '../context/LDContext';
+import { pushToDataLayer } from '../lib/gtmStub';
+import type { Product } from '../components/Products/productData';
 import {
   TogglemonCard,
   TOGGLEMON_TYPES,
@@ -61,8 +66,33 @@ const TypeName = styled.span`
   font-weight: 600;
 `;
 
+const ResultColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+// Padding so html-to-image captures the card's drop shadow, not a clipped edge.
+const CardCapture = styled.div`
+  padding: 12px;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
 const PLACEHOLDER =
   'A shadowy electric-type with cracked glass wings and a glitch effect...';
+
+/** Price for a custom Togglemon card added to the cart. */
+const CUSTOM_CARD_PRICE = 12.99;
+
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'togglemon';
 
 export default function CardCreator() {
   const { value: showCardCreator, isLoading: isLoadingFlag } = useFeatureFlag(
@@ -70,6 +100,9 @@ export default function CardCreator() {
     false,
   );
   const { user } = useUser();
+  const { addItem } = useCart();
+  const ldClient = useLDClient();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -150,6 +183,50 @@ export default function CardCreator() {
     }
   };
 
+  // Add the generated card to the cart as a custom collectible, firing the
+  // same add_to_cart conversion events as the rest of the shop.
+  const handleAddToCart = () => {
+    if (!result) return;
+    const id = `togglemon-${slugify(result.name)}-${Date.now()}`;
+    const cardProduct: Product = {
+      id,
+      name: `Custom Togglemon: ${result.name}`,
+      brand: 'DarkTrainers',
+      category: 'collectibles',
+      colorway: result.type,
+      price: CUSTOM_CARD_PRICE,
+      memberPrice: CUSTOM_CARD_PRICE,
+      isDropExclusive: false,
+      releaseDate: '',
+      sizes: [],
+      imageUrl: imageUrl ?? '',
+      description: result.flavorText,
+      tags: ['custom', 'togglemon'],
+    };
+    addItem(cardProduct, 0);
+    ldClient?.track('add_to_cart', null, CUSTOM_CARD_PRICE);
+    pushToDataLayer({
+      event: 'ld_conversion',
+      eventKey: 'add_to_cart',
+      productId: id,
+      value: CUSTOM_CARD_PRICE,
+    });
+  };
+
+  // Snapshot the rendered card to a PNG the user can download and share.
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
+    try {
+      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = `${slugify(result?.name ?? 'togglemon')}-card.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error('[CardCreator] Download failed:', e);
+    }
+  };
+
   return (
     <PageContainer>
       <Title className="font-display">Togglemon Card Creator</Title>
@@ -201,7 +278,19 @@ export default function CardCreator() {
         {isGenerating && <CircularProgress />}
         {!isGenerating && error && <Alert severity="error">{error}</Alert>}
         {!isGenerating && !error && result && (
-          <TogglemonCard card={result} imageUrl={imageUrl} artLoading={artLoading} />
+          <ResultColumn>
+            <CardCapture ref={cardRef}>
+              <TogglemonCard card={result} imageUrl={imageUrl} artLoading={artLoading} />
+            </CardCapture>
+            <Actions>
+              <Button variant="contained" onClick={handleAddToCart}>
+                Add to Cart — ${CUSTOM_CARD_PRICE.toFixed(2)}
+              </Button>
+              <Button variant="outlined" onClick={handleDownload} disabled={artLoading}>
+                Download card
+              </Button>
+            </Actions>
+          </ResultColumn>
         )}
       </ResultArea>
     </PageContainer>
