@@ -100,7 +100,7 @@ export default function CardCreator() {
     false,
   );
   const { value: trackViaGtm } = useFeatureFlag(LD_FLAGS.trackConversionsViaGtm, false);
-  const { user } = useUser();
+  const { user, sessionKey } = useUser();
   const { addItem } = useCart();
   const ldClient = useLDClient();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -164,6 +164,7 @@ export default function CardCreator() {
         body: JSON.stringify({
           description: trimmed,
           userContext: userToApiContext(user),
+          sessionKey,
         }),
       });
 
