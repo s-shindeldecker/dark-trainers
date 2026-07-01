@@ -213,14 +213,21 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
       const result = await openai.images.generate({
-        model: 'dall-e-3',
+        model: 'gpt-image-1',
         prompt: imagePrompt,
         n: 1,
         size: '1024x1024',
-        quality: 'standard',
-      });
+        quality: 'medium',
+      } as any);
 
-      const imageUrl = result.data?.[0]?.url;
+      // gpt-image-1 returns base64; DALL·E returns a URL. Support either.
+      const image = result.data?.[0];
+      const imageUrl = image?.url
+        ? image.url
+        : image?.b64_json
+          ? `data:image/png;base64,${image.b64_json}`
+          : undefined;
+
       if (!imageUrl) {
         res.status(500).json({ error: 'No image was returned' });
         return;
