@@ -208,7 +208,7 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
     }
   });
 
-  // Phase 2: generate trading-card art from a card's imagePrompt via DALL·E 3.
+  // Phase 2: generate trading-card art from a card's imagePrompt via gpt-image-1.
   router.post('/art', async (req, res) => {
     try {
       const { imagePrompt } = req.body as { imagePrompt?: string };
@@ -225,10 +225,15 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         model: 'gpt-image-1',
         prompt: imagePrompt,
         n: 1,
-        size: '1024x1024',
-        // 'low' keeps generation well under the function timeout and shrinks
-        // the base64 payload; still looks great for card art.
+        // Landscape (~1.5:1) matches the card art box (230x150), so the image
+        // fills it with almost no cropping.
+        size: '1536x1024',
+        // 'low' keeps generation well under the function timeout.
         quality: 'low',
+        // JPEG payload is far smaller than PNG — faster to transfer/display
+        // and safely under the serverless response size limit.
+        output_format: 'jpeg',
+        output_compression: 80,
       } as any);
 
       // gpt-image-1 returns base64; DALL·E returns a URL. Support either.
@@ -236,7 +241,7 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       const imageUrl = image?.url
         ? image.url
         : image?.b64_json
-          ? `data:image/png;base64,${image.b64_json}`
+          ? `data:image/jpeg;base64,${image.b64_json}`
           : undefined;
 
       if (!imageUrl) {
