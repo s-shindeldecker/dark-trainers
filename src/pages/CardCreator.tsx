@@ -99,6 +99,7 @@ export default function CardCreator() {
     LD_FLAGS.showCardCreator,
     false,
   );
+  const { value: trackViaGtm } = useFeatureFlag(LD_FLAGS.trackConversionsViaGtm, false);
   const { user } = useUser();
   const { addItem } = useCart();
   const ldClient = useLDClient();
@@ -183,8 +184,19 @@ export default function CardCreator() {
     }
   };
 
+  // Route a conversion either through the GTM dataLayer (flag on — GTM's
+  // Custom HTML tag forwards it to LD) or straight to LD (flag off). Either/or,
+  // so conversions are never double-counted.
+  const trackConversion = (eventKey: string, opts?: { value?: number; productId?: string }) => {
+    if (trackViaGtm) {
+      pushToDataLayer({ event: 'ld_conversion', eventKey, ...opts });
+    } else {
+      ldClient?.track(eventKey, null, opts?.value);
+    }
+  };
+
   // Add the generated card to the cart as a custom collectible, firing the
-  // same add_to_cart conversion events as the rest of the shop.
+  // same add_to_cart conversion as the rest of the shop.
   const handleAddToCart = () => {
     if (!result) return;
     const id = `togglemon-${slugify(result.name)}-${Date.now()}`;
@@ -204,13 +216,7 @@ export default function CardCreator() {
       tags: ['custom', 'togglemon'],
     };
     addItem(cardProduct, 0);
-    ldClient?.track('add_to_cart', null, CUSTOM_CARD_PRICE);
-    pushToDataLayer({
-      event: 'ld_conversion',
-      eventKey: 'add_to_cart',
-      productId: id,
-      value: CUSTOM_CARD_PRICE,
-    });
+    trackConversion('add_to_cart', { value: CUSTOM_CARD_PRICE, productId: id });
   };
 
   // Snapshot the rendered card to a PNG the user can download and share.
@@ -230,6 +236,9 @@ export default function CardCreator() {
       link.download = `${slugify(result?.name ?? 'togglemon')}-card.png`;
       link.href = dataUrl;
       link.click();
+
+      // Conversion signal for experiments (alongside add_to_cart).
+      trackConversion('card_downloaded');
     } catch (e) {
       console.error('[CardCreator] Download failed:', e);
     }

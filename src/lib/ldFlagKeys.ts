@@ -29,6 +29,8 @@ export const LD_FLAGS = {
   showCollectiblesVipContent: 'show-collectibles-vip-content',
   /** Gates the AI Togglemon Card Creator page and its entry-point CTA. Default false. */
   showCardCreator: 'show-card-creator',
+  /** Card creator conversion routing: on → via GTM dataLayer; off → direct LD track. Default false. */
+  trackConversionsViaGtm: 'track-conversions-via-gtm',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
