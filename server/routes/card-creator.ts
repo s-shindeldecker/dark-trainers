@@ -78,6 +78,15 @@ function validateTogglemonCard(body: unknown): TogglemonCard | null {
   };
 }
 
+/**
+ * OpenAI keys are ASCII with no whitespace. Strip any stray characters
+ * (e.g. a U+2028 line separator introduced by pasting into a dashboard)
+ * that would otherwise break the SDK's HTTP auth header.
+ */
+function openAiApiKey(): string | undefined {
+  return process.env.OPENAI_API_KEY?.replace(/\s+/g, '');
+}
+
 function ldUserFromBody(userContext?: Record<string, unknown>) {
   if (!userContext?.key) {
     return { kind: 'user' as const, key: 'anonymous-card-creator-user', anonymous: true };
@@ -134,7 +143,7 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       }
 
       const { OpenAI } = await import('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const openai = new OpenAI({ apiKey: openAiApiKey() });
 
       const configMessages = (aiConfig.messages || []) as Array<{ role: string; content: string }>;
       const allMessages = [
@@ -210,7 +219,7 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       }
 
       const { OpenAI } = await import('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const openai = new OpenAI({ apiKey: openAiApiKey() });
 
       const result = await openai.images.generate({
         model: 'gpt-image-1',
