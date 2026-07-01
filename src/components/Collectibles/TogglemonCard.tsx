@@ -335,8 +335,10 @@ export function TogglemonCard({
 
       {holo && (
         <>
-          <HoloSheen />
-          <HoloGlare />
+          {/* className lets the PNG export drop these — html-to-image can't
+              reproduce mix-blend-mode, so they'd render flat/washed out. */}
+          <HoloSheen className="holo-foil" />
+          <HoloGlare className="holo-foil" />
         </>
       )}
     </CardShell>

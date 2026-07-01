@@ -217,7 +217,15 @@ export default function CardCreator() {
   const handleDownload = async () => {
     if (!cardRef.current) return;
     try {
-      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+        // Drop the holo foil overlays: html-to-image can't reproduce their
+        // mix-blend-mode, so they'd export flat/washed out. The exported card
+        // stays clean and readable (still shows the Holo Rare badge + art).
+        filter: (node) =>
+          !(node instanceof HTMLElement && node.classList.contains('holo-foil')),
+      });
       const link = document.createElement('a');
       link.download = `${slugify(result?.name ?? 'togglemon')}-card.png`;
       link.href = dataUrl;
