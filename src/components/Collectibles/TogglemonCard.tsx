@@ -11,6 +11,8 @@ export interface TogglemonCard {
   resistance: string;
   flavorText: string;
   imagePrompt: string;
+  /** Optional label shown as a ribbon for special-edition cards. */
+  edition?: string;
 }
 
 /** The six Togglemon types the creator supports (also the keys of TYPE_COLORS). */
@@ -78,6 +80,17 @@ const CardName = styled.span`
 const CardHp = styled.span`
   font-size: 0.9rem;
   white-space: nowrap;
+`;
+
+const EditionBanner = styled.div`
+  background: linear-gradient(90deg, #ff8a3c, #ffcc33, #ff9a3c);
+  color: #5a3200;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 3px 6px;
 `;
 
 const ArtWrap = styled.div`
@@ -281,6 +294,8 @@ export function TogglemonCard({
         <CardName>{card.name}</CardName>
         <CardHp>HP {card.hp}</CardHp>
       </Header>
+
+      {card.edition && <EditionBanner>{card.edition}</EditionBanner>}
 
       <ArtWrap>
         {artLoading ? (

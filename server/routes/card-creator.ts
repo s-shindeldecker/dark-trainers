@@ -14,6 +14,8 @@ interface TogglemonCard {
   resistance: string;
   flavorText: string;
   imagePrompt: string;
+  /** Optional label for special-edition prompts (e.g. "Summer Heat Special Edition"). */
+  edition?: string;
 }
 
 const VALID_TYPES: TogglemonCard['type'][] = [
@@ -64,6 +66,8 @@ function validateTogglemonCard(body: unknown): TogglemonCard | null {
   if (typeof card.resistance !== 'string') return null;
   if (typeof card.flavorText !== 'string') return null;
   if (typeof card.imagePrompt !== 'string') return null;
+  // edition is optional; if present it must be a string.
+  if (card.edition !== undefined && typeof card.edition !== 'string') return null;
 
   return {
     name: card.name,
@@ -75,6 +79,8 @@ function validateTogglemonCard(body: unknown): TogglemonCard | null {
     resistance: card.resistance,
     flavorText: card.flavorText,
     imagePrompt: card.imagePrompt,
+    // Pass through a special-edition label (capped) when the prompt sets one.
+    ...(isNonEmptyString(card.edition) ? { edition: card.edition.slice(0, 40) } : {}),
   };
 }
 
