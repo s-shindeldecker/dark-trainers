@@ -8,6 +8,7 @@ let appPromise: ReturnType<typeof createApp> | undefined;
 // The catch-all filename preserves the full request path (e.g.
 // /api/card-creator), which is what the app's routes are mounted on.
 export default async function handler(req: any, res: any) {
+  console.log('[api] incoming', req.method, req.url);
   appPromise ??= createApp();
   const app = await appPromise;
   app(req, res);
