@@ -8,7 +8,6 @@ let appPromise: ReturnType<typeof createApp> | undefined;
 // /api/* request here; req.url keeps the original path (e.g.
 // /api/card-creator/art), which is what the Express routes are mounted on.
 export default async function handler(req: any, res: any) {
-  console.log('[api] incoming', req.method, req.url);
   appPromise ??= createApp();
   const app = await appPromise;
   app(req, res);
