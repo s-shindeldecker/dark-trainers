@@ -75,6 +75,8 @@ export default function CardCreator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<TogglemonCardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [artLoading, setArtLoading] = useState(false);
 
   if (isLoadingFlag) {
     return (
@@ -90,6 +92,27 @@ export default function CardCreator() {
     return <Navigate to="/collectibles" replace />;
   }
 
+  // Generate art from the card's imagePrompt. Fails gracefully — the card
+  // just falls back to showing the prompt text if this errors out.
+  const generateArt = async (prompt: string) => {
+    if (!prompt) return;
+    setArtLoading(true);
+    try {
+      const res = await fetch('/api/card-creator/art', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagePrompt: prompt }),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { imageUrl?: string };
+      if (data.imageUrl) setImageUrl(data.imageUrl);
+    } catch {
+      // swallow — graceful fallback to the prompt text on the card
+    } finally {
+      setArtLoading(false);
+    }
+  };
+
   const handleGenerate = async () => {
     const trimmed = description.trim();
     if (!trimmed || isGenerating) return;
@@ -97,6 +120,8 @@ export default function CardCreator() {
     setIsGenerating(true);
     setError(null);
     setResult(null);
+    setImageUrl(null);
+    setArtLoading(false);
 
     try {
       const res = await fetch('/api/card-creator', {
@@ -116,6 +141,8 @@ export default function CardCreator() {
 
       const card = (await res.json()) as TogglemonCardData;
       setResult(card);
+      // Card text is shown immediately; art loads into the box afterward.
+      void generateArt(card.imagePrompt);
     } catch {
       setError("Sorry, I'm having trouble connecting. Please try again.");
     } finally {
@@ -173,7 +200,9 @@ export default function CardCreator() {
       <ResultArea>
         {isGenerating && <CircularProgress />}
         {!isGenerating && error && <Alert severity="error">{error}</Alert>}
-        {!isGenerating && !error && result && <TogglemonCard card={result} />}
+        {!isGenerating && !error && result && (
+          <TogglemonCard card={result} imageUrl={imageUrl} artLoading={artLoading} />
+        )}
       </ResultArea>
     </PageContainer>
   );

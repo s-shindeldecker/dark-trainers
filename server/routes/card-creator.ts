@@ -199,5 +199,42 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
     }
   });
 
+  // Phase 2: generate trading-card art from a card's imagePrompt via DALL·E 3.
+  router.post('/art', async (req, res) => {
+    try {
+      const { imagePrompt } = req.body as { imagePrompt?: string };
+
+      if (!isNonEmptyString(imagePrompt)) {
+        res.status(400).json({ error: 'imagePrompt is required' });
+        return;
+      }
+
+      const { OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const result = await openai.images.generate({
+        model: 'dall-e-3',
+        prompt: imagePrompt,
+        n: 1,
+        size: '1024x1024',
+        quality: 'standard',
+      });
+
+      const imageUrl = result.data?.[0]?.url;
+      if (!imageUrl) {
+        res.status(500).json({ error: 'No image was returned' });
+        return;
+      }
+
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error('[CardCreator/art] Error:', error);
+      res.status(500).json({
+        error: 'Failed to generate art',
+        detail: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
   return router;
 }

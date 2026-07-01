@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 
 export interface TogglemonCard {
   name: string;
@@ -80,7 +81,7 @@ const ArtLabel = styled.div`
   margin-bottom: 2px;
 `;
 
-const ArtBox = styled.div`
+const ArtBox = styled.div<{ noPad?: boolean }>`
   width: 230px;
   height: 150px;
   background: #f0f0f0;
@@ -90,8 +91,29 @@ const ArtBox = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0.5rem;
+  padding: ${(p) => (p.noPad ? '0' : '0.5rem')};
   box-sizing: border-box;
+  overflow: hidden;
+`;
+
+const ArtImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`;
+
+const Spinner = styled.div`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid #ddd;
+  border-top-color: #888;
+  animation: ${spin} 0.8s linear infinite;
 `;
 
 const ArtPrompt = styled.span`
@@ -174,7 +196,15 @@ const Flavor = styled.p`
   line-height: 1.25;
 `;
 
-export function TogglemonCard({ card }: { card: TogglemonCard }) {
+export function TogglemonCard({
+  card,
+  imageUrl,
+  artLoading = false,
+}: {
+  card: TogglemonCard;
+  imageUrl?: string | null;
+  artLoading?: boolean;
+}) {
   const bg = TYPE_COLORS[card.type] ?? '#1A1A2E';
   const fg = headerTextColor(card.type);
 
@@ -186,10 +216,25 @@ export function TogglemonCard({ card }: { card: TogglemonCard }) {
       </Header>
 
       <ArtWrap>
-        <ArtLabel>Art prompt (Phase 2)</ArtLabel>
-        <ArtBox>
-          <ArtPrompt>{card.imagePrompt}</ArtPrompt>
-        </ArtBox>
+        {artLoading ? (
+          <>
+            <ArtLabel>Generating art…</ArtLabel>
+            <ArtBox>
+              <Spinner />
+            </ArtBox>
+          </>
+        ) : imageUrl ? (
+          <ArtBox noPad>
+            <ArtImage src={imageUrl} alt={card.name} />
+          </ArtBox>
+        ) : (
+          <>
+            <ArtLabel>Art prompt</ArtLabel>
+            <ArtBox>
+              <ArtPrompt>{card.imagePrompt}</ArtPrompt>
+            </ArtBox>
+          </>
+        )}
       </ArtWrap>
 
       <PillRow>
