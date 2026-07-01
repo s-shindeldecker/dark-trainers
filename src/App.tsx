@@ -17,6 +17,7 @@ import { Account } from './pages/Account';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Collectibles from './pages/Collectibles';
+import CardCreator from './pages/CardCreator';
 import CollectibleDetail from './pages/CollectibleDetail';
 import styled from '@emotion/styled';
 import AboutUs from './pages/About';
@@ -97,6 +98,7 @@ function AppShell() {
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/collectibles" element={<Collectibles />} />
+          <Route path="/collectibles/card-creator" element={<CardCreator />} />
           <Route path="/collectibles/:id" element={<CollectibleDetail />} />
           <Route path="/drops" element={<DropsPage />} />
           <Route path="/about" element={<AboutUs />} />

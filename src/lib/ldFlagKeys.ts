@@ -27,6 +27,8 @@ export const LD_FLAGS = {
   showCollectiblesCatalog: 'show-collectibles-catalog',
   /** Unlocks VIP-gated collectibles content (e.g. unblurs the special-edition card in the drops feed). Default false; LD targets tier=vip → true. */
   showCollectiblesVipContent: 'show-collectibles-vip-content',
+  /** Gates the AI Togglemon Card Creator page and its entry-point CTA. Default false. */
+  showCardCreator: 'show-card-creator',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
