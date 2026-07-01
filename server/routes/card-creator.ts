@@ -114,6 +114,61 @@ function ldUserFromBody(userContext?: Record<string, unknown>) {
   };
 }
 
+/** Trip the safety gate at/above this toxicity score (0-1). */
+const TOXICITY_THRESHOLD = 0.7;
+
+/**
+ * Friendly stand-in card returned when a description trips the content-safety
+ * gate. Its imagePrompt is wholesome, so the image model draws something cute.
+ */
+const NONOMON_CARD: TogglemonCard = {
+  name: 'NoNoMon',
+  type: 'Glitch',
+  hp: 1,
+  rarity: 'Common',
+  moves: [
+    {
+      name: 'Naughty Filter',
+      damage: 0,
+      description: "Blocks questionable prompts before they hatch. Let's keep it friendly!",
+    },
+    {
+      name: 'Gentle Reset',
+      damage: 0,
+      description: 'Describe a cool, family-friendly creature and NoNoMon will step aside.',
+    },
+  ],
+  weakness: 'Kindness',
+  resistance: 'Good Manners',
+  flavorText:
+    'NoNoMon appears when a prompt gets a little too spicy — no hard feelings, give it another go!',
+  imagePrompt:
+    'An adorable friendly cartoon mascot gently shaking its head "no" with a warm smile, holding a tiny "be nice!" sign, wholesome family-friendly cute sticker style, soft pastel colors',
+};
+
+/**
+ * Synchronous content-safety check on the user's description via OpenAI
+ * Moderations. Trips on OpenAI's own `flagged` decision or any category score
+ * at/above TOXICITY_THRESHOLD. Fails open (allow) if moderation itself errors —
+ * the image model's own moderation still guards the generated art.
+ */
+async function isDescriptionToxic(openai: any, description: string): Promise<boolean> {
+  try {
+    const mod = await openai.moderations.create({
+      model: 'omni-moderation-latest',
+      input: description,
+    });
+    const result = mod.results?.[0];
+    if (!result) return false;
+    if (result.flagged) return true;
+    const scores = Object.values(result.category_scores ?? {}) as number[];
+    return scores.some((s) => typeof s === 'number' && s >= TOXICITY_THRESHOLD);
+  } catch (error) {
+    console.error('[CardCreator] Moderation check failed (allowing):', error);
+    return false;
+  }
+}
+
 export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClient) {
   const router = Router();
 
@@ -129,6 +184,16 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         return;
       }
 
+      const { OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: openAiApiKey() });
+
+      // Content-safety gate: a toxic description gets the friendly NoNoMon card
+      // instead of generating from the bad prompt.
+      if (await isDescriptionToxic(openai, description)) {
+        res.json(NONOMON_CARD);
+        return;
+      }
+
       const context = ldUserFromBody(userContext);
 
       const aiConfig = await aiClient.completionConfig(
@@ -141,9 +206,6 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         res.status(503).json({ error: 'Card creator is currently unavailable' });
         return;
       }
-
-      const { OpenAI } = await import('openai');
-      const openai = new OpenAI({ apiKey: openAiApiKey() });
 
       const configMessages = (aiConfig.messages || []) as Array<{ role: string; content: string }>;
       const allMessages = [
