@@ -221,9 +221,19 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       const { OpenAI } = await import('openai');
       const openai = new OpenAI({ apiKey: openAiApiKey() });
 
+      // The card frame + stats are drawn by the app, so the generated image
+      // should be creature art only. Image models render text as gibberish,
+      // so explicitly forbid any text, labels, or card framing.
+      const artPrompt =
+        `${imagePrompt}\n\n` +
+        'Render ONLY the creature/scene as a full-bleed illustration. ' +
+        'Absolutely no text, words, letters, numbers, labels, captions, titles, ' +
+        'logos, or watermarks anywhere in the image. Do not draw a card frame, ' +
+        'border, or trading-card layout — just the raw artwork.';
+
       const result = await openai.images.generate({
         model: 'gpt-image-1',
-        prompt: imagePrompt,
+        prompt: artPrompt,
         n: 1,
         // Landscape (~1.5:1) matches the card art box (230x150), so the image
         // fills it with almost no cropping.
