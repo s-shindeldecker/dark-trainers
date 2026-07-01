@@ -36,7 +36,7 @@ function headerTextColor(type: TogglemonCard['type']): string {
   return type === 'Electric' || type === 'Glitch' ? '#1a1a1a' : '#ffffff';
 }
 
-const CardShell = styled.div`
+const CardShell = styled.div<{ holo?: boolean }>`
   width: 260px;
   min-height: 380px;
   border-radius: 8px;
@@ -49,6 +49,15 @@ const CardShell = styled.div`
   overflow: hidden;
   box-sizing: border-box;
   font-family: inherit;
+  position: relative;
+  ${(p) =>
+    p.holo &&
+    `
+    border-color: transparent;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35),
+      0 0 0 2px rgba(255, 255, 255, 0.55),
+      0 0 22px rgba(130, 80, 255, 0.45);
+  `}
 `;
 
 const Header = styled.div<{ bg: string; fg: string }>`
@@ -196,6 +205,63 @@ const Flavor = styled.p`
   line-height: 1.25;
 `;
 
+// --- Holographic (foil) treatment for Holo Rare / Ultra Rare cards ---
+
+const holoShift = keyframes`
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+`;
+
+const glareSweep = keyframes`
+  0% { transform: translateX(-60%) rotate(12deg); opacity: 0; }
+  12% { opacity: 0.9; }
+  55% { transform: translateX(360%) rotate(12deg); opacity: 0; }
+  100% { transform: translateX(360%) rotate(12deg); opacity: 0; }
+`;
+
+/** Animated prismatic rainbow foil covering the whole card. */
+const HoloSheen = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 0, 153, 0.5),
+    rgba(255, 153, 0, 0.5),
+    rgba(230, 255, 0, 0.5),
+    rgba(0, 255, 140, 0.5),
+    rgba(0, 200, 255, 0.5),
+    rgba(150, 0, 255, 0.5),
+    rgba(255, 0, 153, 0.5)
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: color-dodge;
+  opacity: 0.55;
+  animation: ${holoShift} 5s linear infinite;
+`;
+
+/** A bright shine bar that sweeps diagonally across the card. */
+const HoloGlare = styled.div`
+  position: absolute;
+  top: -25%;
+  left: -20%;
+  width: 30%;
+  height: 150%;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.85),
+    transparent
+  );
+  filter: blur(3px);
+  mix-blend-mode: soft-light;
+  animation: ${glareSweep} 4.5s ease-in-out infinite;
+`;
+
 export function TogglemonCard({
   card,
   imageUrl,
@@ -207,9 +273,10 @@ export function TogglemonCard({
 }) {
   const bg = TYPE_COLORS[card.type] ?? '#1A1A2E';
   const fg = headerTextColor(card.type);
+  const holo = card.rarity === 'Holo Rare' || card.rarity === 'Ultra Rare';
 
   return (
-    <CardShell>
+    <CardShell holo={holo}>
       <Header bg={bg} fg={fg}>
         <CardName>{card.name}</CardName>
         <CardHp>HP {card.hp}</CardHp>
@@ -265,6 +332,13 @@ export function TogglemonCard({
         </WeakResist>
         <Flavor>{card.flavorText}</Flavor>
       </Footer>
+
+      {holo && (
+        <>
+          <HoloSheen />
+          <HoloGlare />
+        </>
+      )}
     </CardShell>
   );
 }
