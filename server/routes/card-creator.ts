@@ -227,7 +227,9 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         return;
       }
 
-      const context = ldContextFromBody(userContext, sessionKey);
+      // Cast to any for the same reason the client does (LDContext.tsx): LD's
+      // multi-context type doesn't cleanly accept our inferred literal.
+      const context = ldContextFromBody(userContext, sessionKey) as any;
 
       const aiConfig = await aiClient.completionConfig(
         'togglemon-card-creator',
