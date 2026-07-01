@@ -93,31 +93,43 @@ function openAiApiKey(): string | undefined {
   return process.env.OPENAI_API_KEY?.replace(/\s+/g, '');
 }
 
-function ldUserFromBody(userContext?: Record<string, unknown>) {
-  if (!userContext?.key) {
-    return { kind: 'user' as const, key: 'anonymous-card-creator-user', anonymous: true };
+/**
+ * Build the LD context for evaluating the AI Config, mirroring the client
+ * (src/context/LDContext.tsx) so flag/experiment bucketing and metric events
+ * share the same units:
+ *   - anonymous  → session-only  { kind: 'session' }
+ *   - identified → multi { session, user }
+ * Including session lets experiments randomize on session (so anonymous users
+ * are bucketed and their conversions attributed).
+ */
+function ldContextFromBody(userContext?: Record<string, unknown>, sessionKey?: string) {
+  const session = isNonEmptyString(sessionKey)
+    ? { kind: 'session' as const, key: sessionKey }
+    : undefined;
+
+  const isAnonymous = !userContext?.key || userContext.anonymous === true;
+
+  if (isAnonymous) {
+    // Match the client: an anonymous visitor is a session-only context.
+    return session ?? { kind: 'user' as const, key: 'anonymous-card-creator-user', anonymous: true };
   }
-  if (userContext.anonymous === true) {
-    return {
-      kind: 'user' as const,
-      key: String(userContext.key),
-      anonymous: true,
-    };
-  }
-  return {
+
+  const user = {
     kind: 'user' as const,
-    key: String(userContext.key),
-    name: userContext.name as string | undefined,
-    email: userContext.email as string | undefined,
-    country: userContext.country as string | undefined,
-    state: userContext.state as string | undefined,
-    memberTier: userContext.memberTier as string | undefined,
-    memberSince: userContext.memberSince as string | undefined,
-    lifetimeSpend: userContext.lifetimeSpend as number | undefined,
-    preferredCategory: userContext.preferredCategory as string | undefined,
-    earlyAccessEnabled: userContext.earlyAccessEnabled as boolean | undefined,
+    key: String(userContext!.key),
+    name: userContext!.name as string | undefined,
+    email: userContext!.email as string | undefined,
+    country: userContext!.country as string | undefined,
+    state: userContext!.state as string | undefined,
+    memberTier: userContext!.memberTier as string | undefined,
+    memberSince: userContext!.memberSince as string | undefined,
+    lifetimeSpend: userContext!.lifetimeSpend as number | undefined,
+    preferredCategory: userContext!.preferredCategory as string | undefined,
+    earlyAccessEnabled: userContext!.earlyAccessEnabled as boolean | undefined,
     anonymous: false,
   };
+
+  return session ? { kind: 'multi' as const, session, user } : user;
 }
 
 /** Trip the safety gate at/above this toxicity score (0-1). */
@@ -194,9 +206,10 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
 
   router.post('/', async (req, res) => {
     try {
-      const { description, userContext } = req.body as {
+      const { description, userContext, sessionKey } = req.body as {
         description: string;
         userContext?: Record<string, unknown>;
+        sessionKey?: string;
       };
 
       if (!description || typeof description !== 'string') {
@@ -214,7 +227,7 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         return;
       }
 
-      const context = ldUserFromBody(userContext);
+      const context = ldContextFromBody(userContext, sessionKey);
 
       const aiConfig = await aiClient.completionConfig(
         'togglemon-card-creator',
