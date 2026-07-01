@@ -38,7 +38,7 @@ function headerTextColor(type: TogglemonCard['type']): string {
 
 const CardShell = styled.div`
   width: 260px;
-  height: 380px;
+  min-height: 380px;
   border-radius: 8px;
   background: #ffffff;
   color: #1a1a1a;
