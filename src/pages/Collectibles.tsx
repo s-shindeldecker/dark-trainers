@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link as RouterLink } from 'react-router-dom';
+import Button from '@mui/material/Button';
 import { ProductCard } from '../components/Products/ProductCard';
 import { products } from '../components/Products/productData';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
@@ -42,6 +43,27 @@ const LoadingShell = styled.div`
   padding: 2rem;
 `;
 
+const CtaBanner = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 2rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2a1a3e 100%);
+  border: 1px solid #3a2a5e;
+`;
+
+const CtaText = styled.span`
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f5f5f5;
+`;
+
 const collectibles = products.filter((product) => product.category === 'collectibles');
 
 function sortCollectibles(list: typeof collectibles, mode: 'featured' | 'price-low' | 'new') {
@@ -60,6 +82,7 @@ export default function Collectibles() {
     false,
   );
   const { value: sortDefault } = useFeatureFlag(LD_FLAGS.plpSortDefault, 'featured');
+  const { value: showCardCreator } = useFeatureFlag(LD_FLAGS.showCardCreator, false);
 
   const sorted = useMemo(() => {
     const mode = (['featured', 'price-low', 'new'] as const).includes(
@@ -86,6 +109,14 @@ export default function Collectibles() {
     <PageContainer>
       <Title className="font-display">Collectibles</Title>
       <Subtitle>Limited-run figures, plush, and trading cards. Member pricing applies when flags are on.</Subtitle>
+      {showCollectibles && showCardCreator && (
+        <CtaBanner>
+          <CtaText>✨ Create Your Own Togglemon Card</CtaText>
+          <Button variant="contained" component={RouterLink} to="/collectibles/card-creator">
+            Start Creating
+          </Button>
+        </CtaBanner>
+      )}
       <Grid>
         {sorted.map((p) => (
           <ProductCard key={p.id} product={p} linkBase="/collectibles" />
