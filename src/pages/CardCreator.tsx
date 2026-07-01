@@ -230,6 +230,10 @@ export default function CardCreator() {
       link.download = `${slugify(result?.name ?? 'togglemon')}-card.png`;
       link.href = dataUrl;
       link.click();
+
+      // Conversion signal for experiments (alongside add_to_cart).
+      ldClient?.track('card_downloaded');
+      pushToDataLayer({ event: 'ld_conversion', eventKey: 'card_downloaded' });
     } catch (e) {
       console.error('[CardCreator] Download failed:', e);
     }
