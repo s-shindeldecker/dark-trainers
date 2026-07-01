@@ -48,5 +48,17 @@ export async function createApp() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Fallback: any /api request that matched no route returns JSON echoing the
+  // path Express saw. Distinguishes an Express route miss from a platform
+  // routing miss (which would return Vercel's own HTML 404 instead).
+  app.use((req, res) => {
+    res.status(404).json({
+      error: 'Not found',
+      method: req.method,
+      url: req.url,
+      originalUrl: req.originalUrl,
+    });
+  });
+
   return app;
 }
