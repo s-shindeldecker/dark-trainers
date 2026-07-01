@@ -160,9 +160,23 @@ async function isDescriptionToxic(openai: any, description: string): Promise<boo
     });
     const result = mod.results?.[0];
     if (!result) return false;
-    if (result.flagged) return true;
-    const scores = Object.values(result.category_scores ?? {}) as number[];
-    return scores.some((s) => typeof s === 'number' && s >= TOXICITY_THRESHOLD);
+
+    const scores = (result.category_scores ?? {}) as Record<string, number>;
+    const maxScore = Math.max(
+      0,
+      ...Object.values(scores).filter((s): s is number => typeof s === 'number'),
+    );
+
+    // Trip at/above the configured threshold. We deliberately do NOT trip on
+    // OpenAI's broad `flagged` alone — it blocks mild, silly prompts (e.g.
+    // "hits people with his butt" ~0.55 violence) that should still generate.
+    // Genuine hate/threats/violence/sexual content scores well above 0.7.
+    if (maxScore >= TOXICITY_THRESHOLD) return true;
+
+    // Zero-tolerance: any hint of sexual content involving minors is blocked
+    // at a far lower score, regardless of the general threshold.
+    const sexualMinors = typeof scores['sexual/minors'] === 'number' ? scores['sexual/minors'] : 0;
+    return sexualMinors >= 0.2;
   } catch (error) {
     console.error('[CardCreator] Moderation check failed (allowing):', error);
     return false;
