@@ -143,7 +143,7 @@ const NONOMON_CARD: TogglemonCard = {
   flavorText:
     'NoNoMon appears when a prompt gets a little too spicy — no hard feelings, give it another go!',
   imagePrompt:
-    'An adorable friendly cartoon mascot gently shaking its head "no" with a warm smile, holding a tiny "be nice!" sign, wholesome family-friendly cute sticker style, soft pastel colors',
+    'An adorable friendly cartoon bear mascot gently shaking its head "no" with a warm smile and one paw raised in a soft "stop" gesture, wholesome family-friendly cute sticker style, soft pastel colors, simple plain background',
 };
 
 /**
