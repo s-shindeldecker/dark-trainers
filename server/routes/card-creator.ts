@@ -295,7 +295,19 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         return;
       }
 
-      res.json(card);
+      // Which AI Config variation/model actually served this generation. Logged
+      // and returned (visible in the Network tab) so experiment bucketing is
+      // easy to verify per call — variationKey is the real distinguisher since
+      // every variation uses the same model. (trackMetricsOf above already
+      // recorded duration/tokens/success-or-error for LD's AI metrics.)
+      const served = aiConfig.tracker?.getTrackData?.();
+      if (served) {
+        console.log(
+          `[CardCreator] served variation=${served.variationKey} model=${served.modelName} v${served.version}`,
+        );
+      }
+
+      res.json(served ? { ...card, _served: served } : card);
     } catch (error) {
       console.error('[CardCreator] Error:', error);
       res.status(500).json({
