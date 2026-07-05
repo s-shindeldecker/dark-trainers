@@ -40,6 +40,8 @@ interface UserContextType {
   transitionGuestToVip: () => void;
   /** Same as resetToGuest — for header “Log out”. Rotates session key. */
   logout: () => void;
+  /** Rotate to a fresh session key (new experiment randomization unit); keeps current persona. */
+  newSession: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -87,6 +89,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
       return { user: anonymousProfile() };
     });
+    setSessionKey(rotateLdSessionKey());
+  }, []);
+
+  // Fresh session key = new randomization unit, without changing persona.
+  // The LD context memo depends on sessionKey, so this re-identifies the
+  // client (re-buckets flags/experiments) and the next API call sends it.
+  const newSession = useCallback(() => {
     setSessionKey(rotateLdSessionKey());
   }, []);
 
@@ -178,6 +187,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         transitionGuestToStandard,
         transitionGuestToVip,
         logout: resetToGuest,
+        newSession,
       }}
     >
       {children}

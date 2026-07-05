@@ -48,11 +48,41 @@ const Hint = styled.p`
   color: #666;
 `;
 
+const SessionRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #2a2a2a;
+`;
+
+const SessionId = styled.code`
+  font-size: 0.72rem;
+  color: #c8f000;
+`;
+
+const NewSessionButton = styled.button`
+  font-size: 0.7rem;
+  padding: 0.25rem 0.55rem;
+  background: #1a1a1a;
+  color: #f5f5f5;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    border-color: #c8f000;
+  }
+`;
+
 type Persona = 'guest' | 'standard' | 'vip';
 
 export function DemoControlsPanel() {
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
-  const { user, resetToGuest, setIdentifiedStandard, setIdentifiedVip } = useUser();
+  const { user, sessionKey, newSession, resetToGuest, setIdentifiedStandard, setIdentifiedVip } =
+    useUser();
 
   const persona: Persona = user.anonymous ? 'guest' : user.memberTier === 'vip' ? 'vip' : 'standard';
 
@@ -79,6 +109,14 @@ export function DemoControlsPanel() {
           Guest: LD uses a session context only (new session key on reset). Standard/VIP: multi(session + user) with the same session key for attribution. Add to
           cart or Join VIP from Guest identifies with multi.
         </Hint>
+        <SessionRow>
+          <span>
+            Session: <SessionId>{sessionKey.slice(0, 8)}</SessionId>
+          </span>
+          <NewSessionButton type="button" onClick={newSession}>
+            New session
+          </NewSessionButton>
+        </SessionRow>
       </Panel>
     </Box>
   );
