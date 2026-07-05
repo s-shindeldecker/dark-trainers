@@ -201,7 +201,7 @@ async function isDescriptionToxic(openai: any, description: string): Promise<boo
   }
 }
 
-export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClient) {
+export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient) {
   const router = Router();
 
   router.post('/', async (req, res) => {
@@ -279,6 +279,16 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
         responseText = response.choices[0]?.message?.content || '';
       }
 
+      // Flush AI metrics to LD now. On serverless (Vercel) the function suspends
+      // after responding, so the SDK's ~30s timed flush often never fires and
+      // the generation metrics (tokens/latency/success) never reach the Monitor
+      // tab. Awaiting a flush here guarantees delivery per generation.
+      try {
+        await ldClient.flush();
+      } catch (flushErr) {
+        console.error('[CardCreator] LD flush failed:', flushErr);
+      }
+
       const cleaned = responseText.replace(/```json|```/g, '').trim();
 
       let parsed: unknown;
@@ -298,6 +308,12 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       res.json(card);
     } catch (error) {
       console.error('[CardCreator] Error:', error);
+      // Flush so a failed generation's error metric still reaches the Monitor tab.
+      try {
+        await ldClient.flush();
+      } catch {
+        /* ignore */
+      }
       res.status(500).json({
         error: 'Failed to generate card',
         detail: error instanceof Error ? error.message : String(error),
