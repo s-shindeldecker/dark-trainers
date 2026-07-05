@@ -254,19 +254,18 @@ export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient
       let responseText: string;
 
       if (aiConfig.tracker) {
-        const response = await aiConfig.tracker.trackMetricsOf(
-          (result) => ({
-            success: true,
-            inputTokens: result.usage?.prompt_tokens ?? 0,
-            outputTokens: result.usage?.completion_tokens ?? 0,
+        // trackOpenAIMetrics auto-extracts tokens (input/output/total) plus
+        // duration and success/error from the OpenAI response. The previous
+        // trackMetricsOf extractor mis-keyed tokens (inputTokens/outputTokens
+        // vs the SDK's usage:{input,output,total}), so only success/error were
+        // recorded and the Monitor tab's token columns stayed empty.
+        const response = await aiConfig.tracker.trackOpenAIMetrics(() =>
+          openai.chat.completions.create({
+            model: modelName,
+            messages: allMessages as any,
+            temperature,
+            max_tokens: 1000,
           }),
-          () =>
-            openai.chat.completions.create({
-              model: modelName,
-              messages: allMessages as any,
-              temperature,
-              max_tokens: 1000,
-            }),
         );
         responseText = response.choices[0]?.message?.content || '';
       } else {
