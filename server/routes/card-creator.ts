@@ -201,7 +201,7 @@ async function isDescriptionToxic(openai: any, description: string): Promise<boo
   }
 }
 
-export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClient) {
+export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient) {
   const router = Router();
 
   router.post('/', async (req, res) => {
@@ -254,19 +254,18 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       let responseText: string;
 
       if (aiConfig.tracker) {
-        const response = await aiConfig.tracker.trackMetricsOf(
-          (result) => ({
-            success: true,
-            inputTokens: result.usage?.prompt_tokens ?? 0,
-            outputTokens: result.usage?.completion_tokens ?? 0,
+        // trackOpenAIMetrics auto-extracts tokens (input/output/total) plus
+        // duration and success/error from the OpenAI response. The previous
+        // trackMetricsOf extractor mis-keyed tokens (inputTokens/outputTokens
+        // vs the SDK's usage:{input,output,total}), so only success/error were
+        // recorded and the Monitor tab's token columns stayed empty.
+        const response = await aiConfig.tracker.trackOpenAIMetrics(() =>
+          openai.chat.completions.create({
+            model: modelName,
+            messages: allMessages as any,
+            temperature,
+            max_tokens: 1000,
           }),
-          () =>
-            openai.chat.completions.create({
-              model: modelName,
-              messages: allMessages as any,
-              temperature,
-              max_tokens: 1000,
-            }),
         );
         responseText = response.choices[0]?.message?.content || '';
       } else {
@@ -277,6 +276,16 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
           max_tokens: 1000,
         });
         responseText = response.choices[0]?.message?.content || '';
+      }
+
+      // Flush AI metrics to LD now. On serverless (Vercel) the function suspends
+      // after responding, so the SDK's ~30s timed flush often never fires and
+      // the generation metrics (tokens/latency/success) never reach the Monitor
+      // tab. Awaiting a flush here guarantees delivery per generation.
+      try {
+        await ldClient.flush();
+      } catch (flushErr) {
+        console.error('[CardCreator] LD flush failed:', flushErr);
       }
 
       const cleaned = responseText.replace(/```json|```/g, '').trim();
@@ -298,6 +307,12 @@ export function createCardCreatorRouter(_ldClient: LDClient, aiClient: LDAIClien
       res.json(card);
     } catch (error) {
       console.error('[CardCreator] Error:', error);
+      // Flush so a failed generation's error metric still reaches the Monitor tab.
+      try {
+        await ldClient.flush();
+      } catch {
+        /* ignore */
+      }
       res.status(500).json({
         error: 'Failed to generate card',
         detail: error instanceof Error ? error.message : String(error),
