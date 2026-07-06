@@ -58,6 +58,24 @@
 
 ---
 
+### Scenario 4 — AI Configs, Governance & Experimentation: Togglemon Card Creator
+
+**The story:** "This is where feature management meets AI. The Togglemon Card Creator turns a text description into a trading card with AI-generated art. Every part of that AI behavior — the prompt, the model, the safety rules, even the art style — is controlled in LaunchDarkly, not in code. So you can change it, target it, experiment on it, and prove it's safe, all without a deploy."
+
+**What you show, step by step:**
+
+1. Open the Card Creator (`/collectibles/card-creator`, gated by `show-card-creator`). Describe a creature and generate — a full card renders, then the AI art loads in.
+2. **AI Configs are live-editable.** In LD → AI Configs → `togglemon-card-creator`, show the prompt variations (`baseline`, `holographic`, `summer-beach`). Edit the *style* line of a prompt (e.g. "cartoon" → "photoreal"), save, regenerate — the output changes with **no code deploy**. *(Only edit the style/creative lines live — leave the JSON contract and enums alone, or the card fails validation.)*
+3. **Experiment across prompts.** Show an experiment split over the variations, measured on `add_to_cart` and `card_downloaded`. Use the demo panel's **New session** button to re-roll the randomization unit and land in different variations; the AI Config **Monitor** tab shows tokens, latency, cost, and success/error **per variation**.
+4. **Governance / safety.** Type a clearly inappropriate (but non-graphic) description — e.g. a direct threat — and generate. Instead of a real card you get the friendly **NoNoMon** stand-in: the description was screened by moderation (≥ 0.7) before generation. Point out the **Toxicity judge** attached at 100% sampling scoring every real generation in the Monitor tab.
+5. **Integration your way.** Toggle `track-conversions-via-gtm` to show conversions flowing either directly to LaunchDarkly or **through your existing GTM data layer** — one flag, no redeploy.
+
+**The insight to land:** "The AI's prompt, model, safety threshold, and rollout are configuration, not code. That means the people who own the *experience* — product, marketing, trust & safety — can tune and govern the AI in real time, measure it per variation, and prove it's safe, without waiting on an engineering release. That's how you ship AI features responsibly at scale."
+
+**One thing to be ready for:** Image generation is a live model call, so it occasionally fails or is refused — the card gracefully falls back to showing the art prompt as text, and the browser console logs the reason. Frame it as the resilience story: *a flaky dependency never breaks the experience.*
+
+---
+
 ### The Discovery Question to Open Your Session
 
 Before diving into any scenario, ask this one question:
@@ -69,9 +87,10 @@ Their answer tells you which scenario to lead with:
 - "We're not sure the audience is comparable across variations" → go straight to Stratified Sampling
 - "We have too many experiments running at once and we're not sure they're interfering" → go to Layers first
 - "We're still figuring out which metrics to trust" → start with the Basic Experiment and metric chaining
+- "We're shipping AI features and worried about controlling and governing them" → go to the Card Creator (AI Configs + safety)
 
 ---
 
-### One Thing to Have Ready for All Three Scenarios
+### One Thing to Have Ready for Every Scenario
 
 The LD debugger open in a second browser tab showing Live Events. Being able to say "watch what happens in LaunchDarkly right now as I switch personas" while the events appear in real time is more compelling than any slide. It makes the abstract concrete.
