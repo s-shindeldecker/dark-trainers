@@ -22,7 +22,8 @@ These events are manually tracked via `ldClient.track()`:
 
 | Event | Location | Trigger |
 |---|---|---|
-| `add_to_cart` | Cart add action | User adds a product to the cart (value = product price) |
+| `add_to_cart` | Cart add action | User adds a product — or a custom Togglemon card — to the cart (value = price) |
+| `card_downloaded` | Card creator | User downloads their generated Togglemon card as a PNG |
 | `checkout_initiated` | Checkout start | User initiates checkout (value = cart total) |
 | `vip_upgrade` | VIP upgrade confirm | User confirms a VIP upgrade (value = `14.99`) |
 | `vip_upgrade_modal_shown` | `VIPUpgradeModal.tsx` | VIP upgrade modal is shown |
@@ -130,6 +131,38 @@ Displays a promotional strip near the top of the site. The banner only renders w
 
 Controls placement of the promo strip (`top` | `bottom`).
 
+### Collectibles & Card Creator Flags
+
+#### 15. Collectibles Catalog (`show-collectibles-catalog`)
+
+**Type:** Boolean &nbsp; **Default:** `false`
+
+Gates the entire Collectibles experience: the nav link, the `/collectibles` and `/collectibles/:id` routes, and the Togglemon Card Creator entry-point CTA on the PLP.
+
+#### 16. Collectibles VIP Content (`show-collectibles-vip-content`)
+
+**Type:** Boolean &nbsp; **Default:** `false`
+
+Unlocks VIP-gated collectibles content (e.g. unblurs the special-edition card in the drops feed). LD typically targets `tier=vip → true`.
+
+#### 17. Card Creator (`show-card-creator`)
+
+**Type:** Boolean &nbsp; **Default:** `false`
+
+Gates the Togglemon Card Creator page (`/collectibles/card-creator`) and its CTA on the Collectibles PLP (the CTA also requires `show-collectibles-catalog`). See [Togglemon Card Creator](#togglemon-card-creator) below.
+
+**Requires:** the Express API server running (`npm run dev:server`) and a valid `OPENAI_API_KEY`.
+
+#### 18. Conversion Routing (`track-conversions-via-gtm`)
+
+**Type:** Boolean &nbsp; **Default:** `false`
+
+Controls how card-creator conversions (`add_to_cart`, `card_downloaded`) are sent — a demo of two LaunchDarkly integration paths:
+- **On** → pushed to the GTM dataLayer as an `ld_conversion` event; a GTM Custom HTML tag forwards it to LaunchDarkly (shows integrating LD via an existing data layer).
+- **Off (default)** → sent directly via `ldClient.track()`.
+
+Exactly one path fires per action, so conversions are never double-counted.
+
 ## AI Configs
 
 The Express server (`server/routes/`) uses the LaunchDarkly Node.js server-side AI SDK (`@launchdarkly/server-sdk-ai`):
@@ -138,13 +171,23 @@ The Express server (`server/routes/`) uses the LaunchDarkly Node.js server-side 
 |---|---|---|---|
 | `darktrainers-chatbot` | Completion | `POST /api/chat` | Floating chat widget |
 | `darktrainers-signup-agent` | Agent | `POST /api/signup-agent` | VIP onboarding agent |
+| `togglemon-card-creator` | Completion | `POST /api/card-creator` | Togglemon Card Creator (multiple prompt variations + Toxicity judge) |
 
 For each request the server:
 
 1. Evaluates the AI Config for the current user/session context
 2. Merges the AI Config's messages with conversation history and the user's message
-3. Calls the configured LLM provider via the OpenAI SDK (defaults to `gpt-4o-mini`)
-4. Tracks token usage and latency metrics back to LaunchDarkly
+3. Calls the configured LLM provider via the OpenAI SDK (chatbot/agent default `gpt-4o-mini`; card creator `gpt-4o`)
+4. Tracks token usage, latency, and success/error back to LaunchDarkly via `trackOpenAIMetrics`, then flushes events (required on serverless) so they appear in the Monitor tab per variation
+
+### Togglemon Card Creator
+
+The `togglemon-card-creator` config has multiple prompt **variations** — `baseline`, `holographic` ("Holographic Edition"), and `summer-beach` ("Summer Heat Special Edition") — for live toggling, targeting, or experiments (e.g. session-randomized across variations, measured on `add_to_cart` / `card_downloaded`). An out-of-the-box **Toxicity judge** is attached at 100% sampling for output observability.
+
+- **`POST /api/card-creator`** — evaluates the config on a session-inclusive context (session-only for anonymous, `multi{session,user}` for identified) so it aligns with session-randomized experiments, then returns a validated card. Screens the description with **OpenAI Moderations** first; content at/above `0.7` (or any `sexual/minors`) returns a friendly **NoNoMon** stand-in instead of generating.
+- **`POST /api/card-creator/art`** — generates a text-free creature illustration via `gpt-image-1`, with a bounded retry on transient failures and graceful fallback to the prompt text.
+
+> **Note:** the image model's own moderation is a second safety layer, and content-policy refusals are not retried.
 
 ## Simulation (Python)
 
@@ -161,7 +204,7 @@ python darktrainers_simulation.py --mode launchdarkly --records 100
 |---|---|---|
 | `LAUNCHDARKLY_CLIENT_KEY` | Frontend | Client-side ID for the React SDK |
 | `LAUNCHDARKLY_SDK_KEY` | Backend | Server-side SDK key for the Express server |
-| `OPENAI_API_KEY` | Chatbot / signup agent | OpenAI API key for LLM calls |
+| `OPENAI_API_KEY` | Chatbot, signup agent, card creator | OpenAI API key for LLM calls, image generation, and moderation |
 | `SERVER_PORT` | Backend | Express server port (default: 3001) |
 
 The simulation script uses additional per-warehouse keys — see [SIMULATION.md](SIMULATION.md) and [.env.example](.env.example).

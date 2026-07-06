@@ -41,6 +41,9 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | `/drops` | Drop feed (AC26 collection) | `show-ac26-drop-feed` flag |
 | `/account` | User account | — |
 | `/signup` | VIP signup (AI agent) | `show-vip-signup` flag |
+| `/collectibles` | Collectibles catalog (PLP) | `show-collectibles-catalog` flag |
+| `/collectibles/card-creator` | Togglemon Card Creator | `show-card-creator` flag |
+| `/collectibles/:id` | Collectible detail | `show-collectibles-catalog` flag |
 | `/about` | About page | — |
 | `/faq` | FAQ | — |
 | `/reviews` | Reviews | — |
@@ -51,8 +54,12 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 |---|---|
 | `POST /api/chat` | AI chatbot (LD AI Config: `darktrainers-chatbot`) |
 | `POST /api/signup-agent` | VIP onboarding AI agent (LD AI Config: `darktrainers-signup-agent`) |
+| `POST /api/card-creator` | Togglemon card text (LD AI Config: `togglemon-card-creator`); moderation gate → NoNoMon |
+| `POST /api/card-creator/art` | Togglemon card art via `gpt-image-1` (retry + graceful fallback) |
 | `POST /api/simulate` | Flag evaluation for simulation script |
 | `GET /api/health` | Health check |
+
+In production the Express app runs as a single Vercel serverless function (`api/index.ts` → `server/app.ts`'s `createApp()`), routed by an `/api/(.*)` rewrite in `vercel.json`. Locally, `server/index.ts` runs the same app with `app.listen()` and Vite proxies `/api`.
 
 ---
 
@@ -135,6 +142,10 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 | `show-vip-pricing` | `true` | VIP member price display on PLP/PDP |
 | `show-drop-exclusive-products` | `true` | Drop-exclusive items visible on PLP |
 | `show-early-access-countdown` | `false` | Countdown timer for upcoming drops |
+| `show-collectibles-catalog` | `false` | Collectibles nav link, `/collectibles` routes, card-creator CTA |
+| `show-collectibles-vip-content` | `false` | Unlocks VIP-gated collectibles content (targets `tier=vip`) |
+| `show-card-creator` | `false` | Togglemon Card Creator page + PLP CTA |
+| `track-conversions-via-gtm` | `false` | Card creator conversions via GTM dataLayer (on) or direct LD track (off) |
 
 ### String / JSON Flags
 
@@ -154,8 +165,11 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 |---|---|---|
 | `darktrainers-chatbot` | Completion | Controls model, system prompt, temperature, token limits for chatbot |
 | `darktrainers-signup-agent` | Completion | VIP onboarding AI agent config |
+| `togglemon-card-creator` | Completion | Card creator; variations `baseline` / `holographic` / `summer-beach`; Toxicity judge @ 100% |
 
-AI Configs auto-track: token usage (input + output), latency (ms), model name.
+AI Configs track token usage (input/output/total), latency (ms), and success/error per variation via
+`trackOpenAIMetrics`; the card-creator route flushes events after each generation so they reach the
+Monitor tab on serverless.
 
 ---
 
@@ -242,6 +256,15 @@ The `checkout-vip-banner` JSON flag controls upsell messaging shown at checkout 
 - Handles multi-turn onboarding conversation for the `/signup` route.
 - Same token/latency tracking pattern as chatbot.
 
+### Togglemon Card Creator (`/api/card-creator` + `/art`)
+
+- Reads `togglemon-card-creator` (variations `baseline` / `holographic` / `summer-beach`) on a **session-inclusive** context (mirrors the client: session-only for anonymous, `multi{session,user}` for identified) so session-randomized experiments align and metrics attribute correctly.
+- **Content safety:** screens the description with OpenAI Moderations first; score ≥ `0.7` (or any `sexual/minors`) returns a fixed **NoNoMon** card instead of generating.
+- Tracks metrics via `trackOpenAIMetrics` and `flush()`es (Monitor tab per variation). Returns `_served` (variationKey/model) for per-call verification.
+- **Art** (`/api/card-creator/art`): `gpt-image-1`, text-free illustration, bounded retry on transient errors, graceful fallback to the prompt text on the card.
+
+> Note the older chatbot/agent routes still use a user-only context — apply the same session-inclusive pattern if experimenting on them.
+
 ### AI Config Pattern (server-side)
 
 ```typescript
@@ -265,12 +288,17 @@ ldClient.trackTokenUsage(...);
 
 | Event key | Where fired | Value |
 |---|---|---|
-| `add_to_cart` | Cart add action | product price |
+| `add_to_cart` | Cart add action (incl. custom Togglemon cards) | product price |
+| `card_downloaded` | Card creator "Download card" | — |
 | `checkout_initiated` | Checkout start | cart total |
 | `vip_upgrade` | VIP upgrade confirm | `14.99` |
 | `vip_upgrade_modal_shown` | VIP upgrade modal open | — |
 | `product_viewed` | Product detail view | — |
 | `banner_click` | `SeasonalBanner.tsx` click | — |
+
+Card-creator conversions (`add_to_cart`, `card_downloaded`) route via **either** the GTM dataLayer **or**
+a direct `ldClient.track()` call, controlled by the `track-conversions-via-gtm` flag (exactly one path,
+no double-counting).
 
 ---
 
@@ -327,7 +355,7 @@ LAUNCHDARKLY_SDK_KEY=             # server-side SDK key (Express server)
 LAUNCHDARKLY_SDK_KEY_TEST=        # test environment server SDK key (simulation)
 LAUNCHDARKLY_SDK_KEY_SNOWFLAKE=   # snowflake environment server SDK key (simulation)
 
-# AI
+# AI (chatbot, signup agent, and Togglemon Card Creator — text, image, and moderation)
 OPENAI_API_KEY=
 
 # Server
