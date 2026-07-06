@@ -40,7 +40,7 @@ interface UserContextType {
   transitionGuestToVip: () => void;
   /** Same as resetToGuest — for header “Log out”. Rotates session key. */
   logout: () => void;
-  /** Rotate to a fresh session key (new experiment randomization unit); keeps current persona. */
+  /** Start a genuine new session: rotate the session key and reload the page (resets to Guest). */
   newSession: () => void;
 }
 
@@ -92,11 +92,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setSessionKey(rotateLdSessionKey());
   }, []);
 
-  // Fresh session key = new randomization unit, without changing persona.
-  // The LD context memo depends on sessionKey, so this re-identifies the
-  // client (re-buckets flags/experiments) and the next API call sends it.
+  // Fresh session key + full reload = a genuine new LaunchDarkly session
+  // context. The reload also resets the persona to anonymous Guest (persona
+  // isn't persisted), which is the intended "brand-new visitor" behavior for
+  // re-rolling session-randomized experiments. rotateLdSessionKey persists the
+  // new key synchronously, so the reloaded page reads it back on init.
   const newSession = useCallback(() => {
-    setSessionKey(rotateLdSessionKey());
+    rotateLdSessionKey();
+    window.location.reload();
   }, []);
 
   const setIdentifiedStandard = useCallback(() => {
