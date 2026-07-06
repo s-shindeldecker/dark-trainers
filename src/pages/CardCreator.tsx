@@ -422,6 +422,29 @@ export default function CardCreator() {
               Generate Card
             </Button>
           </Form>
+
+          <ResultArea>
+            {isGenerating && <CircularProgress />}
+            {!isGenerating && error && <Alert severity="error">{error}</Alert>}
+            {!isGenerating && !error && result && (
+              <ResultColumn>
+                <CardCapture ref={cardRef}>
+                  <TogglemonCard card={result} imageUrl={imageUrl} artLoading={artLoading} />
+                </CardCapture>
+                <Actions>
+                  <Button variant="contained" onClick={handleAddToCart}>
+                    Add to Cart — ${CUSTOM_CARD_PRICE.toFixed(2)}
+                  </Button>
+                  <Button variant="outlined" onClick={handleDownload} disabled={artLoading}>
+                    Download card
+                  </Button>
+                </Actions>
+              </ResultColumn>
+            )}
+            {!isGenerating && !error && !result && (
+              <EmptyCard>✨ Your Togglemon card will appear here — describe a creature and hit Generate.</EmptyCard>
+            )}
+          </ResultArea>
         </FormColumn>
 
         <Guide>
@@ -459,29 +482,6 @@ export default function CardCreator() {
           </GuideSection>
         </Guide>
       </Layout>
-
-      <ResultArea>
-        {isGenerating && <CircularProgress />}
-        {!isGenerating && error && <Alert severity="error">{error}</Alert>}
-        {!isGenerating && !error && result && (
-          <ResultColumn>
-            <CardCapture ref={cardRef}>
-              <TogglemonCard card={result} imageUrl={imageUrl} artLoading={artLoading} />
-            </CardCapture>
-            <Actions>
-              <Button variant="contained" onClick={handleAddToCart}>
-                Add to Cart — ${CUSTOM_CARD_PRICE.toFixed(2)}
-              </Button>
-              <Button variant="outlined" onClick={handleDownload} disabled={artLoading}>
-                Download card
-              </Button>
-            </Actions>
-          </ResultColumn>
-        )}
-        {!isGenerating && !error && !result && (
-          <EmptyCard>✨ Your Togglemon card will appear here — describe a creature and hit Generate.</EmptyCard>
-        )}
-      </ResultArea>
     </PageContainer>
   );
 }
