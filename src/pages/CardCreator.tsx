@@ -17,6 +17,7 @@ import type { Product } from '../components/Products/productData';
 import {
   TogglemonCard,
   TOGGLEMON_TYPES,
+  TYPE_COLORS,
   type TogglemonCard as TogglemonCardData,
 } from '../components/Collectibles/TogglemonCard';
 
@@ -61,11 +62,6 @@ const TypeHint = styled.p`
   line-height: 1.5;
 `;
 
-const TypeName = styled.span`
-  color: #c8f000;
-  font-weight: 600;
-`;
-
 const ResultColumn = styled.div`
   display: flex;
   flex-direction: column;
@@ -85,8 +81,147 @@ const Actions = styled.div`
   justify-content: center;
 `;
 
+const Layout = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  @media (max-width: 760px) {
+    flex-direction: column;
+  }
+`;
+
+const FormColumn = styled.div`
+  flex: 1.5;
+  min-width: 0;
+`;
+
+const Guide = styled.aside`
+  flex: 1;
+  min-width: 240px;
+  box-sizing: border-box;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  @media (max-width: 760px) {
+    width: 100%;
+  }
+`;
+
+const GuideSection = styled.div`
+  & + & {
+    margin-top: 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid #2a2a2a;
+  }
+`;
+
+const GuideHeading = styled.h3`
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #737373;
+  margin: 0 0 0.6rem;
+`;
+
+const TypeItem = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+  color: #a3a3a3;
+`;
+
+const Dot = styled.span<{ c: string }>`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: ${(p) => p.c};
+  flex: 0 0 auto;
+  position: relative;
+  top: 1px;
+`;
+
+const TypeLabel = styled.span`
+  font-weight: 700;
+  color: #f5f5f5;
+`;
+
+const TipList = styled.ul`
+  margin: 0;
+  padding-left: 1.05rem;
+  font-size: 0.78rem;
+  color: #c4c4c4;
+  line-height: 1.55;
+`;
+
+const ExampleButton = styled.button`
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #1a1a1a;
+  border: 1px dashed #3a3a3a;
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  color: #a3a3a3;
+  font-size: 0.76rem;
+  font-style: italic;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  &:hover:not(:disabled) {
+    border-color: #c8f000;
+    color: #e4e4e4;
+  }
+`;
+
+const ExampleHint = styled.span`
+  display: block;
+  font-style: normal;
+  font-size: 0.68rem;
+  color: #737373;
+  margin-top: 0.35rem;
+`;
+
+const EmptyCard = styled.div`
+  width: 260px;
+  min-height: 300px;
+  border: 2px dashed #333;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+`;
+
 const PLACEHOLDER =
   'A shadowy electric-type with cracked glass wings and a glitch effect...';
+
+/** One-line vibe for each supported type, shown in the guidance panel. */
+const TYPE_BLURBS: Record<TogglemonCardData['type'], string> = {
+  Fire: 'Blazing & aggressive — big damage',
+  Water: 'Aquatic & steady — defensive',
+  Electric: 'Fast & shocking — high energy',
+  Shadow: 'Dark & stealthy — mysterious',
+  Glitch: 'Digital & chaotic — unpredictable',
+  Void: 'Cosmic & eerie — reality-bending',
+};
+
+const TIPS = [
+  'Give it a name — or let us invent one.',
+  'Hint at a type or vibe (fiery, aquatic, glitchy…).',
+  'Describe 1–2 signature moves or powers.',
+  'Add a touch of personality or backstory.',
+  'Keep it friendly — spicy prompts get blocked. 😊',
+];
+
+const EXAMPLE_PROMPT =
+  'A mischievous electric fox named Voltail with cracked-glass fur that hurls lightning bolts and can vanish in a burst of static.';
 
 /** Price for a custom Togglemon card added to the cart. */
 const CUSTOM_CARD_PRICE = 12.99;
@@ -250,47 +385,80 @@ export default function CardCreator() {
       <Title className="font-display">Togglemon Card Creator</Title>
       <Subtitle>Describe your Togglemon and watch it come to life</Subtitle>
 
-      <Form>
-        <TextField
-          label="Describe your Togglemon"
-          placeholder={PLACEHOLDER}
-          multiline
-          rows={3}
-          fullWidth
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          disabled={isGenerating}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              color: '#f5f5f5',
-              backgroundColor: '#1a1a1a',
-              '& fieldset': { borderColor: '#333' },
-              '&:hover fieldset': { borderColor: '#555' },
-              '&.Mui-focused fieldset': { borderColor: '#c8f000' },
-            },
-            '& .MuiInputLabel-root': { color: '#a3a3a3' },
-            '& .MuiInputLabel-root.Mui-focused': { color: '#c8f000' },
-            '& .MuiInputBase-input::placeholder': { color: '#777', opacity: 1 },
-          }}
-        />
-        <TypeHint>
-          Every card gets a name, HP, rarity, and two moves. Supported types:{' '}
-          {TOGGLEMON_TYPES.map((type, i) => (
-            <span key={type}>
-              <TypeName>{type}</TypeName>
-              {i < TOGGLEMON_TYPES.length - 1 ? ' · ' : ''}
-            </span>
-          ))}
-          . We'll pick the closest match to your description.
-        </TypeHint>
-        <Button
-          variant="contained"
-          onClick={handleGenerate}
-          disabled={isGenerating || !description.trim()}
-        >
-          Generate Card
-        </Button>
-      </Form>
+      <Layout>
+        <FormColumn>
+          <Form>
+            <TextField
+              label="Describe your Togglemon"
+              placeholder={PLACEHOLDER}
+              multiline
+              rows={3}
+              fullWidth
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isGenerating}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: '#f5f5f5',
+                  backgroundColor: '#1a1a1a',
+                  '& fieldset': { borderColor: '#333' },
+                  '&:hover fieldset': { borderColor: '#555' },
+                  '&.Mui-focused fieldset': { borderColor: '#c8f000' },
+                },
+                '& .MuiInputLabel-root': { color: '#a3a3a3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#c8f000' },
+                '& .MuiInputBase-input::placeholder': { color: '#777', opacity: 1 },
+              }}
+            />
+            <TypeHint>
+              Every card gets a name, HP, rarity, and two moves — we'll pick the closest type to
+              your description.
+            </TypeHint>
+            <Button
+              variant="contained"
+              onClick={handleGenerate}
+              disabled={isGenerating || !description.trim()}
+            >
+              Generate Card
+            </Button>
+          </Form>
+        </FormColumn>
+
+        <Guide>
+          <GuideSection>
+            <GuideHeading>Types</GuideHeading>
+            {TOGGLEMON_TYPES.map((t) => (
+              <TypeItem key={t}>
+                <Dot c={TYPE_COLORS[t]} />
+                <span>
+                  <TypeLabel>{t}</TypeLabel> — {TYPE_BLURBS[t]}
+                </span>
+              </TypeItem>
+            ))}
+          </GuideSection>
+
+          <GuideSection>
+            <GuideHeading>Tips for a great card</GuideHeading>
+            <TipList>
+              {TIPS.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </TipList>
+          </GuideSection>
+
+          <GuideSection>
+            <GuideHeading>Try an example</GuideHeading>
+            <ExampleButton
+              type="button"
+              onClick={() => setDescription(EXAMPLE_PROMPT)}
+              disabled={isGenerating}
+            >
+              “{EXAMPLE_PROMPT}”
+              <ExampleHint>Click to use this description →</ExampleHint>
+            </ExampleButton>
+          </GuideSection>
+        </Guide>
+      </Layout>
 
       <ResultArea>
         {isGenerating && <CircularProgress />}
@@ -309,6 +477,9 @@ export default function CardCreator() {
               </Button>
             </Actions>
           </ResultColumn>
+        )}
+        {!isGenerating && !error && !result && (
+          <EmptyCard>✨ Your Togglemon card will appear here — describe a creature and hit Generate.</EmptyCard>
         )}
       </ResultArea>
     </PageContainer>

@@ -25,7 +25,7 @@ export const TOGGLEMON_TYPES: ReadonlyArray<TogglemonCard['type']> = [
   'Void',
 ];
 
-const TYPE_COLORS: Record<TogglemonCard['type'], string> = {
+export const TYPE_COLORS: Record<TogglemonCard['type'], string> = {
   Fire: '#E25822',
   Water: '#4A90D9',
   Electric: '#F5C518',
