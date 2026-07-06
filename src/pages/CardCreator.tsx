@@ -272,11 +272,23 @@ export default function CardCreator() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imagePrompt: prompt }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Surface WHY art failed (status + server detail) so sporadic
+        // fallbacks are diagnosable from the browser console.
+        const data = await res.json().catch(() => ({}));
+        console.warn(
+          `[card art] failed (${res.status}):`,
+          (data as { detail?: string; error?: string }).detail ??
+            (data as { error?: string }).error ??
+            '(no detail)',
+        );
+        return;
+      }
       const data = (await res.json()) as { imageUrl?: string };
       if (data.imageUrl) setImageUrl(data.imageUrl);
-    } catch {
-      // swallow — graceful fallback to the prompt text on the card
+      else console.warn('[card art] response had no imageUrl');
+    } catch (e) {
+      console.warn('[card art] request error:', e);
     } finally {
       setArtLoading(false);
     }

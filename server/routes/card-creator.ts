@@ -343,35 +343,63 @@ export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient
         'logos, or watermarks anywhere in the image. Do not draw a card frame, ' +
         'border, or trading-card layout — just the raw artwork.';
 
-      const result = await openai.images.generate({
-        model: 'gpt-image-1',
-        prompt: artPrompt,
-        n: 1,
-        // Landscape (~1.5:1) matches the card art box (230x150), so the image
-        // fills it with almost no cropping.
-        size: '1536x1024',
-        // 'low' keeps generation well under the function timeout.
-        quality: 'low',
-        // JPEG payload is far smaller than PNG — faster to transfer/display
-        // and safely under the serverless response size limit.
-        output_format: 'jpeg',
-        output_compression: 80,
-      } as any);
+      // gpt-image-1 fails sporadically (transient 429/5xx). Retry those a
+      // couple of times with a short backoff so the demo actually shows art;
+      // do NOT retry content-policy 400s (they'd just fail again).
+      const MAX_ATTEMPTS = 3;
+      let lastError: unknown;
 
-      // gpt-image-1 returns base64; DALL·E returns a URL. Support either.
-      const image = result.data?.[0];
-      const imageUrl = image?.url
-        ? image.url
-        : image?.b64_json
-          ? `data:image/jpeg;base64,${image.b64_json}`
-          : undefined;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const result = await openai.images.generate({
+            model: 'gpt-image-1',
+            prompt: artPrompt,
+            n: 1,
+            // Landscape (~1.5:1) matches the card art box (230x150), so the
+            // image fills it with almost no cropping.
+            size: '1536x1024',
+            // 'low' keeps generation well under the function timeout.
+            quality: 'low',
+            // JPEG payload is far smaller than PNG — faster to transfer/display
+            // and safely under the serverless response size limit.
+            output_format: 'jpeg',
+            output_compression: 80,
+          } as any);
 
-      if (!imageUrl) {
-        res.status(500).json({ error: 'No image was returned' });
-        return;
+          // gpt-image-1 returns base64; DALL·E returns a URL. Support either.
+          const image = result.data?.[0];
+          const imageUrl = image?.url
+            ? image.url
+            : image?.b64_json
+              ? `data:image/jpeg;base64,${image.b64_json}`
+              : undefined;
+
+          if (!imageUrl) throw new Error('No image was returned');
+
+          res.json({ imageUrl });
+          return;
+        } catch (err) {
+          lastError = err;
+          const status = (err as { status?: number })?.status;
+          console.error(
+            `[CardCreator/art] attempt ${attempt}/${MAX_ATTEMPTS} failed` +
+              (status ? ` (status ${status})` : '') +
+              ':',
+            err instanceof Error ? err.message : err,
+          );
+          const transient = status === undefined || status === 408 || status === 429 || status >= 500;
+          if (attempt < MAX_ATTEMPTS && transient) {
+            await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+            continue;
+          }
+          break;
+        }
       }
 
-      res.json({ imageUrl });
+      res.status(500).json({
+        error: 'Failed to generate art',
+        detail: lastError instanceof Error ? lastError.message : String(lastError),
+      });
     } catch (error) {
       console.error('[CardCreator/art] Error:', error);
       res.status(500).json({
