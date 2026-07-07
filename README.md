@@ -125,7 +125,7 @@ A flag-gated page (`/collectibles/card-creator`) that turns a free-text creature
 | `show-collectibles-catalog` | Boolean | Collectibles nav link, `/collectibles` routes, and the card-creator CTA |
 | `show-collectibles-vip-content` | Boolean | Unlocks VIP-gated collectibles content (LD targets `tier=vip`) |
 | `show-card-creator` | Boolean | Togglemon Card Creator page (`/collectibles/card-creator`) + PLP CTA |
-| `track-conversions-via-gtm` | Boolean | Card creator conversions route via GTM dataLayer (on) or direct LD track (off) |
+| `track-conversions-via-gtm` | Boolean | Card creator & collectible conversions route via GTM dataLayer (on) or direct LD track (off) |
 
 See [FEATURE_FLAGS_GUIDE.md](FEATURE_FLAGS_GUIDE.md) for details on each flag.
 

@@ -145,7 +145,7 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 | `show-collectibles-catalog` | `false` | Collectibles nav link, `/collectibles` routes, card-creator CTA |
 | `show-collectibles-vip-content` | `false` | Unlocks VIP-gated collectibles content (targets `tier=vip`) |
 | `show-card-creator` | `false` | Togglemon Card Creator page + PLP CTA |
-| `track-conversions-via-gtm` | `false` | Card creator conversions via GTM dataLayer (on) or direct LD track (off) |
+| `track-conversions-via-gtm` | `false` | Card creator & collectible conversions via GTM dataLayer (on) or direct LD track (off) |
 
 ### String / JSON Flags
 
@@ -296,9 +296,14 @@ ldClient.trackTokenUsage(...);
 | `product_viewed` | Product detail view | — |
 | `banner_click` | `SeasonalBanner.tsx` click | — |
 
-Card-creator conversions (`add_to_cart`, `card_downloaded`) route via **either** the GTM dataLayer **or**
-a direct `ldClient.track()` call, controlled by the `track-conversions-via-gtm` flag (exactly one path,
-no double-counting).
+Card-creator and collectible conversions route via **either** the GTM dataLayer **or** a direct
+`ldClient.track()` call, controlled by the `track-conversions-via-gtm` flag. Both surfaces use the shared
+`useTrackConversion` hook (`src/hooks/useTrackConversion.ts`), which guarantees exactly one path fires
+(no double-counting) and forwards the numeric conversion value in both modes so value-based metrics stay
+consistent. The hook is identity-stable and exposes `ready` so auto-firing view effects wait for the
+routing flag to resolve before emitting (avoids a flag-settle double-count race). In GTM mode the Custom
+HTML tag must read a `dlv - value` Data Layer Variable and forward it to `ldClient.track()` — see
+`src/lib/gtmStub.ts`.
 
 ---
 
