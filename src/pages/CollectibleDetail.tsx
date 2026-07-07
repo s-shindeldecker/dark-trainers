@@ -100,24 +100,27 @@ export default function CollectibleDetail() {
 
   const isCollectible = product?.category === 'collectibles';
 
+  // GTM: collectible-specific analytics event (spec §3). This is a pure
+  // dataLayer signal (not an `ld_conversion`), so it is never forwarded to LD
+  // and is independent of the conversion-routing flag — it fires as soon as the
+  // collectible is on screen. The catalog-flag gate prevents it leaking for a
+  // gated feature (the page otherwise redirects home).
   useEffect(() => {
-    // Only emit view/conversion events when the catalog flag is on — otherwise
-    // the page redirects home and these events would leak for a gated feature.
-    // Also wait for the conversion-routing flag to resolve (`conversionReady`):
-    // firing before it settles would use the default (direct) path and then
-    // fire again once routing flips to GTM, double-counting the same view.
-    if (!product || !isCollectible || !showCollectibles || !conversionReady) return;
-    // GTM: collectible-specific analytics event (spec §3). This is a pure
-    // dataLayer signal (not an `ld_conversion`), so it is never forwarded to
-    // LD and fires regardless of the conversion-routing flag.
+    if (!product || !isCollectible || !showCollectibles) return;
     pushToDataLayer({
       event: 'collectible_viewed',
       productId: product.id,
       productName: product.name,
       price: product.price,
     });
-    // Conversion mirror for product_viewed — routed through exactly one path
-    // (GTM dataLayer or direct LD track) so it is never double-counted.
+  }, [product, isCollectible, showCollectibles]);
+
+  // product_viewed conversion — routed through exactly one path (GTM dataLayer
+  // or direct LD track). Gate on `conversionReady` so it fires once, after the
+  // routing flag resolves: firing before then would use the default (direct)
+  // path and fire again once routing flips to GTM, double-counting the view.
+  useEffect(() => {
+    if (!product || !isCollectible || !showCollectibles || !conversionReady) return;
     trackConversion('product_viewed', { productId: product.id, value: product.price });
   }, [product, isCollectible, showCollectibles, conversionReady, trackConversion]);
 
