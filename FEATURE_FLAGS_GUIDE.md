@@ -157,11 +157,11 @@ Gates the Togglemon Card Creator page (`/collectibles/card-creator`) and its CTA
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
-Controls how card-creator conversions (`add_to_cart`, `card_downloaded`) are sent — a demo of two LaunchDarkly integration paths:
+Controls how conversions (e.g. `add_to_cart`, `product_viewed`, `card_downloaded`) are sent across the Card Creator and Collectibles pages — a demo of two LaunchDarkly integration paths:
 - **On** → pushed to the GTM dataLayer as an `ld_conversion` event; a GTM Custom HTML tag forwards it to LaunchDarkly (shows integrating LD via an existing data layer).
 - **Off (default)** → sent directly via `ldClient.track()`.
 
-Exactly one path fires per action, so conversions are never double-counted.
+Both pages share the `useTrackConversion` hook (`src/hooks/useTrackConversion.ts`), so exactly one path fires per action (never double-counted), and the numeric conversion value is forwarded in both modes so numeric metrics behave identically either way. In GTM mode the Custom HTML tag must read a `dlv - value` Data Layer Variable and pass it to `ldClient.track()` — see `src/lib/gtmStub.ts`.
 
 ## AI Configs
 
