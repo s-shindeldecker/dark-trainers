@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { toPng } from 'html-to-image';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -12,7 +11,7 @@ import { LD_FLAGS } from '../lib/ldFlagKeys';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { userToApiContext } from '../context/LDContext';
-import { pushToDataLayer } from '../lib/gtmStub';
+import { useTrackConversion } from '../hooks/useTrackConversion';
 import type { Product } from '../components/Products/productData';
 import {
   TogglemonCard,
@@ -234,10 +233,9 @@ export default function CardCreator() {
     LD_FLAGS.showCardCreator,
     false,
   );
-  const { value: trackViaGtm } = useFeatureFlag(LD_FLAGS.trackConversionsViaGtm, false);
   const { user, sessionKey } = useUser();
   const { addItem } = useCart();
-  const ldClient = useLDClient();
+  const { trackConversion } = useTrackConversion();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const [description, setDescription] = useState('');
@@ -329,17 +327,6 @@ export default function CardCreator() {
       setError("Sorry, I'm having trouble connecting. Please try again.");
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  // Route a conversion either through the GTM dataLayer (flag on — GTM's
-  // Custom HTML tag forwards it to LD) or straight to LD (flag off). Either/or,
-  // so conversions are never double-counted.
-  const trackConversion = (eventKey: string, opts?: { value?: number; productId?: string }) => {
-    if (trackViaGtm) {
-      pushToDataLayer({ event: 'ld_conversion', eventKey, ...opts });
-    } else {
-      ldClient?.track(eventKey, null, opts?.value);
     }
   };
 

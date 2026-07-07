@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { getProductById } from '../components/Products/productData';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
 import { useCart } from '../context/CartContext';
 import { pushToDataLayer } from '../lib/gtmStub';
+import { useTrackConversion } from '../hooks/useTrackConversion';
 
 const Page = styled.div`
   max-width: 1100px;
@@ -89,8 +89,8 @@ const LoadingShell = styled.div`
 export default function CollectibleDetail() {
   const { id } = useParams<{ id: string }>();
   const product = id ? getProductById(id) : undefined;
-  const ldClient = useLDClient();
   const { addItem } = useCart();
+  const { trackConversion, ready: conversionReady } = useTrackConversion();
 
   const { value: showCollectibles, isLoading: isLoadingFlag } = useFeatureFlag(
     LD_FLAGS.showCollectiblesCatalog,
@@ -100,26 +100,29 @@ export default function CollectibleDetail() {
 
   const isCollectible = product?.category === 'collectibles';
 
+  // GTM: collectible-specific analytics event (spec §3). This is a pure
+  // dataLayer signal (not an `ld_conversion`), so it is never forwarded to LD
+  // and is independent of the conversion-routing flag — it fires as soon as the
+  // collectible is on screen. The catalog-flag gate prevents it leaking for a
+  // gated feature (the page otherwise redirects home).
   useEffect(() => {
-    // Only emit view/conversion events when the catalog flag is on — otherwise
-    // the page redirects home and these events would leak for a gated feature.
-    if (!product || !isCollectible || !ldClient || !showCollectibles) return;
-    ldClient.track('product_viewed', null, product.price);
-    // GTM: collectible-specific view event (spec §3)...
+    if (!product || !isCollectible || !showCollectibles) return;
     pushToDataLayer({
       event: 'collectible_viewed',
       productId: product.id,
       productName: product.name,
       price: product.price,
     });
-    // ...plus the standard conversion mirror for product_viewed (spec §5).
-    pushToDataLayer({
-      event: 'ld_conversion',
-      eventKey: 'product_viewed',
-      productId: product.id,
-      value: product.price,
-    });
-  }, [product, isCollectible, ldClient, showCollectibles]);
+  }, [product, isCollectible, showCollectibles]);
+
+  // product_viewed conversion — routed through exactly one path (GTM dataLayer
+  // or direct LD track). Gate on `conversionReady` so it fires once, after the
+  // routing flag resolves: firing before then would use the default (direct)
+  // path and fire again once routing flips to GTM, double-counting the view.
+  useEffect(() => {
+    if (!product || !isCollectible || !showCollectibles || !conversionReady) return;
+    trackConversion('product_viewed', { productId: product.id, value: product.price });
+  }, [product, isCollectible, showCollectibles, conversionReady, trackConversion]);
 
   if (isLoadingFlag) {
     return (
@@ -147,15 +150,7 @@ export default function CollectibleDetail() {
   const handleAddToCart = () => {
     // Collectibles have no size; use 0 as the "no size" marker for the cart line.
     addItem(product, 0);
-    if (ldClient) {
-      ldClient.track('add_to_cart', null, product.price);
-    }
-    pushToDataLayer({
-      event: 'ld_conversion',
-      eventKey: 'add_to_cart',
-      productId: product.id,
-      value: product.price,
-    });
+    trackConversion('add_to_cart', { productId: product.id, value: product.price });
   };
 
   return (
