@@ -235,7 +235,7 @@ export default function CardCreator() {
   );
   const { user, sessionKey } = useUser();
   const { addItem } = useCart();
-  const trackConversion = useTrackConversion();
+  const { trackConversion } = useTrackConversion();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const [description, setDescription] = useState('');

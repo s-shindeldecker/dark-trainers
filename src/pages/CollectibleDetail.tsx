@@ -90,7 +90,7 @@ export default function CollectibleDetail() {
   const { id } = useParams<{ id: string }>();
   const product = id ? getProductById(id) : undefined;
   const { addItem } = useCart();
-  const trackConversion = useTrackConversion();
+  const { trackConversion, ready: conversionReady } = useTrackConversion();
 
   const { value: showCollectibles, isLoading: isLoadingFlag } = useFeatureFlag(
     LD_FLAGS.showCollectiblesCatalog,
@@ -103,7 +103,10 @@ export default function CollectibleDetail() {
   useEffect(() => {
     // Only emit view/conversion events when the catalog flag is on — otherwise
     // the page redirects home and these events would leak for a gated feature.
-    if (!product || !isCollectible || !showCollectibles) return;
+    // Also wait for the conversion-routing flag to resolve (`conversionReady`):
+    // firing before it settles would use the default (direct) path and then
+    // fire again once routing flips to GTM, double-counting the same view.
+    if (!product || !isCollectible || !showCollectibles || !conversionReady) return;
     // GTM: collectible-specific analytics event (spec §3). This is a pure
     // dataLayer signal (not an `ld_conversion`), so it is never forwarded to
     // LD and fires regardless of the conversion-routing flag.
@@ -116,7 +119,7 @@ export default function CollectibleDetail() {
     // Conversion mirror for product_viewed — routed through exactly one path
     // (GTM dataLayer or direct LD track) so it is never double-counted.
     trackConversion('product_viewed', { productId: product.id, value: product.price });
-  }, [product, isCollectible, showCollectibles, trackConversion]);
+  }, [product, isCollectible, showCollectibles, conversionReady, trackConversion]);
 
   if (isLoadingFlag) {
     return (
