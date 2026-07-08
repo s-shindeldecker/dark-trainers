@@ -25,6 +25,7 @@ const gtmDataLayerInspector: LDInspectionFlagUsedHandler = {
       flagValue: flagDetail.value,
       variationIndex: flagDetail.variationIndex,
       reason: flagDetail.reason?.kind,
+      inExperiment: flagDetail.reason?.inExperiment ?? false,
     });
   },
 };
