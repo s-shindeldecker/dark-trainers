@@ -54,7 +54,24 @@ export function ExposureLogProvider({ children }: { children: ReactNode }) {
         reasonKind: detail.reason?.kind,
         at: Date.now(),
       };
-      setExposures((prev) => [record, ...prev].slice(0, MAX_RECORDS));
+      setExposures((prev) => {
+        // Collapse an identical exposure that arrives within a tiny window. This
+        // keeps the demo log clean under React StrictMode's dev-only double-invoke
+        // of effects (the underlying variationDetail event fires twice in dev, but
+        // LD dedupes experiment exposures per context, and prod fires once). Genuine
+        // re-exposures — reopening the cart, re-showing the banner — are seconds
+        // apart and still logged.
+        const last = prev[0];
+        if (
+          last &&
+          last.flagKey === record.flagKey &&
+          last.variationIndex === record.variationIndex &&
+          record.at - last.at < 300
+        ) {
+          return prev;
+        }
+        return [record, ...prev].slice(0, MAX_RECORDS);
+      });
       return record;
     },
     [ldClient],
