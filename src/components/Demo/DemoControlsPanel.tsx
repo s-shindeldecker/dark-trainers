@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import Box from '@mui/material/Box';
 import { useUser } from '../../context/UserContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { useExposureLog } from '../../context/ExposureLog';
 import { LD_FLAGS } from '../../lib/ldFlagKeys';
 import { MemberBadge } from '../Member/MemberBadge';
 
@@ -77,12 +78,72 @@ const NewSessionButton = styled.button`
   }
 `;
 
+const ExposureSection = styled.div`
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #2a2a2a;
+`;
+
+const ExposureHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+`;
+
+const ClearBtn = styled.button`
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: #1a1a1a;
+  color: #a3a3a3;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  &:hover {
+    border-color: #c8f000;
+  }
+`;
+
+const ExposureItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0;
+`;
+
+const ExpKey = styled.code`
+  color: #f5f5f5;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const ExpVar = styled.span`
+  color: #737373;
+`;
+
+const ExpTag = styled.span<{ $inExperiment: boolean }>`
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  color: ${({ $inExperiment }) => ($inExperiment ? '#c8f000' : '#666')};
+  border: 1px solid ${({ $inExperiment }) => ($inExperiment ? '#4d5c00' : '#333')};
+  background: ${({ $inExperiment }) => ($inExperiment ? 'rgba(200, 240, 0, 0.08)' : 'transparent')};
+`;
+
 type Persona = 'guest' | 'standard' | 'vip';
 
 export function DemoControlsPanel() {
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const { user, sessionKey, newSession, resetToGuest, setIdentifiedStandard, setIdentifiedVip } =
     useUser();
+  const { exposures, clear } = useExposureLog();
 
   const persona: Persona = user.anonymous ? 'guest' : user.memberTier === 'vip' ? 'vip' : 'standard';
 
@@ -117,6 +178,32 @@ export function DemoControlsPanel() {
             New session
           </NewSessionButton>
         </SessionRow>
+        <ExposureSection>
+          <ExposureHead>
+            <Label style={{ margin: 0 }}>Experiment exposures</Label>
+            {exposures.length > 0 && (
+              <ClearBtn type="button" onClick={clear}>
+                Clear
+              </ClearBtn>
+            )}
+          </ExposureHead>
+          {exposures.length === 0 ? (
+            <Hint style={{ marginTop: 0 }}>
+              None yet — preloaded flags don’t expose. Open the cart (VIP upsell) or view the
+              promo banner to fire one.
+            </Hint>
+          ) : (
+            exposures.map((e, i) => (
+              <ExposureItem key={`${e.flagKey}-${e.at}-${i}`}>
+                <ExpKey title={e.flagKey}>{e.flagKey}</ExpKey>
+                <ExpVar>#{e.variationIndex ?? '?'}</ExpVar>
+                <ExpTag $inExperiment={e.inExperiment}>
+                  {e.inExperiment ? 'in exp' : 'no exp'}
+                </ExpTag>
+              </ExposureItem>
+            ))
+          )}
+        </ExposureSection>
       </Panel>
     </Box>
   );
