@@ -49,8 +49,17 @@ population is counted as exposed on load — the exact anti-pattern this work fi
 > default flip as **BLOCKED** until the 2 target flags are identified (LD **Experiments** UI)
 > and their explicit exposure calls ship *in the same PR as the flip.*
 
-**Target flags of the 2 live experiments:** _TBD — confirm from the Experiments dashboard._
-Once known, list them here; each must get a `useFlagExposure` call before/with the flip.
+**Target flags of the 2 live experiments (confirmed by owner):**
+
+| Experiment target | Type | Evaluated | Risk from the flip | Required action |
+| --- | --- | --- | --- | --- |
+| `promo-banner-text` | multivariate feature flag | **Client** — `useFeatureFlag` in `SeasonalBanner.tsx:40` (`variation()` today) | **AT RISK** — non-eventing default kills its exposures | Add an explicit exposure call in `SeasonalBanner` (decision point = banner renders with non-empty text), shipped **in the same PR as the flip** |
+| `togglemon-card-creator` | **AI Config** (not a feature flag) | **Server** — `aiClient.completionConfig(...)` in `server/routes/card-creator.ts:234` | **Not affected** — server-side eval, outside the client hook | None for Tier 1; exposure stays server-side |
+
+> Both live experiments were invisible to the flag audit, for two different reasons:
+> `promo-banner-text` is a flag whose `experiments.items` reads empty via the MCP;
+> `togglemon-card-creator` is an **AI Config**, a resource `list-feature-flags` does not
+> cover at all. This is why Tier 1 now explicitly includes `promo-banner-text`.
 
 ### MCP product gap (why the audit was unreliable)
 
@@ -103,9 +112,11 @@ Preload all flag values with zero exposures; fire the cart VIP exposure only on 
 open; show it live in the demo panel. **Experiment creation/attachment is done manually in
 the LD UI — code only ensures the exposure event fires at the right moment.**
 
-### 1. Confirm audit (gate)
-Verify in the LD Experiments UI that no listed flag is mid-experiment (see caveat above).
-If clean, the default flip is safe on its own.
+### 1. Protect live experiments (gate)
+Two experiments are live in production (see audit correction above). Only
+**`promo-banner-text`** is at risk from the client default flip. Therefore Tier 1 must ship
+its exposure call **together with** the default flip — see step 3b. (`togglemon-card-creator`
+is a server-side AI Config and needs no client change.)
 
 ### 2. Dual-read infrastructure — `src/hooks/useFeatureFlag.ts`
 - **Flip default to non-eventing:** read via `ldClient.allFlags()[key] ?? default` instead of
@@ -124,6 +135,13 @@ If clean, the default flip is safe on its own.
 - Leave the two cart siblings (`vip-upgrade-cta-copy`, `show-vip-pricing`) non-eventing in
   Tier 1; revisit in the follow-up.
 
+### 3b. Protect the live `promo-banner-text` experiment — `src/components/Layout/SeasonalBanner.tsx`
+Mandatory in the same PR as the flip. Keep rendering from non-eventing
+`useFeatureFlag('promo-banner-text')`, and add an explicit exposure
+(`useFlagExposure` / `variationDetail`) at the banner's decision point — when it renders with
+non-empty text (`SeasonalBanner.tsx:58` currently returns `null` for empty/loading). Without
+this, flipping the default silently zeroes this running experiment's exposures.
+
 ### 4. Visible proof — `src/components/Demo/DemoControlsPanel.tsx` + small exposure log
 - Add a lightweight `ExposureLog` context (last N exposures: `flagKey`, `variation`,
   `reason.inExperiment`, timestamp). The exposure path writes to it; the panel renders it.
@@ -139,8 +157,9 @@ If clean, the default flip is safe on its own.
 - Confirm the GTM consequence (already signed off): the `flag-used` inspector in
   `LDContext.tsx` now pushes `ld_flag_evaluated` only on real exposures, not preloads.
 
-**Touched files:** `useFeatureFlag.ts`, `CartDrawer.tsx`, `DemoControlsPanel.tsx`, one new
-small context, minor annotation in `ldFlagKeys.ts`. **Effort: low–moderate, isolated.**
+**Touched files:** `useFeatureFlag.ts`, `CartDrawer.tsx`, `SeasonalBanner.tsx` (live-experiment
+protection), `DemoControlsPanel.tsx`, one new small context, minor annotation in
+`ldFlagKeys.ts`. **Effort: low–moderate, isolated.**
 
 ---
 
