@@ -42,15 +42,38 @@ population is counted as exposed on load — the exact anti-pattern this work fi
 
 ## Audit: are any flags currently powering a live experiment?
 
-Ran against `dark-trainers` / `production` (21 flags total). **No flag has an attached
-experiment iteration** — `experiments.items` is empty on all 21. This means flipping the
-app-wide default to non-eventing will **not** silently zero out a running experiment's data.
+> 🚫 **CORRECTION (do not trust the first-pass MCP audit).** The initial audit inferred
+> "no running experiments" from `experiments.items` being empty on all 21 flags. **That
+> conclusion was wrong.** The project owner confirmed **2 experiments are running in
+> `production`.** The MCP simply cannot see them — see "MCP product gap" below. Treat the
+> default flip as **BLOCKED** until the 2 target flags are identified (LD **Experiments** UI)
+> and their explicit exposure calls ship *in the same PR as the flip.*
 
-> ⚠️ **Caveat / confirm before merge:** the LD MCP surface used for this audit cannot read
-> the *Experiments* dashboard directly. The practical tell for "LD is sending evaluation
-> events for this flag" is `trackEvents: true` (and/or an `experiment` tag). Before the
-> default flip lands, confirm in the LD **Experiments** UI that none of the flags below are
-> mid-experiment. If one is, its explicit exposure call must ship *in the same PR as the flip.*
+**Target flags of the 2 live experiments:** _TBD — confirm from the Experiments dashboard._
+Once known, list them here; each must get a `useFlagExposure` call before/with the flip.
+
+### MCP product gap (why the audit was unreliable)
+
+The LaunchDarkly MCP server has **no experiments primitive**, so an agent cannot answer
+"which flags are in a running experiment in this environment?":
+
+- No `list-experiments` / `get-experiment` tool exists.
+- `list-feature-flags` and `get-feature-flag` return `experiments.items: []` **even for a
+  flag that is experiment-targeted**, and **even with `expand=experiments`** (verified on
+  `pdp-hero-layout`). The one field that looks authoritative is empty/unpopulated.
+- Experiments surface only *incidentally* in the audit log as `kind: "experiment"` /
+  `createExperiment` entries, and only if the create/stop event falls inside the query's
+  recent 20-entry window — not a reliable "what's running now" signal.
+- The underlying REST API **does** have the data
+  (`GET /api/v2/projects/{proj}/environments/{env}/experiments`), so the gap is specifically
+  that the MCP does not wrap that endpoint.
+
+**Practical (unreliable) tells** that a flag *might* be experiment-attached, pending UI
+confirmation — `trackEvents: true` and/or an `experiment` tag:
+`pdp-hero-layout` (tag + trackEvents), `promo-banner-text` (tag + trackEvents + 25%×4
+rollout), `promo-banner-position` (tag + trackEvents), `vip-upgrade-cta-copy`,
+`show-vip-pricing`, `show-collectibles-catalog`, `show-collectibles-vip-content`,
+`show-card-creator`. **These are hints, not proof** — the earlier failure shows why.
 
 **Flags with `trackEvents: true` and/or an `experiment` tag (experiment intent):**
 
