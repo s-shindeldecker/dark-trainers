@@ -1,4 +1,5 @@
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { useFlagExposure } from '../../context/ExposureLog';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
@@ -37,7 +38,25 @@ const BannerText = styled.span`
 `;
 
 export const SeasonalBanner = () => {
+  // Non-eventing preload: read the value to decide whether to render, WITHOUT
+  // counting an experiment exposure. The exposure is deferred to VisibleBanner,
+  // which mounts only when the banner is actually shown to the user.
   const { value: bannerText, isLoading } = useFeatureFlag(LD_FLAGS.promoBannerText, '');
+  const text = typeof bannerText === 'string' ? bannerText : '';
+
+  // Don't render anything (and don't expose) if there's no banner text or if still loading
+  if (isLoading || text.trim() === '') {
+    return null;
+  }
+
+  return <VisibleBanner text={text} />;
+};
+
+const VisibleBanner = ({ text }: { text: string }) => {
+  // This component mounts only when the promo banner is visible, so exposing the
+  // experiment flag here counts the user exactly when they actually see it —
+  // protecting the live promo-banner-text experiment now that reads are non-eventing.
+  useFlagExposure(LD_FLAGS.promoBannerText, '');
   const ldClient = useLDClient();
   const navigate = useNavigate();
 
@@ -45,27 +64,22 @@ export const SeasonalBanner = () => {
     // Track the banner click event
     if (ldClient) {
       ldClient.track('banner_click', {
-        banner_text: bannerText,
+        banner_text: text,
         timestamp: new Date().toISOString()
       });
     }
-    
+
     // Navigate to About Us page
     navigate('/about');
   };
-
-  // Don't render anything if there's no banner text or if still loading
-  if (isLoading || !bannerText || bannerText.trim() === '') {
-    return null;
-  }
 
   return (
     <BannerContainer onClick={handleBannerClick}>
       <div className="centered-container">
         <BannerText>
-          {bannerText}
+          {text}
         </BannerText>
       </div>
     </BannerContainer>
   );
-}; 
+};
