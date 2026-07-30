@@ -805,16 +805,6 @@ def simulate_user_journey_v2(ld_client, fake, mode='launchdarkly', snowflake_con
 def resolve_profile_from_args(args) -> SimulationProfile:
     if args.profile:
         return PROFILES[args.profile]
-    if args.mode == "bigquery":
-        logger.warning(
-            "--mode bigquery is deprecated; use --profile production-bq instead"
-        )
-        return PROFILES["production-bq"]
-    if args.mode == "snowflake":
-        logger.warning(
-            "--mode snowflake is deprecated; use --profile snowflake instead"
-        )
-        return PROFILES["snowflake"]
     return LD_ONLY_PROFILE
 
 
@@ -965,12 +955,6 @@ def main():
         "test-databricks (Test LD + Databricks), or snowflake (Snowflake LD + Snowflake)",
     )
     parser.add_argument(
-        "--mode",
-        choices=["launchdarkly", "snowflake", "bigquery"],
-        default="launchdarkly",
-        help="Legacy mode selector (use --profile for warehouse runs)",
-    )
-    parser.add_argument(
         "--create-table",
         action="store_true",
         help="Create the metrics table before running (BigQuery, Databricks, or Snowflake)",
@@ -994,9 +978,6 @@ def main():
         "(e.g. 0.12 = +12 percentage points). Must be 0-1.",
     )
     args = parser.parse_args()
-
-    if args.profile and args.mode == "bigquery":
-        logger.warning("Both --profile and --mode bigquery set; using --profile")
 
     force_args = (args.force_flag, args.force_variation, args.force_lift)
     if any(a is not None for a in force_args):

@@ -20,11 +20,11 @@ python darktrainers_simulation.py --profile test-databricks --records 300 --crea
 # Snowflake LD + Snowflake metric_events (create table on first run)
 python darktrainers_simulation.py --profile snowflake --records 300 --create-table
 
-# LD-only (events via SDK track; logs to JSONL file)
-python darktrainers_simulation.py --mode launchdarkly --records 100
+# LD-only (events via SDK track; logs to JSONL file) — the default when no --profile is set
+python darktrainers_simulation.py --records 100
 ```
 
-Legacy `--mode bigquery` maps to `production-bq` with a deprecation warning. Legacy `--mode snowflake` maps to `snowflake` with a deprecation warning.
+Runs without `--profile` are LD-only (no warehouse). Use `--profile` to select a warehouse-backed run.
 
 ## Environment variables
 
@@ -34,7 +34,7 @@ Copy [`.env.example`](.env.example) to `.env` (gitignored) and fill in values.
 
 | Variable | Profiles |
 |----------|----------|
-| `LAUNCHDARKLY_SDK_KEY` | `production-bq`, `--mode launchdarkly` |
+| `LAUNCHDARKLY_SDK_KEY` | `production-bq`, LD-only (no `--profile`) |
 | `LAUNCHDARKLY_SDK_KEY_TEST` | `test-databricks` |
 | `LAUNCHDARKLY_SDK_KEY_SNOWFLAKE` | `snowflake` |
 

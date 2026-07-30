@@ -195,7 +195,7 @@ The Python simulation script [`darktrainers_simulation.py`](darktrainers_simulat
 
 ```bash
 python darktrainers_simulation.py --profile production-bq --records 300
-python darktrainers_simulation.py --mode launchdarkly --records 100
+python darktrainers_simulation.py --records 100  # LD-only (no --profile)
 ```
 
 ## Environment Variables
