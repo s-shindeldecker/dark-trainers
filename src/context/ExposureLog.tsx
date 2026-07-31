@@ -39,10 +39,37 @@ const ExposureLogContext = createContext<ExposureLogValue | undefined>(undefined
 export function ExposureLogProvider({ children }: { children: ReactNode }) {
   const ldClient = useLDClient();
   const [exposures, setExposures] = useState<ExposureRecord[]>([]);
+  const [ready, setReady] = useState(false);
+
+  // Track SDK readiness. Recording before the client has initialized would make
+  // variationDetail() return the fallback with a CLIENT_NOT_READY reason and
+  // miscount the funnel visit. When this flips true, recordExposure's identity
+  // changes (it depends on `ready`), so callers whose effects depend on it re-run
+  // and retry any exposure that was skipped while the client was still loading.
+  useEffect(() => {
+    if (!ldClient) {
+      setReady(false);
+      return;
+    }
+    let cancelled = false;
+    ldClient
+      .waitForInitialization()
+      .then(() => {
+        if (!cancelled) setReady(true);
+      })
+      .catch(() => {
+        /* init failed; leave ready=false so we never record a bogus exposure */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ldClient]);
 
   const recordExposure = useCallback(
     (flagKey: string, defaultValue: unknown = false): ExposureRecord | undefined => {
-      if (!ldClient) return undefined;
+      // Not ready yet → return undefined so the caller can retry once readiness
+      // flips (this callback's identity changes when `ready` does).
+      if (!ldClient || !ready) return undefined;
       // variationDetail() is the call that emits the evaluation event LD counts
       // as an experiment exposure. Everything else in the app reads non-eventing.
       const detail = ldClient.variationDetail(flagKey, defaultValue);
@@ -74,7 +101,7 @@ export function ExposureLogProvider({ children }: { children: ReactNode }) {
       });
       return record;
     },
-    [ldClient],
+    [ldClient, ready],
   );
 
   const clear = useCallback(() => setExposures([]), []);
@@ -119,8 +146,14 @@ export function useFlagExposure(flagKey: string, defaultValue: unknown = false) 
     // Re-expose when the flag key or the LD context changes, but not on every render.
     const guard = `${flagKey}:${contextVersion}`;
     if (lastKeyRef.current === guard) return;
-    lastKeyRef.current = guard;
-    setDetail(recordExposure(flagKey, defaultValue));
+    // Only mark this (flag, context) as exposed once it actually recorded. If the
+    // SDK wasn't ready, recordExposure returns undefined and we retry when its
+    // identity changes on readiness.
+    const record = recordExposure(flagKey, defaultValue);
+    if (record) {
+      lastKeyRef.current = guard;
+      setDetail(record);
+    }
     // defaultValue is intentionally not a dependency; it is a constant per call site.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flagKey, contextVersion, recordExposure]);

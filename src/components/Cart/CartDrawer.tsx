@@ -140,10 +140,17 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const recordExposure = useExposureRecorder();
   const wasOpenRef = useRef(false);
   useEffect(() => {
-    if (isOpen && !wasOpenRef.current) {
-      recordExposure(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER);
+    if (!isOpen) {
+      wasOpenRef.current = false; // reset so the next open re-exposes
+      return;
     }
-    wasOpenRef.current = isOpen;
+    if (wasOpenRef.current) return; // already exposed for this open
+    // Only "consume" this open once the exposure actually recorded. If the SDK
+    // wasn't ready, recordExposure returns undefined and this retries when its
+    // identity changes on readiness (so a fast cart-open can't lose the exposure).
+    if (recordExposure(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER)) {
+      wasOpenRef.current = true;
+    }
   }, [isOpen, recordExposure]);
 
   const banner =
