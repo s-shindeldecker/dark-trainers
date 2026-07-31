@@ -1,7 +1,8 @@
 import styled from '@emotion/styled';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { useExposureRecorder } from '../../context/ExposureLog';
 import { LD_FLAGS, DEFAULT_CHECKOUT_VIP_BANNER } from '../../lib/ldFlagKeys';
 import { useCart, VIP_MEMBERSHIP_UPGRADE_USD } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
@@ -131,6 +132,19 @@ export function CartDrawer({ onJoinVip }: { onJoinVip: () => void }) {
   const { value: bannerJson } = useFeatureFlag(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER);
   const { value: ctaCopy } = useFeatureFlag(LD_FLAGS.vipUpgradeCtaCopy, 'Join VIP');
   const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
+
+  // Deferred exposure: the banner value above is preloaded (non-eventing) so it
+  // paints instantly, but the customer is only counted as exposed to the VIP
+  // upsell experiment when they actually enter the checkout funnel — i.e. open
+  // the cart drawer. Fire once per open (false → true transition).
+  const recordExposure = useExposureRecorder();
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      recordExposure(LD_FLAGS.checkoutVipBanner, DEFAULT_CHECKOUT_VIP_BANNER);
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, recordExposure]);
 
   const banner =
     typeof bannerJson === 'object' && bannerJson !== null

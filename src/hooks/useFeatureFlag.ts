@@ -20,7 +20,12 @@ export const useFeatureFlag = (flagKey: string, defaultValue: any = false) => {
         await ldClient.waitForInitialization();
         isInitializedRef.current = true;
       }
-      const flagValue = await ldClient.variation(flagKey, defaultValue);
+      // Non-eventing read: allFlags() returns preloaded values WITHOUT emitting an
+      // evaluation event, so reading a flag here never counts as an experiment
+      // exposure. Exposures are recorded deliberately at a feature's decision point
+      // via useFlagExposure / useExposureRecorder (ldClient.variationDetail).
+      const allFlags = ldClient.allFlags();
+      const flagValue = allFlags[flagKey] ?? defaultValue;
       setValue(flagValue);
     } catch (error) {
       console.error(`[LD] Error evaluating flag ${flagKey}:`, error);
