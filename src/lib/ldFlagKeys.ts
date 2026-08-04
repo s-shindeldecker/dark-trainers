@@ -31,6 +31,13 @@ export const LD_FLAGS = {
   showCardCreator: 'show-card-creator',
   /** Card creator conversion routing: on → via GTM dataLayer; off → direct LD track. Default false. */
   trackConversionsViaGtm: 'track-conversions-via-gtm',
+  /**
+   * String flag: customer-feedback note shown beside the size selector on Apex Low PDPs.
+   * The string value IS the note text; empty string ('') hides the note. Default ''.
+   * Experiment-ready: evaluated with deferred exposure (variationDetail) only when a
+   * user reaches an Apex Low PDP — see ApexFeedbackNote in src/pages/ProductDetail.tsx.
+   */
+  showCustomerFeedbackOnPdp: 'show-customer-feedback-on-pdp',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
