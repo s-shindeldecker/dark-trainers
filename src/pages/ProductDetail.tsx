@@ -5,6 +5,7 @@ import { keyframes } from '@emotion/react';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { getProductById } from '../components/Products/productData';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
+import { useFlagExposure } from '../context/ExposureLog';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
@@ -125,6 +126,52 @@ const SizeErrorText = styled.p`
   font-weight: 500;
 `;
 
+// Size selector + optional feedback note sit side by side (wraps on narrow screens).
+const SizeSelectArea = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+const FeedbackNote = styled.div`
+  position: relative;
+  max-width: 260px;
+  padding: 0.6rem 0.8rem;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-left: 3px solid #c8f000;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #d4d4d4;
+  /* small pointer aimed at the size selector to its left */
+  &::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 7px solid #333;
+  }
+  @media (max-width: 800px) {
+    &::before {
+      display: none;
+    }
+  }
+`;
+
+const FeedbackLabel = styled.strong`
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #c8f000;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+`;
+
 const Actions = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -136,6 +183,29 @@ const Desc = styled.p`
   color: #d4d4d4;
   line-height: 1.6;
 `;
+
+/**
+ * Renders the customer-feedback note beside the size selector — and, by mounting,
+ * records the experiment exposure for `show-customer-feedback-on-pdp`.
+ *
+ * This component mounts only once the user has reached an Apex Low PDP (the flag's
+ * real decision point), so `useFlagExposure` — which calls `ldClient.variationDetail`
+ * — counts every eligible visitor exactly once, control ('') variation included.
+ * Everything else in the app reads flags non-eventing via `useFeatureFlag`, so this
+ * is the only place the flag is evaluated for experiment purposes. The note itself
+ * still only renders when the served string is non-empty.
+ */
+function ApexFeedbackNote() {
+  const { value } = useFlagExposure(LD_FLAGS.showCustomerFeedbackOnPdp, '');
+  const text = typeof value === 'string' ? value : '';
+  if (text.trim() === '') return null;
+  return (
+    <FeedbackNote role="note">
+      <FeedbackLabel>Customer feedback</FeedbackLabel>
+      {text}
+    </FeedbackNote>
+  );
+}
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -220,6 +290,9 @@ export default function ProductDetail() {
   }
 
   const editorial = layout === 'editorial';
+  // Apex Low silhouettes are the eligible population for the customer-feedback experiment.
+  // Reaching one of these PDPs is the flag's decision point — see ApexFeedbackNote below.
+  const isApexLow = product.name.toLowerCase().includes('apex low');
   const msLeft = Math.max(0, releaseMs - now);
   const showCd = product.isDropExclusive && showCountdown && isVip && msLeft > 0;
 
@@ -291,25 +364,28 @@ export default function ProductDetail() {
             <label htmlFor="pdp-size" style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>
               US size
             </label>
-            <SizeSelectWrap ref={sizeSelectWrapRef}>
-              <select
-                id="pdp-size"
-                value={size}
-                aria-invalid={sizeError}
-                aria-describedby={sizeError ? 'pdp-size-error' : undefined}
-                onChange={(e) => {
-                  setSize(e.target.value === '' ? '' : Number(e.target.value));
-                  clearSizeError();
-                }}
-              >
-                <option value="">Select size</option>
-                {product.sizes.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </SizeSelectWrap>
+            <SizeSelectArea>
+              <SizeSelectWrap ref={sizeSelectWrapRef}>
+                <select
+                  id="pdp-size"
+                  value={size}
+                  aria-invalid={sizeError}
+                  aria-describedby={sizeError ? 'pdp-size-error' : undefined}
+                  onChange={(e) => {
+                    setSize(e.target.value === '' ? '' : Number(e.target.value));
+                    clearSizeError();
+                  }}
+                >
+                  <option value="">Select size</option>
+                  {product.sizes.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </SizeSelectWrap>
+              {isApexLow && <ApexFeedbackNote />}
+            </SizeSelectArea>
             {sizeError && (
               <SizeErrorText id="pdp-size-error" role="alert">
                 Please select a size to continue
