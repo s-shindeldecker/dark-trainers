@@ -189,14 +189,22 @@ const Desc = styled.p`
  * records the experiment exposure for `show-customer-feedback-on-pdp`.
  *
  * This component mounts only once the user has reached an Apex Low PDP (the flag's
- * real decision point), so `useFlagExposure` — which calls `ldClient.variationDetail`
- * — counts every eligible visitor exactly once, control ('') variation included.
- * Everything else in the app reads flags non-eventing via `useFeatureFlag`, so this
- * is the only place the flag is evaluated for experiment purposes. The note itself
- * still only renders when the served string is non-empty.
+ * real decision point). The two concerns are deliberately split:
+ *
+ *  - The rendered text comes from `useFeatureFlag`, the non-eventing read that
+ *    subscribes to the SDK `change` event. This is what makes the note update
+ *    live on a dashboard toggle, exactly like every other flag in the app.
+ *  - The experiment exposure is recorded once via `useFlagExposure` (which calls
+ *    `ldClient.variationDetail`), counting every eligible visitor exactly once,
+ *    control ('') variation included — without re-firing on live value changes.
+ *
+ * The note itself still only renders when the served string is non-empty.
  */
 function ApexFeedbackNote() {
-  const { value } = useFlagExposure(LD_FLAGS.showCustomerFeedbackOnPdp, '');
+  // Live, non-eventing value drives what's shown (updates on streaming changes).
+  const { value } = useFeatureFlag(LD_FLAGS.showCustomerFeedbackOnPdp, '');
+  // Record the experiment exposure once at this decision point; its value is unused here.
+  useFlagExposure(LD_FLAGS.showCustomerFeedbackOnPdp, '');
   const text = typeof value === 'string' ? value : '';
   if (text.trim() === '') return null;
   return (
