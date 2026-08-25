@@ -26,6 +26,31 @@ python darktrainers_simulation.py --records 100
 
 Runs without `--profile` are LD-only (no warehouse). Use `--profile` to select a warehouse-backed run.
 
+## Context modes (`--context-mode`)
+
+Controls which context kinds the simulated journeys create, evaluate flags on, and track metrics against. Applies to every profile and to LD-only runs.
+
+| Mode | Journeys generated | Contexts | Metric events keyed by |
+|------|--------------------|----------|------------------------|
+| `multi` (default) | Guest-only, guest→identified, and identified-from-start | `session`, `user`, and `multi(session+user)` | Session key for guest-only journeys; user key for identified journeys |
+| `user` | Identified-from-start only | `user` only (inside a `multi`) | User key, always |
+
+Use `user` mode when you want clean data for a **user-randomized** experiment:
+
+- Only user journeys are generated — no guest-only/session-only traffic — so every flag evaluation and every metric event lands on a real `user` context. This avoids session keys being emitted under `context_kind='user'`.
+- The population is both **known** users (from [`vip_users.csv`](vip_users.csv) / [`standard_users.csv`](standard_users.csv), stable keys) **and freshly generated** users with unique UUID keys, so the randomization-unit count scales with `--records` and is large enough for experiment results.
+- No metric-table schema change is required.
+
+```bash
+# User-randomized experiment: large user population, user-keyed metrics
+python darktrainers_simulation.py --profile production-bq --context-mode user --records 1000
+
+# Default mixed traffic (session + user), e.g. for a session-randomized experiment
+python darktrainers_simulation.py --profile production-bq --records 300
+```
+
+> Note: the exposure/assignment side of a warehouse-native experiment is supplied by LaunchDarkly's [warehouse Data Export](https://launchdarkly.com/docs/home/warehouse-native/creating), which must be enabled for the flag's environment. The simulation only produces the flag evaluations (exposures via the SDK) and the metric events.
+
 ## Environment variables
 
 Copy [`.env.example`](.env.example) to `.env` (gitignored) and fill in values.
