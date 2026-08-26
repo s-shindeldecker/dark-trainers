@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { init } from '@launchdarkly/node-server-sdk';
+import { Observability } from '@launchdarkly/observability-node';
 import { initAi } from '@launchdarkly/server-sdk-ai';
 import { createChatRouter } from './routes/chat.js';
 import { createCardCreatorRouter } from './routes/card-creator.js';
@@ -27,7 +28,18 @@ export async function createApp() {
   app.use(cors());
   app.use(express.json());
 
-  const ldClient = init(LD_SDK_KEY);
+  // Server-side observability: error monitoring, logging, and tracing sent to
+  // LaunchDarkly. Registered as an SDK plugin so it auto-instruments the app;
+  // tracingOrigins on the client pairs with this for end-to-end traces.
+  // serviceVersion uses the Vercel-provided git SHA when available.
+  const ldClient = init(LD_SDK_KEY, {
+    plugins: [
+      new Observability({
+        serviceName: 'dark-trainers-api',
+        serviceVersion: process.env.VERCEL_GIT_COMMIT_SHA || 'local-dev',
+      }),
+    ],
+  });
 
   try {
     await ldClient.waitForInitialization({ timeout: 10 });
