@@ -1,14 +1,14 @@
+// Must be imported before Express so the Observability plugin's OpenTelemetry
+// auto-instrumentation can patch Express/http as they load. Also loads env.
+// See server/launchdarkly.ts for the full rationale.
+import { ldClient } from './launchdarkly.js';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { init } from '@launchdarkly/node-server-sdk';
 import { initAi } from '@launchdarkly/server-sdk-ai';
 import { createChatRouter } from './routes/chat.js';
 import { createCardCreatorRouter } from './routes/card-creator.js';
 import { createSignupAgentRouter } from './routes/signup-agent.js';
 import { createSimulateRouter } from './routes/simulate.js';
-
-dotenv.config();
 
 /**
  * Builds and returns the configured Express app. Shared by the local dev
@@ -18,16 +18,18 @@ dotenv.config();
  * tolerates a slow/failed LaunchDarkly init (routes fall back gracefully).
  */
 export async function createApp() {
-  const LD_SDK_KEY = process.env.LAUNCHDARKLY_SDK_KEY;
-  if (!LD_SDK_KEY) {
-    throw new Error('LAUNCHDARKLY_SDK_KEY is required. Set it in your environment.');
-  }
-
   const app = express();
   app.use(cors());
   app.use(express.json());
 
-  const ldClient = init(LD_SDK_KEY);
+  // The LD client (with the Observability plugin) is created at import time in
+  // ./launchdarkly.js. It's null only when the SDK key is missing; throw here
+  // (not at import time) so the error flows through the callers' error
+  // handling — a JSON 500 in api/index.ts, or createApp().catch in
+  // server/index.ts — instead of a platform-level module load failure.
+  if (!ldClient) {
+    throw new Error('LAUNCHDARKLY_SDK_KEY is required. Set it in your environment.');
+  }
 
   try {
     await ldClient.waitForInitialization({ timeout: 10 });
