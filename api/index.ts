@@ -1,4 +1,5 @@
 import { createApp } from '../server/app.js';
+import { LDObserve } from '@launchdarkly/observability-node';
 
 // Cache the built app across warm invocations so LaunchDarkly only
 // initializes on cold start, not per request.
@@ -18,13 +19,30 @@ export default async function handler(req: any, res: any) {
       });
     }
     const app = await appPromise;
-    app(req, res);
+
+    // Run the request and wait for the response to finish. On serverless the
+    // isolate can freeze the moment the handler resolves, so we can't fire the
+    // response and return — we must keep the instance alive until the response
+    // is done and (below) telemetry is flushed.
+    await new Promise<void>((resolve) => {
+      res.once('finish', resolve);
+      res.once('close', resolve);
+      app(req, res);
+    });
   } catch (err) {
     console.error('[api] app initialization failed:', err);
     if (!res.headersSent) {
       res.statusCode = 500;
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify({ error: 'Server initialization failed' }));
+    }
+  } finally {
+    // Flush buffered spans/logs/errors before the isolate can freeze. This runs
+    // after the response is already sent, so it adds no client-visible latency.
+    try {
+      await LDObserve.flush();
+    } catch (flushErr) {
+      console.error('[api] observability flush failed:', flushErr);
     }
   }
 }
