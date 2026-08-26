@@ -188,6 +188,13 @@ class ForceWinner:
 # simulation is single-threaded and sequential, matching CONFIG/fake usage.
 FORCE_WINNER: ForceWinner | None = None
 
+# Set from CLI in main(). "multi" (default) = the mixed guest/session + user
+# journeys. "user" = user contexts only (known CSV users plus freshly generated
+# unique-key users), identified-from-start, so every flag evaluation and every
+# metric event is on a real user context. Module-global for the same
+# single-threaded reason as FORCE_WINNER above.
+CONTEXT_MODE: str = "multi"
+
 
 def _record_index(variation_indices, flag_key, variation_index):
     if variation_indices is not None:
@@ -574,6 +581,10 @@ def _multi_context(session_ctx: Context, user_ctx: Context) -> Context:
 
 def _pick_journey_type() -> str:
     """Return 'A' (guest only), 'B' (guest→identified), or 'C' (identified from start)."""
+    if CONTEXT_MODE == "user":
+        # Known-users-only mode: always identified from start so every flag
+        # evaluation and metric event lands on a real user context.
+        return "C"
     r = random.random()
     if r < CONFIG["guest_transition_ratio"]:
         return "B"
@@ -590,6 +601,10 @@ def _pick_user_record():
       - The sentinel "unknown_vip" (new high-value customer, UUID key)
       - A standard CSV row dict (known standard user, stable key)
       - The sentinel "unknown_standard" (new standard customer, UUID key)
+
+    Both context modes use this same mix. In "user" mode the freshly generated
+    (UUID-keyed) users keep the randomization-unit population large enough for
+    experiment results — every record still resolves to a kind:user context.
     """
     if random.random() < CONFIG["vip_ratio"]:
         if VIP_USER_POOL and random.random() < CONFIG["known_vip_ratio"]:
@@ -960,6 +975,16 @@ def main():
         help="Create the metrics table before running (BigQuery, Databricks, or Snowflake)",
     )
     parser.add_argument(
+        "--context-mode",
+        choices=["multi", "user"],
+        default="multi",
+        help="multi (default): mixed guest-only, guest->identified, and identified "
+        "journeys. user: user contexts only (known CSV users plus freshly generated "
+        "unique-key users), identified from start, with flags evaluated and metrics "
+        "tracked on the user context (clean, large population for user-randomized "
+        "experiments; no metric-schema change).",
+    )
+    parser.add_argument(
         "--force-flag",
         default=None,
         help="Force an experiment winner: flag key whose winning arm gets a metric lift",
@@ -978,6 +1003,14 @@ def main():
         "(e.g. 0.12 = +12 percentage points). Must be 0-1.",
     )
     args = parser.parse_args()
+
+    global CONTEXT_MODE
+    CONTEXT_MODE = args.context_mode
+    if CONTEXT_MODE == "user":
+        logger.info(
+            "CONTEXT MODE: user — user contexts only (known + freshly generated), "
+            "identified-from-start; flags evaluated and metrics tracked on the user context."
+        )
 
     force_args = (args.force_flag, args.force_variation, args.force_lift)
     if any(a is not None for a in force_args):
