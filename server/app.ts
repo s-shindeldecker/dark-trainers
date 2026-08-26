@@ -23,7 +23,14 @@ export async function createApp() {
   app.use(express.json());
 
   // The LD client (with the Observability plugin) is created at import time in
-  // ./launchdarkly.js; here we just wait for it to be ready.
+  // ./launchdarkly.js. It's null only when the SDK key is missing; throw here
+  // (not at import time) so the error flows through the callers' error
+  // handling — a JSON 500 in api/index.ts, or createApp().catch in
+  // server/index.ts — instead of a platform-level module load failure.
+  if (!ldClient) {
+    throw new Error('LAUNCHDARKLY_SDK_KEY is required. Set it in your environment.');
+  }
+
   try {
     await ldClient.waitForInitialization({ timeout: 10 });
     console.log('[Server] LaunchDarkly SDK initialized.');

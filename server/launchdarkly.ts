@@ -2,7 +2,7 @@
 // imported first (before Express) everywhere the server is built, so this is
 // the earliest point env is needed.
 import 'dotenv/config';
-import { init } from '@launchdarkly/node-server-sdk';
+import { init, type LDClient } from '@launchdarkly/node-server-sdk';
 import { Observability } from '@launchdarkly/observability-node';
 
 /**
@@ -18,19 +18,24 @@ import { Observability } from '@launchdarkly/observability-node';
  * https://launchdarkly.com/docs/sdk/observability/node-js
  *
  * Consumers must import this module before importing Express (see server/app.ts).
+ *
+ * Note: we deliberately do NOT throw here when the SDK key is missing. Throwing
+ * at module-load time would happen before the try/catch in api/index.ts (and
+ * before createApp().catch in server/index.ts), turning a controlled 500 into a
+ * platform-level module load error. Instead we export `null` and let
+ * createApp() raise a caught error. See server/app.ts.
  */
 const LD_SDK_KEY = process.env.LAUNCHDARKLY_SDK_KEY;
-if (!LD_SDK_KEY) {
-  throw new Error('LAUNCHDARKLY_SDK_KEY is required. Set it in your environment.');
-}
 
-export const ldClient = init(LD_SDK_KEY, {
-  plugins: [
-    new Observability({
-      serviceName: 'dark-trainers-api',
-      // Recommended: the latest deployed git SHA. Vercel provides this at build
-      // and runtime; falls back to a local-dev marker off-platform.
-      serviceVersion: process.env.VERCEL_GIT_COMMIT_SHA || 'local-dev',
-    }),
-  ],
-});
+export const ldClient: LDClient | null = LD_SDK_KEY
+  ? init(LD_SDK_KEY, {
+      plugins: [
+        new Observability({
+          serviceName: 'dark-trainers-api',
+          // Recommended: the latest deployed git SHA. Vercel provides this at
+          // build and runtime; falls back to a local-dev marker off-platform.
+          serviceVersion: process.env.VERCEL_GIT_COMMIT_SHA || 'local-dev',
+        }),
+      ],
+    })
+  : null;
