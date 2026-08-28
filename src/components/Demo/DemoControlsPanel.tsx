@@ -5,6 +5,8 @@ import { useUser } from '../../context/UserContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { useExposureLog } from '../../context/ExposureLog';
 import { LD_FLAGS } from '../../lib/ldFlagKeys';
+import { STANDARD_ROSTER, VIP_ROSTER } from '../../types/darktrainers';
+import { generateRandomStandardUser, generateRandomVipUser } from '../../lib/generateRandomUser';
 import { MemberBadge } from '../Member/MemberBadge';
 
 const Panel = styled.aside<{ $liftForChat: boolean }>`
@@ -47,6 +49,12 @@ const Hint = styled.p`
   font-size: 0.7rem;
   line-height: 1.35;
   color: #666;
+`;
+
+const RosterSection = styled.div`
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #2a2a2a;
 `;
 
 const SessionRow = styled.div`
@@ -158,8 +166,16 @@ type Persona = 'guest' | 'standard' | 'vip';
 
 export function DemoControlsPanel() {
   const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
-  const { user, sessionKey, newSession, resetToGuest, setIdentifiedStandard, setIdentifiedVip } =
-    useUser();
+  const {
+    user,
+    sessionKey,
+    newSession,
+    resetToGuest,
+    setIdentifiedStandard,
+    setIdentifiedVip,
+    setRandomStandard,
+    setRandomVip,
+  } = useUser();
   const { exposures, clear } = useExposureLog();
   const [exposuresOpen, setExposuresOpen] = useState(false);
 
@@ -171,6 +187,19 @@ export function DemoControlsPanel() {
     else if (v === 'standard') setIdentifiedStandard();
     else setIdentifiedVip();
   };
+
+  // Roster of fixed, STABLE-key users. The About layout experiment randomizes on
+  // the user context, so switching between these durable keys is how you show
+  // (a) different users bucketing differently and (b) the same user returning to
+  // the same layout across a New Session. See STANDARD_ROSTER / VIP_ROSTER.
+  const onRosterChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const key = e.target.value;
+    const std = STANDARD_ROSTER.find((u) => u.key === key);
+    if (std) return setRandomStandard(std);
+    const vip = VIP_ROSTER.find((u) => u.key === key);
+    if (vip) return setRandomVip(vip);
+  };
+  const rosterValue = user.anonymous ? '' : user.key;
 
   return (
     <Box sx={{ display: { xs: 'none', md: 'block' } }}>
@@ -188,6 +217,42 @@ export function DemoControlsPanel() {
           Guest: LD uses a session context only (new session key on reset). Standard/VIP: multi(session + user) with the same session key for attribution. Add to
           cart or Join VIP from Guest identifies with multi.
         </Hint>
+        <RosterSection>
+          <Label style={{ marginBottom: '0.35rem' }}>Experiment user (durable key)</Label>
+          <Row style={{ marginBottom: '0.35rem' }}>
+            <Select value={rosterValue} onChange={onRosterChange} aria-label="Experiment user">
+              <option value="" disabled>
+                {user.anonymous ? 'Guest — no user context' : 'Select a user…'}
+              </option>
+              <optgroup label="Standard">
+                {STANDARD_ROSTER.map((u) => (
+                  <option key={u.key} value={u.key}>
+                    {u.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="VIP">
+                {VIP_ROSTER.map((u) => (
+                  <option key={u.key} value={u.key}>
+                    {u.name}
+                  </option>
+                ))}
+              </optgroup>
+            </Select>
+          </Row>
+          <Row style={{ marginBottom: 0 }}>
+            <NewSessionButton type="button" onClick={() => setRandomStandard(generateRandomStandardUser())}>
+              + Random Standard
+            </NewSessionButton>
+            <NewSessionButton type="button" onClick={() => setRandomVip(generateRandomVipUser())}>
+              + Random VIP
+            </NewSessionButton>
+          </Row>
+          <Hint>
+            Same key → same <code>about-layout-default</code> variation, even after New session. Different users can bucket differently. Random spawns a fresh key
+            (new bucket).
+          </Hint>
+        </RosterSection>
         <SessionRow>
           <span>
             Session: <SessionId>{sessionKey.slice(0, 8)}</SessionId>

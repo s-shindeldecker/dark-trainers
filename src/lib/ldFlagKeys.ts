@@ -38,6 +38,14 @@ export const LD_FLAGS = {
    * user reaches an Apex Low PDP — see ApexFeedbackNote in src/pages/ProductDetail.tsx.
    */
   showCustomerFeedbackOnPdp: 'show-customer-feedback-on-pdp',
+  /**
+   * String flag: assigned default layout for the About page (Alterra 2D/3D map
+   * preference analog). 'classic' | 'immersive'. Seeds the initial activeLayout
+   * on page load ONLY — the on-page toggle changes activeLayout freely after
+   * that, so the flag (assignment) and activeLayout (observed state) stay two
+   * separate concepts. Randomized on the `user` context (user-id = visitor id).
+   */
+  aboutLayoutDefault: 'about-layout-default',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {

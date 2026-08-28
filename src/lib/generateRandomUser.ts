@@ -30,6 +30,10 @@ const US_STATES = ['CA', 'NY', 'TX', 'FL', 'IL', 'WA', 'CO', 'GA', 'MA', 'AZ'];
 
 const CATEGORIES: ProductCategory[] = ['running', 'basketball', 'lifestyle', 'training'];
 
+// Illustrative only — mirror context attributes Alterra has not yet wired.
+const RESORTS = ['a-basin', 'steamboat'];
+const DEVICES = ['desktop', 'mobile', 'tablet'];
+
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
@@ -77,6 +81,8 @@ export function generateRandomStandardUser(): IdentifiedUserProfile {
     lifetimeSpend: randomSpend(40, 520),
     preferredCategory: pick(CATEGORIES),
     earlyAccessEnabled: false,
+    resort: pick(RESORTS), // illustrative
+    device: pick(DEVICES), // illustrative
   };
 }
 
@@ -94,5 +100,7 @@ export function generateRandomVipUser(): IdentifiedUserProfile {
     lifetimeSpend: randomSpend(800, 4500),
     preferredCategory: pick(CATEGORIES),
     earlyAccessEnabled: true,
+    resort: pick(RESORTS), // illustrative
+    device: pick(DEVICES), // illustrative
   };
 }

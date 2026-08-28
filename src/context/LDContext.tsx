@@ -41,6 +41,8 @@ function identifiedLdFields(profile: {
   lifetimeSpend: number;
   preferredCategory: string;
   earlyAccessEnabled: boolean;
+  resort?: string;
+  device?: string;
 }) {
   return {
     kind: 'user' as const,
@@ -54,6 +56,11 @@ function identifiedLdFields(profile: {
     lifetimeSpend: profile.lifetimeSpend,
     preferredCategory: profile.preferredCategory,
     earlyAccessEnabled: profile.earlyAccessEnabled,
+    // Illustrative only — mirrors a context attribute Alterra has not yet wired.
+    // Present so the About layout experiment can later slice diagnostics by
+    // resort/device. Omitted from the context when a profile doesn't carry them.
+    ...(profile.resort ? { resort: profile.resort } : {}),
+    ...(profile.device ? { device: profile.device } : {}),
     anonymous: false,
   };
 }
