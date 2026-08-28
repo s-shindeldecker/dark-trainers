@@ -196,13 +196,23 @@ const Spacer = styled.div`
   height: 1px;
 `;
 
-const ABOUT_MASCOT = '/images/about-mascot.webp';
-const ABOUT_CHICAGO = '/images/about-chicago.webp';
+// Two image slots (hero + story) reused by both layouts. The set is chosen by
+// the `about-seasonal-images` flag: 'Summer' = current images, 'Winter' = the
+// snowboarding + ski-lodge shots.
+type ImageSet = { hero: string; story: string };
+type Season = 'Summer' | 'Winter';
 
-function ClassicLayout() {
+const coerceSeason = (v: unknown): Season => (v === 'Winter' ? 'Winter' : 'Summer');
+
+const SEASONAL_IMAGES: Record<Season, ImageSet> = {
+  Summer: { hero: '/images/about-mascot.webp', story: '/images/about-chicago.webp' },
+  Winter: { hero: '/images/about-mascot-winter.webp', story: '/images/about-lodge-winter.webp' },
+};
+
+function ClassicLayout({ images }: { images: ImageSet }) {
   return (
     <>
-      <HeroMascot src={ABOUT_MASCOT} alt="" />
+      <HeroMascot src={images.hero} alt="" />
       <AboutContainer>
         <AboutTitle className="font-display">The Drop Philosophy</AboutTitle>
         <p>
@@ -211,7 +221,7 @@ function ClassicLayout() {
           product speak.
         </p>
         <StoryGrid>
-          <ChicagoImage src={ABOUT_CHICAGO} alt="" />
+          <ChicagoImage src={images.story} alt="" />
           <StoryCopy>
             <p>
               Drops are intentionally scarce. VIP members get early access and member pricing because they commit to
@@ -243,10 +253,10 @@ function ClassicLayout() {
   );
 }
 
-function ImmersiveLayout() {
+function ImmersiveLayout({ images }: { images: ImageSet }) {
   return (
     <Stage>
-      <ParallaxPanel $img={ABOUT_MASCOT}>
+      <ParallaxPanel $img={images.hero}>
         <FloatCard>
           <ImmersiveTitle className="font-display">The Drop Philosophy</ImmersiveTitle>
           <p>
@@ -256,7 +266,7 @@ function ImmersiveLayout() {
         </FloatCard>
       </ParallaxPanel>
       <Spacer />
-      <ParallaxPanel $img={ABOUT_CHICAGO}>
+      <ParallaxPanel $img={images.story}>
         <FloatCard>
           <p style={{ marginTop: 0 }}>
             Drops are intentionally scarce. VIP members get early access and member pricing because they commit to the
@@ -292,6 +302,12 @@ const AboutUs = () => {
   // Bumps whenever the LD context changes (identify / roster switch). Used to
   // detect a genuine new visitor mid-visit and re-seed for them.
   const contextVersion = useContextVersion();
+
+  // Seasonal image set — live, non-eventing read so a flag toggle swaps the
+  // hero/story images in real time (the seasonal-update story). Independent of
+  // the layout experiment above; both layouts use whichever set is served.
+  const { value: season } = useFeatureFlag(LD_FLAGS.aboutSeasonalImages, 'Summer');
+  const images = SEASONAL_IMAGES[coerceSeason(season)];
 
   // OBSERVED state: what the visitor is currently looking at. `null` until the
   // flag resolves so we never count pre-assignment time.
@@ -443,9 +459,9 @@ const AboutUs = () => {
       </ControlBar>
 
       {activeLayout === 'immersive' ? (
-        <ImmersiveLayout />
+        <ImmersiveLayout images={images} />
       ) : activeLayout === 'classic' ? (
-        <ClassicLayout />
+        <ClassicLayout images={images} />
       ) : (
         // Not seeded yet (flag still resolving) — hold vertical space without
         // committing to a layout, so an immersive-assigned visitor never sees a

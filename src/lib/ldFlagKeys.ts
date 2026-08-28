@@ -46,6 +46,13 @@ export const LD_FLAGS = {
    * separate concepts. Randomized on the `user` context (user-id = visitor id).
    */
   aboutLayoutDefault: 'about-layout-default',
+  /**
+   * String flag: seasonal image set for the About page. 'Summer' (current
+   * images) | 'Winter' (snowboarding + ski-lodge). Read live + non-eventing so a
+   * toggle swaps the hero/story images in real time. Independent of the layout
+   * experiment (about-layout-default). OFF serves Summer (safe current default).
+   */
+  aboutSeasonalImages: 'about-seasonal-images',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
