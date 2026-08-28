@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { useFlagExposure } from '../context/ExposureLog';
+import { useContextVersion } from '../context/ContextVersion';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
 import { initDatadogRum, tagFeatureFlag } from '../lib/datadogRum';
 
@@ -69,6 +70,12 @@ const SegBtn = styled.button<{ $active: boolean }>`
   &:hover {
     color: ${({ $active }) => ($active ? '#0a0a0a' : '#f5f5f5')};
   }
+`;
+
+// Neutral spacer shown before the flag resolves — avoids a flash of the wrong
+// layout and a layout-shift jump when the real content mounts.
+const LayoutPlaceholder = styled.div`
+  min-height: 60vh;
 `;
 
 const StatusLine = styled.div`
@@ -282,6 +289,9 @@ const AboutUs = () => {
   // Record the experiment exposure once, here at the decision point (arriving at
   // the About page). Value is unused — rendering reads `assigned`/`activeLayout`.
   useFlagExposure(LD_FLAGS.aboutLayoutDefault, 'classic');
+  // Bumps whenever the LD context changes (identify / roster switch). Used to
+  // detect a genuine new visitor mid-visit and re-seed for them.
+  const contextVersion = useContextVersion();
 
   // OBSERVED state: what the visitor is currently looking at. `null` until the
   // flag resolves so we never count pre-assignment time.
@@ -298,7 +308,13 @@ const AboutUs = () => {
   // listener always read current values without stale closures.
   const activeLayoutRef = useRef<Layout | null>(null);
   const layoutStartRef = useRef<number | null>(null);
-  const seededRef = useRef(false);
+  // The context KEY we last seeded against (user key when identified, session
+  // key when anonymous) — `null` until first seed. We key on the actual context
+  // key, not a boolean or the contextVersion counter, so that a genuine new
+  // visitor (roster switch / guest→identified) re-seeds, while the redundant
+  // initial identify of the SAME context (which also bumps contextVersion) does
+  // not. A live flag-value change never re-seeds either.
+  const seededKeyRef = useRef<string | null>(null);
   const exitFiredRef = useRef(false);
 
   const flushTime = useCallback(
@@ -312,26 +328,11 @@ const AboutUs = () => {
     [ldClient],
   );
 
-  // Seed activeLayout from the assignment exactly once, and start the timer at
-  // the moment the layout is actually known. Also the flag-read site for the
-  // Datadog "Branch A" tag (no-op unless Datadog is configured).
-  useEffect(() => {
-    if (isLoading || seededRef.current) return;
-    const seed = coerceLayout(assigned);
-    seededRef.current = true;
-    activeLayoutRef.current = seed;
-    layoutStartRef.current = Date.now();
-    setActiveLayout(seed);
-    setExposedLayout(seed); // frozen — this is what the visitor was exposed to
-
-    initDatadogRum();
-    tagFeatureFlag(LD_FLAGS.aboutLayoutDefault, seed);
-  }, [isLoading, assigned]);
-
   // Shared exit handler: fire the PRIMARY final-state event once per visit and
   // flush the final layout's time. Unmount and pagehide are mutually exclusive
   // (cleanup removes the listener before it could also fire), and exitFiredRef
-  // guards against any double-invoke, so this runs exactly once.
+  // guards against any double-invoke, so this runs exactly once per visit. A
+  // mid-visit context switch also calls this to close out the previous visit.
   const endVisit = useCallback(() => {
     if (exitFiredRef.current) return;
     const layout = activeLayoutRef.current;
@@ -340,6 +341,43 @@ const AboutUs = () => {
     flushTime(layout, layoutStartRef.current);
     ldClient?.track('about_layout_final', { layout });
   }, [ldClient, flushTime]);
+
+  // Seed activeLayout from the assignment for the CURRENT context, and start the
+  // timer when the layout is known. Re-seeds when the context key changes (a new
+  // visitor mid-visit — e.g. a roster switch — which useFlagExposure also treats
+  // as a fresh exposure), closing out the prior visit first. Never re-seeds on a
+  // live flag flip: that must not re-expose or re-assign this visitor. Also the
+  // flag-read site for the Datadog "Branch A" tag (no-op unless configured).
+  useEffect(() => {
+    if (isLoading) return;
+    const ctx = ldClient?.getContext?.() as
+      | { kind?: string; key?: string; user?: { key?: string } }
+      | undefined;
+    const key = ctx ? (ctx.kind === 'multi' ? ctx.user?.key : ctx.key) : undefined;
+    if (!key) return;
+    if (seededKeyRef.current === key) return; // same visitor → don't re-seed
+
+    // Read non-eventing and straight from the client so a re-seed uses the NEW
+    // context's assignment even if `assigned` state hasn't caught up yet.
+    const live = ldClient?.allFlags?.()?.[LD_FLAGS.aboutLayoutDefault];
+    const seed = coerceLayout(live ?? assigned);
+
+    if (seededKeyRef.current !== null) {
+      // Context switched while still mounted: close out the previous visit (its
+      // final + time) before starting the new one, then re-arm the exit guard.
+      endVisit();
+      exitFiredRef.current = false;
+    }
+    seededKeyRef.current = key;
+    activeLayoutRef.current = seed;
+    layoutStartRef.current = Date.now();
+    setActiveLayout(seed);
+    setExposedLayout(seed); // frozen — what the visitor was exposed to this visit
+    setToggleCount(0); // fresh visit — the toggle diagnostic starts over
+
+    initDatadogRum();
+    tagFeatureFlag(LD_FLAGS.aboutLayoutDefault, seed);
+  }, [isLoading, assigned, contextVersion, endVisit, ldClient]);
 
   useEffect(() => {
     // pagehide covers tab close / refresh / external navigation. Preferred over
@@ -404,7 +442,16 @@ const AboutUs = () => {
         </StatusLine>
       </ControlBar>
 
-      {activeLayout === 'immersive' ? <ImmersiveLayout /> : <ClassicLayout />}
+      {activeLayout === 'immersive' ? (
+        <ImmersiveLayout />
+      ) : activeLayout === 'classic' ? (
+        <ClassicLayout />
+      ) : (
+        // Not seeded yet (flag still resolving) — hold vertical space without
+        // committing to a layout, so an immersive-assigned visitor never sees a
+        // flash of Classic before the swap. Resolves within a frame or two.
+        <LayoutPlaceholder aria-hidden />
+      )}
     </Page>
   );
 };
