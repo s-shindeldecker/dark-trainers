@@ -8,6 +8,7 @@ import Observability from '@launchdarkly/observability';
 import SessionReplay from '@launchdarkly/session-replay';
 import { isIdentifiedUser } from '../types/darktrainers';
 import { pushToDataLayer } from '../lib/gtmStub';
+import { tagFeatureFlag } from '../lib/datadogRum';
 
 /**
  * SDK Inspector that mirrors every flag evaluation to the GTM dataLayer.
@@ -27,6 +28,19 @@ const gtmDataLayerInspector: LDInspectionFlagUsedHandler = {
       reason: flagDetail.reason?.kind,
       inExperiment: flagDetail.reason?.inExperiment ?? false,
     });
+  },
+};
+
+/**
+ * Mirror every flag evaluation to Datadog RUM ("Branch A" feature-flag tagging).
+ * tagFeatureFlag is a no-op until Datadog RUM is initialized (i.e. until the
+ * VITE_DATADOG_* env vars are present), so this is inert otherwise.
+ */
+const datadogFlagInspector: LDInspectionFlagUsedHandler = {
+  type: 'flag-used',
+  name: 'datadog-rum-flag-inspector',
+  method: (flagKey, flagDetail) => {
+    tagFeatureFlag(flagKey, flagDetail.value);
   },
 };
 
@@ -95,7 +109,7 @@ export const LDContextProvider = ({ children }: LDContextProps) => {
       options={{
         streaming: true,
         evaluationReasons: true,
-        inspectors: [gtmDataLayerInspector],
+        inspectors: [gtmDataLayerInspector, datadogFlagInspector],
         plugins: [
           new Observability({ tracingOrigins: true, networkRecording: { enabled: true } }),
           new SessionReplay({ privacySetting: 'strict' }),

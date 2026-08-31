@@ -21,6 +21,7 @@ const clientToken = import.meta.env.VITE_DATADOG_CLIENT_TOKEN as string | undefi
 const site = (import.meta.env.VITE_DATADOG_SITE as string | undefined) || 'datadoghq.com';
 const service = (import.meta.env.VITE_DATADOG_SERVICE as string | undefined) || 'darktrainers-web';
 const ddEnv = (import.meta.env.VITE_DATADOG_ENV as string | undefined) || 'demo';
+const version = import.meta.env.VITE_DATADOG_VERSION as string | undefined; // optional; tags RUM data with an app version
 
 let initialized = false;
 
@@ -43,7 +44,11 @@ export function initDatadogRum(): void {
       site,
       service,
       env: ddEnv,
+      ...(version ? { version } : {}),
       sessionSampleRate: 100,
+      // Kept at 0 on purpose: LaunchDarkly's Session Replay plugin already records
+      // sessions (see LDContext.tsx). Running Datadog's replayer too would double
+      // the recording overhead. Raise this only if you also disable LD's replay.
       sessionReplaySampleRate: 0,
       trackUserInteractions: true,
       trackResources: true,
