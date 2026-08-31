@@ -5,7 +5,6 @@ import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { useFlagExposure } from '../context/ExposureLog';
 import { useContextVersion } from '../context/ContextVersion';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
-import { initDatadogRum, tagFeatureFlag } from '../lib/datadogRum';
 
 /**
  * About page — Layout Preference experiment (Alterra 2D/3D map preference analog).
@@ -390,9 +389,8 @@ const AboutUs = () => {
     setActiveLayout(seed);
     setExposedLayout(seed); // frozen — what the visitor was exposed to this visit
     setToggleCount(0); // fresh visit — the toggle diagnostic starts over
-
-    initDatadogRum();
-    tagFeatureFlag(LD_FLAGS.aboutLayoutDefault, seed);
+    // Datadog RUM is initialized at app startup (main.tsx) and every flag eval is
+    // tagged globally via the LD inspector (LDContext.tsx) — nothing to do here.
   }, [isLoading, assigned, contextVersion, endVisit, ldClient]);
 
   useEffect(() => {
