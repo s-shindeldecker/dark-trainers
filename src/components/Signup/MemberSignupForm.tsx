@@ -132,13 +132,13 @@ export const MemberSignupForm = () => {
     }
     setError('');
 
-    // Conversion event for the experiment — routed through the shared hook so it
-    // honors the track-conversions-via-gtm routing flag (no double-counting).
-    trackConversion('member_signup');
-
-    // Unknown → known: turn the guest into a Standard member. Already-identified
-    // users keep their tier (this flow never upgrades anyone to VIP).
+    // Only a guest becoming a member is a real conversion: fire the event (routed
+    // through the shared hook so it honors track-conversions-via-gtm) and do the
+    // unknown → known transition. An already-identified user (who can still reach
+    // /signup via the hero CTA or other links) just gets a confirmation — no event,
+    // no tier change — so the member_signup experiment metric isn't inflated.
     if (isAnonymousGuest) {
+      trackConversion('member_signup');
       transitionGuestToStandard();
     }
 
