@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import styled from '@emotion/styled';
 import { Link } from 'react-router-dom';
+import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useUser } from '../../context/UserContext';
 import { useTrackConversion } from '../../hooks/useTrackConversion';
 import { isIdentifiedUser } from '../../types/darktrainers';
@@ -115,6 +116,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const MemberSignupForm = () => {
   const { user, isAnonymousGuest, transitionGuestToStandard } = useUser();
   const { trackConversion } = useTrackConversion();
+  const ldClient = useLDClient();
 
   // Prefilled with the Standard demo persona (Jordan Mitchell) so a signup can be
   // triggered in one click during demos, and the confirmation/logged-in identity
@@ -142,6 +144,10 @@ export const MemberSignupForm = () => {
     // no tier change — so the member_signup experiment metric isn't inflated.
     if (isAnonymousGuest) {
       trackConversion('member_signup');
+      // Flush immediately so the event isn't lost if the user reloads right after
+      // (e.g. the demo "New session" button). Fire-and-forget; no-op in GTM mode
+      // where the event is queued asynchronously by the container instead.
+      void ldClient?.flush();
       transitionGuestToStandard();
     }
 
