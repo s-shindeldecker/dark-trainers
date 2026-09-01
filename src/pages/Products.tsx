@@ -92,9 +92,9 @@ export default function Products() {
         ))}
       </Grid>
       <Banner>
-        <p style={{ margin: '0 0 0.75rem', color: '#d4d4d4' }}>Not sure which silhouette fits your rotation?</p>
+        <p style={{ margin: '0 0 0.75rem', color: '#d4d4d4' }}>Want early access to new drops and member-only offers?</p>
         <Link to="/signup" style={{ fontWeight: 700 }}>
-          Talk VIP signup with our assistant
+          Become a member
         </Link>
       </Banner>
     </PageContainer>

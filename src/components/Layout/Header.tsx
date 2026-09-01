@@ -301,17 +301,10 @@ export function Header({
             </NavLink>
           )}
           {isIdentified && isIdentifiedUser(user) && <MemberBadge tier={user.memberTier} />}
-          {(!isIdentifiedUser(user) || user.memberTier !== 'vip') && (
+          {/* Signup → member signup page. Guests only (already-known users are members). */}
+          {!isIdentifiedUser(user) && showSignup && (
             <NavLink>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onJoinVip();
-                }}
-              >
-                Join VIP
-              </a>
+              <Link to="/signup">Signup</Link>
             </NavLink>
           )}
           <NavLink>
@@ -333,7 +326,8 @@ export function Header({
               </a>
             </NavLink>
           )}
-          {showSignup && (
+          {/* Join VIP → paid VIP upgrade modal. Shown to guests + standard members, not VIPs. */}
+          {(!isIdentifiedUser(user) || user.memberTier !== 'vip') && (
             <NavLink>
               <a
                 href="#"
@@ -343,7 +337,7 @@ export function Header({
                 }}
                 style={{ color: '#c8f000', fontWeight: 700 }}
               >
-                VIP signup
+                Join VIP
               </a>
             </NavLink>
           )}
@@ -431,15 +425,15 @@ export function Header({
             </ListItemButton>
           )}
 
-          {(!isIdentifiedUser(user) || user.memberTier !== 'vip') && (
-            <ListItemButton onClick={() => runAction(onJoinVip)} sx={drawerItemSx}>
-              <ListItemText primary="Join VIP" />
+          {!isIdentifiedUser(user) && showSignup && (
+            <ListItemButton component={Link} to="/signup" onClick={closeDrawer} sx={drawerItemSx}>
+              <ListItemText primary="Signup" />
             </ListItemButton>
           )}
 
-          {showSignup && (
+          {(!isIdentifiedUser(user) || user.memberTier !== 'vip') && (
             <ListItemButton onClick={() => runAction(onJoinVip)} sx={drawerVipSignupSx}>
-              <ListItemText primary="VIP signup" />
+              <ListItemText primary="Join VIP" />
             </ListItemButton>
           )}
 
