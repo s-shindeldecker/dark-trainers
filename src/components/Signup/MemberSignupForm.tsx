@@ -116,8 +116,11 @@ export const MemberSignupForm = () => {
   const { user, isAnonymousGuest, transitionGuestToStandard } = useUser();
   const { trackConversion } = useTrackConversion();
 
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  // Prefilled with the Standard demo persona (Jordan Mitchell) so a signup can be
+  // triggered in one click during demos, and the confirmation/logged-in identity
+  // stay consistent with the STANDARD_DEMO_USER a guest becomes. Fields stay editable.
+  const [email, setEmail] = useState('jordan@example.com');
+  const [name, setName] = useState('Jordan');
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
