@@ -1,84 +1,87 @@
 import styled from '@emotion/styled';
-import { Link } from 'react-router-dom';
-import { SignupAgent } from '../components/Signup/SignupAgent';
+import { MemberSignupForm } from '../components/Signup/MemberSignupForm';
 
-const Page = styled.div`
-  min-height: 100vh;
-  background: #0d0d0d;
-  display: flex;
-  flex-direction: column;
+const VOLT = '#c8f000';
+
+const PageWrap = styled.div`
+  max-width: 1000px;
+  margin: 2.5rem auto;
+  padding: 0 clamp(1.25rem, 5vw, 2.5rem) 3rem;
 `;
 
-const TopBar = styled.div`
-  background: #111;
-  padding: 1rem 1.5rem;
-  display: flex;
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(1.75rem, 5vw, 3.5rem);
   align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #2a2a2a;
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
 `;
 
-const LogoLink = styled(Link)`
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  gap: 0.35rem;
+const Intro = styled.div``;
+
+const Eyebrow = styled.p`
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: ${VOLT};
 `;
 
-const LogoText = styled.span`
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
-  letter-spacing: 0.06em;
+const Title = styled.h1`
+  margin: 0 0 0.85rem;
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+  line-height: 1.02;
   color: #f5f5f5;
 `;
 
-const Volt = styled.span`
-  color: #c8f000;
-`;
-
-const HeroSection = styled.div`
-  background: linear-gradient(180deg, #111 0%, #0d0d0d 100%);
-  color: #fff;
-  text-align: center;
-  padding: 2.5rem 1.5rem 1.5rem;
-`;
-
-const HeroTitle = styled.h1`
-  font-size: 2rem;
-  margin: 0 0 0.35rem;
-`;
-
-const HeroSubtitle = styled.p`
-  font-size: 1rem;
+const Lead = styled.p`
+  margin: 0 0 1.75rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
   color: #a3a3a3;
-  max-width: 520px;
-  margin: 0 auto;
+  max-width: 34ch;
 `;
 
-const AgentContainer = styled.div`
-  flex: 1;
-  padding: 1.5rem 1rem 2.5rem;
+const Perks = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const Perk = styled.li`
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: #d4d4d4;
+  &::before {
+    content: '✓ ';
+    color: ${VOLT};
+    font-weight: bold;
+  }
 `;
 
 const Signup = () => (
-  <Page>
-    <TopBar>
-      <LogoLink to="/">
-        <LogoText>
-          DARK<Volt>TRAINERS</Volt>
-        </LogoText>
-      </LogoLink>
-    </TopBar>
-    <HeroSection>
-      <HeroTitle className="font-display">VIP membership</HeroTitle>
-      <HeroSubtitle>
-        Our assistant walks through early access, member pricing, and whether VIP fits how you buy sneakers.
-      </HeroSubtitle>
-    </HeroSection>
-    <AgentContainer>
-      <SignupAgent />
-    </AgentContainer>
-  </Page>
+  <PageWrap>
+    <Grid>
+      <Intro>
+        <Eyebrow>DarkTrainers Membership</Eyebrow>
+        <Title className="font-display">Become a member</Title>
+        <Lead>
+          Create a free account to get early access to new drops and offers tailored to you. Takes
+          about ten seconds — no card required.
+        </Lead>
+        <Perks>
+          <Perk>Early access windows and a heads-up on new drops</Perk>
+          <Perk>A saved profile for faster checkout and order history</Perk>
+          <Perk>Member-only offers — and the option to upgrade to VIP for member pricing</Perk>
+        </Perks>
+      </Intro>
+      <MemberSignupForm />
+    </Grid>
+  </PageWrap>
 );
 
 export default Signup;
