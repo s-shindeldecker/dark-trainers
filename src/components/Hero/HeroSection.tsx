@@ -1,12 +1,17 @@
 import styled from '@emotion/styled';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HeroSkeleton } from './HeroSkeleton';
 import { useIsIdentifying } from '../../context/ContextVersion';
 import { useVipModal } from '../../context/VipModalContext';
+import { useLDClient } from 'launchdarkly-react-client-sdk';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { resolveHeroContent, type HeroContent } from '../../lib/heroContent';
 
 const VOLT = '#c8f000';
+const STATIC_HERO_IMAGE = '/images/hero-shoes.webp';
 
-const HeroContainer = styled.section`
+const HeroContainer = styled.section<{ $bg: string }>`
   position: relative;
   width: 100%;
   min-height: 560px;
@@ -16,7 +21,7 @@ const HeroContainer = styled.section`
   justify-content: center;
   isolation: isolate;
   background-color: #0d0d0d;
-  background-image: url('/images/hero-shoes.webp');
+  background-image: url('${(props) => props.$bg}');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -138,13 +143,75 @@ const CtaGhostButton = styled.button`
 export const HeroSection = () => {
   const isIdentifying = useIsIdentifying();
   const { openVipModal } = useVipModal();
+  const ldClient = useLDClient();
+  const { value: variation, isLoading: flagLoading } = useFeatureFlag(
+    'hero-content-experiment',
+    'control',
+  );
 
-  if (isIdentifying) {
+  // Hero CTA click-through, tagged with the served variation so it's attributable
+  // per variation. Matches the existing banner_click / add_to_cart track() convention.
+  const trackCtaClick = (ctaText: string, ctaUrl: string) => {
+    ldClient?.track('hero_cta_click', {
+      variation,
+      cta_text: ctaText,
+      cta_url: ctaUrl,
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  // Resolved Contentful content tagged with the variation it belongs to. `content`
+  // is HeroContent when Contentful resolved, or null to render the static fallback.
+  const [resolved, setResolved] = useState<{ variation: string; content: HeroContent | null } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (flagLoading) return;
+    let cancelled = false;
+    resolveHeroContent(variation).then((content) => {
+      if (!cancelled) setResolved({ variation, content });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [variation, flagLoading]);
+
+  // The loading state must cover BOTH async steps (flag eval + Contentful fetch).
+  // Gating on resolved.variation === variation means a flag change re-shows the
+  // skeleton in the same render, so there's no flash of stale/default content.
+  const ready = !isIdentifying && !flagLoading && resolved?.variation === variation;
+  if (!ready) {
     return <HeroSkeleton />;
   }
 
+  const content = resolved!.content;
+
+  // Contentful-driven Hero (control / benefit-led / drive-vip-signup entry).
+  if (content) {
+    return (
+      <HeroContainer $bg={content.backgroundImage || STATIC_HERO_IMAGE} aria-labelledby="hero-heading">
+        <Inner>
+          <div>
+            <Title id="hero-heading" className="font-display">
+              {content.headline}
+            </Title>
+            <TitleUnderline aria-hidden />
+          </div>
+          <Sub>{content.subhead}</Sub>
+          <CtaRow>
+            <Cta to={content.ctaUrl} onClick={() => trackCtaClick(content.ctaText, content.ctaUrl)}>
+              {content.ctaText}
+            </Cta>
+          </CtaRow>
+        </Inner>
+      </HeroContainer>
+    );
+  }
+
+  // Static fallback — used when Contentful is unavailable or has no matching entry.
   return (
-    <HeroContainer aria-labelledby="hero-heading">
+    <HeroContainer $bg={STATIC_HERO_IMAGE} aria-labelledby="hero-heading">
       <Inner>
         <div>
           <Title id="hero-heading" className="font-display">
@@ -154,7 +221,9 @@ export const HeroSection = () => {
         </div>
         <Sub>Premium limited releases. VIP gets early access and member pricing.</Sub>
         <CtaRow>
-          <Cta to="/products">Shop drops</Cta>
+          <Cta to="/products" onClick={() => trackCtaClick('Shop drops', '/products')}>
+            Shop drops
+          </Cta>
           <CtaGhostButton type="button" onClick={() => openVipModal()}>
             Join VIP
           </CtaGhostButton>
