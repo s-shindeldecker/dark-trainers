@@ -220,7 +220,7 @@ const TIPS = [
 ];
 
 const EXAMPLE_PROMPT =
-  'A mischievous electric fox named Voltail with cracked-glass fur that hurls lightning bolts and can vanish in a burst of static.';
+  'A blue and green striped bumblebee doing an "I see what you did there" smirk. Its name is AaaBee, and it attacks with Painful Pun and Sarcastic Sting.';
 
 /** Price for a custom Togglemon card added to the cart. */
 const CUSTOM_CARD_PRICE = 12.99;
