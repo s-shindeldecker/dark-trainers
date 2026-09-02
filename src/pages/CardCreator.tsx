@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { toPng } from 'html-to-image';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -228,6 +229,87 @@ const CUSTOM_CARD_PRICE = 12.99;
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'togglemon';
 
+// Rotating captions shown while a card is being generated (text + art).
+const GEN_MESSAGES = [
+  'Summoning your Togglemon…',
+  'Rolling for rarity…',
+  'Mixing the holo foil…',
+  'Sharpening the signature moves…',
+  'Balancing HP and weaknesses…',
+  'Developing the artwork…',
+  'Almost there — adding a little sparkle…',
+];
+
+const shimmer = keyframes`
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+`;
+
+const GenWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`;
+
+// Card-shaped shimmering silhouette (roughly the TogglemonCard footprint) so the
+// layout doesn't jump when the real card reveals.
+const GenCard = styled.div`
+  width: 240px;
+  max-width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 14px;
+  border: 1px solid #333;
+  background: linear-gradient(
+    110deg,
+    #161616 25%,
+    #232323 42%,
+    #2f3312 50%,
+    #232323 58%,
+    #161616 75%
+  );
+  background-size: 220% 100%;
+  animation: ${shimmer} 1.5s linear infinite;
+  box-shadow: 0 0 28px rgba(200, 240, 0, 0.08);
+`;
+
+const GenCaption = styled.p`
+  margin: 0;
+  font-weight: 700;
+  color: #c8f000;
+  text-align: center;
+  animation: ${pulse} 1.8s ease-in-out infinite;
+`;
+
+const GenSub = styled.p`
+  margin: 0;
+  font-size: 0.8rem;
+  color: #737373;
+  text-align: center;
+`;
+
+function GeneratingPlaceholder() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((n) => (n + 1) % GEN_MESSAGES.length), 1800);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <GenWrap>
+      <GenCard aria-hidden />
+      <GenCaption role="status" aria-live="polite">
+        {GEN_MESSAGES[i]}
+      </GenCaption>
+      <GenSub>Generating your one-of-a-kind card — this can take a few seconds.</GenSub>
+    </GenWrap>
+  );
+}
+
 export default function CardCreator() {
   const { value: showCardCreator, isLoading: isLoadingFlag } = useFeatureFlag(
     LD_FLAGS.showCardCreator,
@@ -243,7 +325,6 @@ export default function CardCreator() {
   const [result, setResult] = useState<TogglemonCardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [artLoading, setArtLoading] = useState(false);
 
   if (isLoadingFlag) {
     return (
@@ -259,16 +340,19 @@ export default function CardCreator() {
     return <Navigate to="/collectibles" replace />;
   }
 
-  // Generate art from the card's imagePrompt. Fails gracefully — the card
-  // just falls back to showing the prompt text if this errors out.
-  const generateArt = async (prompt: string) => {
-    if (!prompt) return;
-    setArtLoading(true);
+  // Generate art from the card's imagePrompt. Fails gracefully — returns null so
+  // the card can still reveal, falling back to the prompt text. A client-side
+  // timeout guarantees a stalled request can never block the reveal forever.
+  const generateArt = async (prompt: string): Promise<string | null> => {
+    if (!prompt) return null;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 65000);
     try {
       const res = await fetch('/api/card-creator/art', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imagePrompt: prompt }),
+        signal: controller.signal,
       });
       if (!res.ok) {
         // Surface WHY art failed (status + server detail) so sporadic
@@ -280,15 +364,17 @@ export default function CardCreator() {
             (data as { error?: string }).error ??
             '(no detail)',
         );
-        return;
+        return null;
       }
       const data = (await res.json()) as { imageUrl?: string };
-      if (data.imageUrl) setImageUrl(data.imageUrl);
-      else console.warn('[card art] response had no imageUrl');
+      if (data.imageUrl) return data.imageUrl;
+      console.warn('[card art] response had no imageUrl');
+      return null;
     } catch (e) {
       console.warn('[card art] request error:', e);
+      return null;
     } finally {
-      setArtLoading(false);
+      clearTimeout(timeout);
     }
   };
 
@@ -300,7 +386,6 @@ export default function CardCreator() {
     setError(null);
     setResult(null);
     setImageUrl(null);
-    setArtLoading(false);
 
     try {
       const res = await fetch('/api/card-creator', {
@@ -320,9 +405,12 @@ export default function CardCreator() {
       }
 
       const card = (await res.json()) as TogglemonCardData;
+      // Wait for the art (or its failure/timeout) BEFORE revealing, so the whole
+      // card — name, moves, art, all of it — appears at once as a surprise. On art
+      // failure the card still reveals, falling back to the prompt-text art box.
+      const art = await generateArt(card.imagePrompt);
+      setImageUrl(art);
       setResult(card);
-      // Card text is shown immediately; art loads into the box afterward.
-      void generateArt(card.imagePrompt);
     } catch {
       setError("Sorry, I'm having trouble connecting. Please try again.");
     } finally {
@@ -423,18 +511,18 @@ export default function CardCreator() {
           </Form>
 
           <ResultArea>
-            {isGenerating && <CircularProgress />}
+            {isGenerating && <GeneratingPlaceholder />}
             {!isGenerating && error && <Alert severity="error">{error}</Alert>}
             {!isGenerating && !error && result && (
               <ResultColumn>
                 <CardCapture ref={cardRef}>
-                  <TogglemonCard card={result} imageUrl={imageUrl} artLoading={artLoading} />
+                  <TogglemonCard card={result} imageUrl={imageUrl} />
                 </CardCapture>
                 <Actions>
                   <Button variant="contained" onClick={handleAddToCart}>
                     Add to Cart — ${CUSTOM_CARD_PRICE.toFixed(2)}
                   </Button>
-                  <Button variant="outlined" onClick={handleDownload} disabled={artLoading}>
+                  <Button variant="outlined" onClick={handleDownload}>
                     Download card
                   </Button>
                 </Actions>
