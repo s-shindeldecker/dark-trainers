@@ -6,6 +6,8 @@ import { useIsIdentifying } from '../../context/ContextVersion';
 import { useVipModal } from '../../context/VipModalContext';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { useFlagExposure } from '../../context/ExposureLog';
+import { LD_FLAGS } from '../../lib/ldFlagKeys';
 import { resolveHeroContent, type HeroContent } from '../../lib/heroContent';
 
 const VOLT = '#c8f000';
@@ -144,10 +146,17 @@ export const HeroSection = () => {
   const isIdentifying = useIsIdentifying();
   const { openVipModal } = useVipModal();
   const ldClient = useLDClient();
+  // Live, non-eventing value read — drives which Contentful entry we resolve and
+  // updates in place on streaming flag changes.
   const { value: variation, isLoading: flagLoading } = useFeatureFlag(
-    'hero-content-experiment',
+    LD_FLAGS.heroContentExperiment,
     'control',
   );
+  // Record the experiment exposure here at the decision point (landing on the
+  // homepage, where the Hero is the feature under test). Everything else in the
+  // app reads non-eventing, so without this the experiment sees no exposures and
+  // no evaluations appear in LD. Value is unused — rendering reads `variation`.
+  useFlagExposure(LD_FLAGS.heroContentExperiment, 'control');
 
   // Hero CTA click-through, tagged with the served variation so it's attributable
   // per variation. Matches the existing banner_click / add_to_cart track() convention.

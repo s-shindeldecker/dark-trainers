@@ -53,6 +53,15 @@ export const LD_FLAGS = {
    * experiment (about-layout-default). OFF serves Summer (safe current default).
    */
   aboutSeasonalImages: 'about-seasonal-images',
+  /**
+   * String flag: which Hero content variation to render on the homepage.
+   * 'control' | 'benefit-led' | 'drive-vip-signup' | 'court-view'. The value is a key into the
+   * Contentful `launchDarklyFeatureFlag` entry's `meta` map, which points at a
+   * `heroBanner` entry — all targeting stays in LD, Contentful supplies content
+   * (see src/lib/heroContent.ts). Read live + non-eventing for the value, with the
+   * experiment exposure recorded deliberately on Hero mount via useFlagExposure.
+   */
+  heroContentExperiment: 'hero-content-experiment',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {
