@@ -6,6 +6,8 @@ numbers are approximate — treat them as "land here, then look nearby."
 
 Companion docs: [SPA_LD_PRIMER.md](SPA_LD_PRIMER.md) (SPA + LD fundamentals),
 [GTM_SDK_PATTERNS.md](GTM_SDK_PATTERNS.md) (Option A vs B),
+[WAREHOUSE_MODEL.md](WAREHOUSE_MODEL.md) (Databricks star schema + LD metric data
+source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 [../FEATURE_FLAGS_GUIDE.md](../FEATURE_FLAGS_GUIDE.md),
 [../TECHNICAL_DESIGN_CONTEXT.md](../TECHNICAL_DESIGN_CONTEXT.md).
 
