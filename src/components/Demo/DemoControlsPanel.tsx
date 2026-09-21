@@ -231,7 +231,7 @@ export function DemoControlsPanel() {
     setRandomVip,
   } = useUser();
   const { exposures, clear } = useExposureLog();
-  const { lastSearch } = useServerSearchLog();
+  const { lastSearch, showServedBadge, setShowServedBadge } = useServerSearchLog();
   const [exposuresOpen, setExposuresOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(readCollapsed);
 
@@ -401,7 +401,17 @@ export function DemoControlsPanel() {
           )}
         </ExposureSection>
         <ExposureSection>
-          <Label style={{ marginBottom: '0.35rem' }}>Server-side search</Label>
+          <Row style={{ marginBottom: '0.35rem', justifyContent: 'space-between' }}>
+            <Label style={{ marginBottom: 0 }}>Server-side search</Label>
+            <NewSessionButton
+              type="button"
+              onClick={() => setShowServedBadge(!showServedBadge)}
+              aria-pressed={showServedBadge}
+              title="Show the served ranking arm on the /products page itself"
+            >
+              {showServedBadge ? '✓ On page' : 'On page'}
+            </NewSessionButton>
+          </Row>
           {lastSearch ? (
             <>
               <ExposureItem>
