@@ -7,7 +7,6 @@ import {
   applyDropAccessState,
   isSearchVariation,
   runSearch,
-  searchModeFor,
   type SearchRequester,
   type SearchVariation,
 } from '../search/ranking.js';
@@ -138,10 +137,6 @@ export function createSearchRouter(ldClient: LDClient) {
         results,
         _served: {
           variation,
-          // Presentation for this arm, decided here. The client renders a
-          // typeahead dropdown or waits for submit based on this — it must not
-          // infer it from the variation name.
-          mode: searchModeFor(variation),
           variationIndex: detail.variationIndex ?? null,
           inExperiment: Boolean(detail.reason?.inExperiment),
           reasonKind: detail.reason?.kind ?? null,

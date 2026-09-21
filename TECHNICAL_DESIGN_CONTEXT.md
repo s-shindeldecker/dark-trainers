@@ -150,6 +150,7 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 | `show-collectibles-vip-content` | `false` | Unlocks VIP-gated collectibles content (targets `tier=vip`) |
 | `show-card-creator` | `false` | Togglemon Card Creator page + PLP CTA |
 | `track-conversions-via-gtm` | `false` | Card creator & collectible conversions via GTM dataLayer (on) or direct LD track (off) |
+| `search-typeahead` | `false` | PLP search fires on keystroke (debounced 350ms) vs submit only. **Independent of `search-ranking-algorithm`** — cadence is one flag for every arm, so the ranking experiment isn't confounded with request volume. Client-side readable. |
 
 ### String / JSON Flags
 
@@ -335,6 +336,13 @@ again. `search_zero_results` therefore has two causes — nothing matched (`no_m
 every hit was in the **hidden** state (`entitlement`) — and fires for both. A query
 whose hits are all `view-only` is *not* a zero-result search: those are real results
 the visitor can see and click, with purchase blocked.
+
+**`search_performed` volume and the `search-typeahead` flag.** Turning `search-typeahead`
+on raises `search_performed` counts **uniformly across all three ranking arms**, because
+a debounced typing pause is a search and there are more pauses than submits. That is an
+expected step change from that flag, not a per-arm artifact. Request cadence is
+deliberately *not* derived from the served ranking arm: it was, and that confounded the
+ranking experiment with request volume. Nothing in the cadence path reads the arm now.
 
 Card-creator and collectible conversions route via **either** the GTM dataLayer **or** a direct
 `ldClient.track()` call, controlled by the `track-conversions-via-gtm` flag. Both surfaces use the shared

@@ -51,8 +51,6 @@ const IDLE: SearchState = { status: 'idle', query: '', results: [] };
  * every keystroke.
  */
 interface SuggestState {
-  /** Presentation the server chose for this visitor's arm. */
-  mode: 'submit' | 'typeahead' | undefined;
   /** The query these suggestions belong to. */
   query: string;
   suggestions: RankedProduct[];
@@ -61,13 +59,13 @@ interface SuggestState {
   served?: string;
 }
 
-const NO_SUGGESTIONS: SuggestState = { mode: undefined, query: '', suggestions: [], total: 0 };
+const NO_SUGGESTIONS: SuggestState = { query: '', suggestions: [], total: 0 };
 
 /**
  * Trailing-edge debounce. Requests go out once typing pauses, not once per
  * keystroke — which is what makes it safe to reuse /api/search for suggestions:
  * one request per pause means one `search_performed` per completed search
- * intent, comparable to one submit in the control arm.
+ * intent. Applies identically to every ranking arm.
  */
 const SUGGEST_DEBOUNCE_MS = 350;
 
@@ -201,6 +199,11 @@ function sortLines(
 export default function Products() {
   const { value: sortDefault } = useFeatureFlag(LD_FLAGS.plpSortDefault, 'featured');
   const { value: ac26DropAccess } = useFeatureFlag(LD_FLAGS.ac26DropAccess, 'teaser');
+  // Request cadence, independent of the ranking arm. Read in the browser
+  // because the cadence has to be known *before* the first request — deriving
+  // it from a response meant firing a throwaway probe request, which was itself
+  // part of the confound.
+  const { value: typeaheadEnabled } = useFeatureFlag(LD_FLAGS.searchTypeahead, false);
   const { user, sessionKey } = useUser();
   const { trackConversion } = useTrackConversion();
   const { recordSearch, showServedBadge } = useServerSearchLog();
@@ -209,12 +212,11 @@ export default function Products() {
   const [suggest, setSuggest] = useState<SuggestState>(NO_SUGGESTIONS);
   const suggestTimerRef = useRef<number | undefined>(undefined);
   const suggestRequestRef = useRef(0);
-  // The served mode, in a ref as well as state. A queued debounce callback
-  // closes over the value from when the keystroke happened; if the first
-  // response lands in that window and says `submit`, the closure would still
-  // fire a request the control arm should never make.
-  const suggestModeRef = useRef<SuggestState['mode']>(undefined);
-  suggestModeRef.current = suggest.mode;
+  // The cadence flag, in a ref as well as state. A queued debounce callback
+  // closes over the value from when the keystroke happened; the flag may still
+  // have been resolving then, so the timer reads the latest value instead.
+  const typeaheadRef = useRef(false);
+  typeaheadRef.current = Boolean(typeaheadEnabled);
 
   // Only the newest request may write state. Without this, a slow "volt" can
   // land after a fast "limited" and show results for a query the box no longer
@@ -321,10 +323,9 @@ export default function Products() {
    * there, and a second endpoint would have meant a second copy of all of it.
    * Debouncing is what makes that safe — one request per pause, not per key.
    *
-   * The response's `mode` is the server telling us whether this visitor's arm
-   * wants typeahead. Once it says `submit` (the control arm) we stop asking
-   * altogether, so a control visitor makes exactly one extra request per
-   * search session and never sees a dropdown flash.
+   * Whether to fire at all is the `search-typeahead` flag's decision, not the
+   * ranking arm's. All three arms therefore have identical request cadence,
+   * so the ranking experiment measures ranking rather than request volume.
    */
   const requestSuggestions = useCallback(
     (query: string) => {
@@ -339,13 +340,11 @@ export default function Products() {
         setSuggest((prev) => ({ ...prev, query: '', suggestions: [], total: 0 }));
         return;
       }
-      // Control arm: the server has already said this visitor doesn't get
-      // typeahead. Stop making requests entirely.
-      if (suggestModeRef.current === 'submit') return;
-
       suggestTimerRef.current = window.setTimeout(async () => {
-        // Re-check: the arm may have been revealed while this was queued.
-        if (suggestModeRef.current === 'submit') return;
+        // Checked here rather than before the timer so a flag that was still
+        // resolving on the keystroke is honored by the time the request fires.
+        // Off means zero keystroke requests — every arm searches on submit only.
+        if (!typeaheadRef.current) return;
         const requestId = ++suggestRequestRef.current;
         try {
           const res = await fetch('/api/search', {
@@ -361,12 +360,11 @@ export default function Products() {
           const data = (await res.json()) as {
             resultCount: number;
             results: RankedProduct[];
-            _served: { variation: string; mode: 'submit' | 'typeahead' };
+            _served: { variation: string };
           };
           // Ignore a response that a newer keystroke has already superseded.
           if (requestId !== suggestRequestRef.current) return;
           setSuggest({
-            mode: data._served?.mode,
             query: trimmed,
             suggestions: data.results ?? [],
             total: data.resultCount ?? 0,
@@ -404,9 +402,7 @@ export default function Products() {
     window.clearTimeout(suggestTimerRef.current);
     suggestRequestRef.current += 1;
     setSearch(IDLE);
-    // Keep `mode` — it's a property of this visitor's arm, not of the query,
-    // and re-learning it would cost another request on the next keystroke.
-    setSuggest((prev) => ({ ...NO_SUGGESTIONS, mode: prev.mode, served: prev.served }));
+    setSuggest((prev) => ({ ...NO_SUGGESTIONS, served: prev.served }));
   }, []);
 
   // `search_performed` / `search_zero_results` fire server-side; the click is
@@ -430,7 +426,7 @@ export default function Products() {
         isSearching={search.status === 'loading'}
         hasResults={isSearchActive}
         onQueryChange={requestSuggestions}
-        mode={suggest.mode}
+        typeaheadEnabled={Boolean(typeaheadEnabled)}
         suggestions={suggest.suggestions}
         suggestionsQuery={suggest.query}
         totalSuggestionCount={suggest.total}

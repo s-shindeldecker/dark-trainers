@@ -230,7 +230,41 @@ volume guardrail. Randomize on `session` so guest traffic is bucketed too — th
 context kind must be marked *available for experiments* in LD (Code → Contexts → gear
 → Edit); kinds auto-created from SDKs are not by default.
 
-#### 20. Storefront Theme (`storefront-theme`)
+> **This flag has no influence on request cadence.** Every arm searches on the same
+> schedule, set by `search-typeahead` below. That separation is deliberate: cadence
+> used to be derived from the served arm, so the candidate arms searched on every
+> typing pause while the control searched once per submit — and any measured
+> difference mixed "better ranking" with "more requests". The experiment now measures
+> ranking only.
+
+#### 20. Search Typeahead (`search-typeahead`)
+
+**Type:** Boolean &nbsp; **Default:** `false`
+
+Whether the PLP search box fires on keystroke (debounced 350 ms, trailing edge) or
+only on submit. Off → submit only.
+
+**Independent of `search-ranking-algorithm`, and that independence is the point.**
+Cadence is one flag for everybody: all three ranking arms fire identically, so the
+ranking experiment cannot be confounded with request volume.
+
+**On `search_performed` volume:** turning this flag on raises `search_performed`
+counts **uniformly across all three arms** — a typing pause is a search, and there are
+more pauses than submits. That is an expected step change caused by *this* flag, not a
+per-arm effect and not a regression. If you compare guardrail numbers across a window
+in which this flag was toggled, expect a level shift on that boundary for every arm at
+once. It does not affect the ranking experiment's comparability, because the shift
+applies equally to control and candidates.
+
+Read **client-side** via `useFeatureFlag`, unlike `search-ranking-algorithm`, which
+stays hidden from the browser. The browser has to know the cadence before it makes the
+first request; deriving it from a response meant firing a throwaway probe request,
+which was itself part of the old confound.
+
+Not `show-`-prefixed despite the app's other booleans — it is a behavior toggle in the
+`search-*` family rather than a visibility gate.
+
+#### 21. Storefront Theme (`storefront-theme`)
 
 **Type:** String &nbsp; **Variations:** `default` / `parks` / `cruise` &nbsp; **Default:** `default`
 
