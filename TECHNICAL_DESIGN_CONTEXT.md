@@ -56,6 +56,8 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | `POST /api/signup-agent` | VIP onboarding AI agent (LD AI Config: `darktrainers-signup-agent`) |
 | `POST /api/card-creator` | Togglemon card text (LD AI Config: `togglemon-card-creator`); moderation gate → NoNoMon |
 | `POST /api/card-creator/art` | Togglemon card art via `gpt-image-1` (retry + graceful fallback) |
+| `POST /api/search` | Server-side product search. Evaluates `search-ranking-algorithm` (Node SDK) per request, ranks the static catalog with the served algorithm, applies three-state drop entitlement (`ac26-drop-access`, same context, via `server/search/access.ts`), fires `search_performed` / `search_zero_results`, returns results + `_served`. Each result carries `_purchasable` so a `view-only` hit renders its blocked CTA |
+| `GET /api/search/info` | Searchable catalog size — confirms on stage that the server is ranking the current catalog |
 | `POST /api/simulate` | Flag evaluation for simulation script |
 | `GET /api/health` | Health check |
 
@@ -72,9 +74,11 @@ UserProvider            — session key, auth state, persona transitions
   Router
     LDContextProvider   — LD SDK init, plugin setup (observability, session replay)
       LDContextSync     — watches auth state, pushes context changes to LD
-        VipModalProvider — VIP upgrade modal open/close state
-          CartProvider  — cart lines, VIP membership line
-            AppShell    — routing + page components
+        ExposureLogProvider     — deferred exposures + in-memory log for the demo panel
+          ServerSearchLogProvider — last server-side search decision (`_served`)
+            VipModalProvider    — VIP upgrade modal open/close state
+              CartProvider      — cart lines, VIP membership line
+                AppShell        — routing + page components
 ```
 
 New providers should slot into this hierarchy at the appropriate level. Anything that needs LD flag evaluations must be inside `LDContextProvider`. Anything that reads user tier must be inside `UserProvider`.
@@ -151,13 +155,24 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 
 | Key | Type | Controls |
 |---|---|---|
-| `ac26-drop-access` | String | VIP-only drop access gate |
+| `ac26-drop-access` | String | Drop entitlement, three states: `teaser` → hidden, `early-access` → view-only (shown, purchase blocked), `full-access` → purchasable. Gates on `isDropExclusive`; mapping lives in `src/lib/dropAccess.ts` and is shared by the browser and the server |
 | `pdp-hero-layout` | String/JSON | PDP layout variant (`default` \| `splash`) |
 | `plp-sort-default` | String | PLP sort order (`relevance` \| `newest` \| `price-asc`) |
 | `vip-upgrade-cta-copy` | String | VIP CTA button text |
 | `checkout-vip-banner` | JSON | VIP upsell banner config in checkout |
 | `promo-banner-text` | String | Top promo strip (empty string = hidden) |
 | `promo-banner-position` | String | Promo strip placement (`top` \| `bottom`) |
+| `storefront-theme` | String | **Reserved.** Per-vertical storefront theming (`default` \| `parks` \| `cruise`); off/default serves `default` and nothing reads it. Keys are immutable and publicly visible on the LD flag list — never name one after a customer or prospect. |
+
+### Server-side-only flags
+
+Listed in `LD_SERVER_FLAGS` (`src/lib/ldFlagKeys.ts`) for inventory, but **never read
+from `src/`** — a client-side read would bucket the visitor on the browser's own
+evaluation and undercut the server-side story.
+
+| Key | Type | Variations | Default | Where |
+|---|---|---|---|---|
+| `search-ranking-algorithm` | String | `legacy-keyword` (control) \| `weighted-relevance` \| `personalized-affinity` | `legacy-keyword` | `server/routes/search.ts`, per request, on `multi{session,user}`. Evaluated with `variationDetail` — which *is* the experiment exposure. The served arm reaches the client only as the response's `_served` field. |
 
 ### AI Config Keys
 
@@ -214,9 +229,14 @@ interface Product {
 
 ### Catalog Summary
 
-- 16 SKUs total
-- AgentControl '26 (AC26) drop-exclusive collection: 5–6 SKUs, $265–$325, `isDropExclusive: true`
-- Evergreen catalog: running, basketball, training, lifestyle, $130–$195
+- 55 SKUs total: 39 footwear (the `/products` PLP and the search domain) + 16 collectibles (their own catalog page)
+- AgentControl '26 (AC26) drop-exclusive collection: 6 SKUs, $265–$325, `isDropExclusive: true`
+- Evergreen catalog: running, basketball, training, lifestyle, $120–$215
+- Line extensions reuse their silhouette's product image, the same way a real store handles a colorway variant — the footwear expansion added no new image assets
+
+> `dim_product` in the demo warehouse is a hand-seeded **snapshot** of this file, not a
+> live source. After changing the catalog, re-run Block 1 of
+> `sql/databricks/04_seed_fake_data.sql`. Nothing on a request path may query it.
 
 ### VIP Membership Line Item
 
@@ -295,6 +315,26 @@ ldClient.trackTokenUsage(...);
 | `vip_upgrade_modal_shown` | VIP upgrade modal open | — |
 | `product_viewed` | Product detail view | — |
 | `banner_click` | `SeasonalBanner.tsx` click | — |
+| `search_performed` | **Server**, every `/api/search` call | number of results returned |
+| `search_zero_results` | **Server**, when a query returns 0 results | — |
+| `search_result_clicked` | Client, a search result clicked through from the PLP | product price |
+
+The two server-fired search events are emitted by the Express route as part of handling
+the request — the client is not responsible for either, and cannot suppress them. The
+route awaits `ldClient.flush()` before responding, for the same reason the card-creator
+route does: on serverless the isolate can freeze the moment the response is sent, and
+the exposure plus both events would never be delivered.
+
+**`search_performed`'s value is the count the visitor actually sees.** Ranking, drop
+entitlement, and the response cap are all applied before the count is taken, so
+`search_performed` === `results.length` in the response === the number of cards the PLP
+renders. The PLP deliberately does **not** re-filter the response: its own
+`ac26-drop-access` read is cached and non-eventing and can disagree with the server's
+live evaluation, which is exactly how the metric and the screen would drift apart
+again. `search_zero_results` therefore has two causes — nothing matched (`no_match`), or
+every hit was in the **hidden** state (`entitlement`) — and fires for both. A query
+whose hits are all `view-only` is *not* a zero-result search: those are real results
+the visitor can see and click, with purchase blocked.
 
 Card-creator and collectible conversions route via **either** the GTM dataLayer **or** a direct
 `ldClient.track()` call, controlled by the `track-conversions-via-gtm` flag. Both surfaces use the shared
@@ -326,6 +366,13 @@ Generates synthetic user journeys and emits events to LaunchDarkly + data wareho
 | `checkout_initiated` | 58% | 8% | 3% |
 | `vip_upgrade` | 0% | 6% | 0% |
 | `banner_click` | 8% | 8% | 10% |
+| `search_performed` | 40% | 35% | 30% |
+| `search_result_clicked` † | 55% | 30% | 15% |
+
+† Base rate, conditional on a search having returned results. It is then scaled by the
+served `search-ranking-algorithm` arm, so `personalized-affinity` has a real,
+repeatable VIP edge rather than run-to-run noise. Full table in
+[SIMULATION.md](SIMULATION.md).
 
 **Warehouse profiles:**
 
@@ -334,6 +381,11 @@ Generates synthetic user journeys and emits events to LaunchDarkly + data wareho
 | `production-bq` (default) | Production | BigQuery | `darktrainers_metrics.metric_events` |
 | `test-databricks` | Test | Databricks Unity Catalog | configured via env |
 | `snowflake` | Snowflake | Snowflake | configured via env |
+
+**Warehouse schema (`--warehouse-schema`, default `legacy`):** `legacy` writes only the
+flat `metric_events` table (unchanged behavior); `star` / `both` also write the
+dimensional model via `insert_star_schema_events_databricks()`. Databricks only — see
+[docs/WAREHOUSE_MODEL.md](docs/WAREHOUSE_MODEL.md).
 
 See [SIMULATION.md](SIMULATION.md) for full profile and environment configuration.
 

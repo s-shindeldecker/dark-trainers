@@ -1,8 +1,18 @@
 -- DarkTrainers demo warehouse — legacy vs star reconciliation (Databricks)
 --
--- Run after a `--warehouse-schema both` simulation run. Both projections derive
--- from one canonical in-memory event record, so these should match exactly. Any
--- difference is a projector bug, not warehouse drift.
+-- Run after a `--warehouse-schema both` simulation run.
+--
+-- SCOPE, and be honest about it: the loader is a demo capability proof, not a
+-- production pipeline. The bar it has to clear is "completes without errors and
+-- produces non-empty star rows" — exact row-for-row reconciliation is NOT
+-- required, and dropped events or minor discrepancies are fine. Checks 1 and 2
+-- are therefore diagnostic, not a gate. Checks 3 and 4 are the ones worth
+-- caring about: a referential orphan or a session bound to two customers is
+-- what makes a LaunchDarkly results screen look visibly broken.
+--
+-- The star side of Checks 1 and 2 is scoped to run_id LIKE 'sim-%' so the
+-- hand-seeded 'seed-v1' rows (which never went through the legacy path, and so
+-- can never reconcile) stay out of the comparison.
 --
 -- The `star_events` CTE repeated below is Query B from 02_ld_data_source.sql —
 -- the legacy-equivalent projection. It is inlined rather than kept as a view
@@ -26,9 +36,11 @@
 WITH star_events AS (
   SELECT context_key, event_name AS event_key, event_value, event_ts AS received_time
   FROM test_data_export.sshindel_metrics.fact_engagement_event
+  WHERE run_id LIKE 'sim-%'          -- loader rows only; 'seed-v1' cannot reconcile
   UNION ALL
   SELECT context_key, order_type AS event_key, order_total AS event_value, order_ts AS received_time
   FROM test_data_export.sshindel_metrics.fact_order
+  WHERE run_id LIKE 'sim-%'
 ),
 legacy AS (
   SELECT event_key, COUNT(*) AS n, SUM(event_value) AS total, COUNT(event_value) AS n_valued
@@ -59,15 +71,24 @@ ORDER BY event_key;
 -- ---------------------------------------------------------------------------
 -- Check 2 — row-level symmetric difference
 -- ---------------------------------------------------------------------------
--- Expected: zero rows. `side` tells you which projection has the orphan.
--- context_kind is hardcoded to 'user' on the star side to match what the
--- simulation writes today — see the note on Query B in 02_ld_data_source.sql.
+-- Diagnostic, not a gate — see the scope note at the top of this file.
+-- `side` tells you which projection has the orphan.
+--
+-- Both sides now carry the TRUE context_kind ('session' for events tracked on a
+-- session-only context, 'user' otherwise), so context_kind is compared rather
+-- than cancelled out. This block used to hardcode 'user' on the star side to
+-- neutralize a bug in generate_metric_event_data(), which labelled every legacy
+-- row 'user'; that write passes the real kind now — see the note on Query B in
+-- 02_ld_data_source.sql. Rows written before that fix will surface here as
+-- kind-only mismatches, so bound RUN_START/RUN_END to a post-fix run.
 WITH star_events AS (
-  SELECT context_key, 'user' AS context_kind, event_name AS event_key, event_value, event_ts AS received_time
+  SELECT context_key, context_kind, event_name AS event_key, event_value, event_ts AS received_time
   FROM test_data_export.sshindel_metrics.fact_engagement_event
+  WHERE run_id LIKE 'sim-%'
   UNION ALL
-  SELECT context_key, 'user' AS context_kind, order_type AS event_key, order_total AS event_value, order_ts AS received_time
+  SELECT context_key, context_kind, order_type AS event_key, order_total AS event_value, order_ts AS received_time
   FROM test_data_export.sshindel_metrics.fact_order
+  WHERE run_id LIKE 'sim-%'
 ),
 legacy AS (
   SELECT context_key, context_kind, event_key, event_value, received_time

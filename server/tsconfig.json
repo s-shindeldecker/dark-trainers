@@ -6,7 +6,11 @@
     "esModuleInterop": true,
     "strict": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    // No rootDir: server/search/ranking.ts imports the shared static catalog
+    // from src/components/Products/productData.ts (a pure, dependency-free data
+    // module), which sits outside this directory. Pinning rootDir to "." makes
+    // tsc reject that import outright. Local dev runs through tsx and Vercel
+    // compiles from api/index.ts, so neither depends on this outDir layout.
     "skipLibCheck": true,
     "resolveJsonModule": true
   },

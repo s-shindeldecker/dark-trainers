@@ -82,7 +82,13 @@ CREATE TABLE IF NOT EXISTS test_data_export.sshindel_metrics.fact_session (
 )
 COMMENT 'Session fact. One row per journey; the grain that makes session-randomized experiments analyzable.';
 
--- product_viewed | add_to_cart | banner_click.
+-- product_viewed | add_to_cart | banner_click | search_performed |
+-- search_result_clicked | search_zero_results.
+--
+-- The three search events come from the server-side search route and its
+-- simulation counterpart: search_performed carries the number of results
+-- returned and no product, search_result_clicked carries the clicked product
+-- and its price, search_zero_results carries neither.
 --
 -- context_kind / context_key record the context the event was ACTUALLY tracked
 -- on, which is not always kind=user — see the note on Query B in
@@ -91,10 +97,10 @@ CREATE TABLE IF NOT EXISTS test_data_export.sshindel_metrics.fact_engagement_eve
   event_id       STRING    NOT NULL,
   session_key    STRING    NOT NULL,
   customer_key   STRING             COMMENT 'NULL when the event fired before identify()',
-  product_id     STRING             COMMENT 'NULL for non-product events (banner_click)',
-  event_name     STRING    NOT NULL COMMENT 'product_viewed | add_to_cart | banner_click',
+  product_id     STRING             COMMENT 'NULL for non-product events (banner_click, search_performed, search_zero_results)',
+  event_name     STRING    NOT NULL COMMENT 'product_viewed | add_to_cart | banner_click | search_performed | search_result_clicked | search_zero_results',
   event_ts       TIMESTAMP NOT NULL,
-  event_value    DOUBLE             COMMENT 'product price; NULL for banner_click',
+  event_value    DOUBLE             COMMENT 'product price; result count for search_performed; NULL for banner_click and search_zero_results',
   context_kind   STRING    NOT NULL COMMENT 'true LD context kind the event was tracked on',
   context_key    STRING    NOT NULL COMMENT 'true LD context key the event was tracked on',
   run_id         STRING

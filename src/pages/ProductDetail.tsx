@@ -4,6 +4,12 @@ import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import { getProductById } from '../components/Products/productData';
+import {
+  DEFAULT_DROP_ACCESS,
+  dropAccessStateFromFlag,
+  isDropProductPurchasable,
+  isDropProductVisible,
+} from '../lib/dropAccess';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { useFlagExposure } from '../context/ExposureLog';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
@@ -228,6 +234,7 @@ export default function ProductDetail() {
   const { value: showDropToNonVip } = useFeatureFlag(LD_FLAGS.showDropExclusiveProducts, false);
   const { value: showCountdown } = useFeatureFlag(LD_FLAGS.showEarlyAccessCountdown, false);
   const { value: ctaCopy } = useFeatureFlag(LD_FLAGS.vipUpgradeCtaCopy, 'Join VIP');
+  const { value: ac26DropAccess } = useFeatureFlag(LD_FLAGS.ac26DropAccess, DEFAULT_DROP_ACCESS);
 
   const [size, setSize] = useState<number | ''>('');
   const [sizeError, setSizeError] = useState(false);
@@ -257,12 +264,24 @@ export default function ProductDetail() {
   }, [size, triggerSizeShake]);
 
   const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
+  // Pre-existing gate, independent of ac26-drop-access.
   const lockedDrop = product?.isDropExclusive && !isVip && !showDropToNonVip;
   // Collectibles are served by /collectibles/:id, not the sneaker PDP.
   const isCollectible = product?.category === 'collectibles';
 
+  // Drop-access entitlement, mapped through the same shared table the grid and
+  // the server use. `hidden` products are unreachable here (see the guard below
+  // the not-found check); `view-only` renders in full with the purchase blocked.
+  const dropAccessState = dropAccessStateFromFlag(ac26DropAccess);
+  const dropHidden = !!product && !isDropProductVisible(product, dropAccessState);
+  const dropViewOnly = !!product && !isDropProductPurchasable(product, dropAccessState);
+  // Either reason blocks the buy. Both render the same "Unlock with VIP" CTA.
+  const purchaseBlocked = lockedDrop || dropViewOnly;
+
   useEffect(() => {
-    if (!product || !ldClient || isCollectible) return;
+    // A hidden-state drop never renders (see the guard below), so it must not
+    // report a view either — otherwise a blocked page inflates product_viewed.
+    if (!product || !ldClient || isCollectible || dropHidden) return;
     ldClient.track('product_viewed', null, product.price);
     pushToDataLayer({
       event: 'ld_conversion',
@@ -270,7 +289,9 @@ export default function ProductDetail() {
       productId: product.id,
       value: product.price,
     });
-  }, [product, ldClient, isCollectible]);
+    // dropHidden is a real dependency: if the flag streams from teaser to a
+    // visible state while the visitor is on the page, the view should then count.
+  }, [product, ldClient, isCollectible, dropHidden]);
 
   const releaseMs = useMemo(() => (product ? new Date(product.releaseDate).getTime() : 0), [product]);
   const [now, setNow] = useState(Date.now());
@@ -280,21 +301,35 @@ export default function ProductDetail() {
     return () => clearInterval(t);
   }, [product, showCountdown, isVip]);
 
+  // Reused by the entitlement guard below, so an unreachable product and a
+  // not-entitled one present identically. Extracted rather than duplicated;
+  // the copy and markup are the page's existing invalid-ID treatment.
+  const notFound = (
+    <Page>
+      <p style={{ color: '#737373' }}>Product not found.</p>
+      <Link to="/products" style={{ color: '#c8f000' }}>
+        Back to shop
+      </Link>
+    </Page>
+  );
+
   if (!product) {
-    return (
-      <Page>
-        <p style={{ color: '#737373' }}>Product not found.</p>
-        <Link to="/products" style={{ color: '#c8f000' }}>
-          Back to shop
-        </Link>
-      </Page>
-    );
+    return notFound;
   }
 
   // A collectible reached via /products/:id: send it to its canonical route,
   // which enforces the show-collectibles-catalog flag and renders sizeless UI.
   if (isCollectible) {
     return <Navigate to={`/collectibles/${product.id}`} replace />;
+  }
+
+  // Entitlement guard. Until now this page had none: a drop-exclusive product
+  // was rendered in full to anyone who knew the URL, no matter that the grid and
+  // search both hid it. `hidden` now gets the same treatment as an unknown
+  // product ID — deliberately indistinguishable, so the URL doesn't confirm that
+  // a hidden SKU exists.
+  if (dropHidden) {
+    return notFound;
   }
 
   const editorial = layout === 'editorial';
@@ -311,7 +346,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!requireSizeOrShowError()) return;
-    if (lockedDrop) {
+    if (purchaseBlocked) {
       openVipWithOptionalPending();
       return;
     }
@@ -401,7 +436,7 @@ export default function ProductDetail() {
             )}
           </SelectRow>
           <Actions>
-            {!lockedDrop ? (
+            {!purchaseBlocked ? (
               <button type="button" onClick={handleAddToCart}>
                 Add to cart
               </button>

@@ -5,19 +5,26 @@ same simulation runs that feed `sshindel_metrics.metric_events`. It exists so th
 LaunchDarkly demo can show warehouse-native experimentation against a plausible
 schema instead of a single all-events table.
 
-**Status: complete as scoped** (2026-09-09). The intent was a *parallel* data source
-that demonstrates a realistic warehouse shape without disturbing anything live, and
-that is done:
+**Status: loaded from the simulation** (2026-09-17). The original scope was a
+*parallel* data source demonstrating a realistic warehouse shape without disturbing
+anything live, with no loader. That first half still holds:
 
-- Tables exist in `test_data_export.sshindel_metrics` and are populated with fake data
+- Tables exist in `test_data_export.sshindel_metrics` and are populated
 - A LaunchDarkly metric data source is configured against Query A and verified serving
   data in the LD UI
-- `metric_events` and the simulation script are untouched — the legacy path remains
-  the live one
 
-Nothing here is wired into the simulation. These are hand-run SQL files: apply the
-DDL once, run the seed, run the checks. There is no loader, and building one is not
-planned — see [Deliberately not built](#deliberately-not-built).
+What changed: the server-side search experiment randomizes on `multi{session,user}`,
+which is exactly the case `metric_events` structurally cannot serve (one row, one
+context kind). So the loader that was [deliberately not
+built](#deliberately-not-built) now exists — see [The loader](#the-loader). The
+legacy path is still the live default:
+
+- `--warehouse-schema` defaults to `legacy`, so every existing invocation writes only
+  `metric_events`, exactly as before
+- `generate_metric_event_data()` and all three `insert_metric_events_to_*` functions
+  are untouched
+- The DDL and seed are still hand-run SQL files: apply the DDL once, run the seed,
+  run the checks
 
 ## Why this exists
 
@@ -43,8 +50,10 @@ The legacy path is not modified. Specifically:
   writes, or alters `metric_events` except the read-only parity queries.
 - `generate_metric_event_data()` and all three `insert_metric_events_to_*` functions
   in [darktrainers_simulation.py](../darktrainers_simulation.py) stay as they are.
-- No loader exists, so no existing command changes behavior. The simulation writes
-  only to `metric_events`, exactly as before.
+  The loader is a sibling function, not a modification of them.
+- **`--warehouse-schema` defaults to `legacy`.** This is the load-bearing guardrail:
+  no existing command changes behavior, and the simulation writes only to
+  `metric_events` unless someone explicitly passes `star` or `both`.
 - Swapping LD between old and new is a data-source config change. No migration
   either direction, so rollback is symmetrical.
 
@@ -55,9 +64,9 @@ Grain is the load-bearing detail:
 | Table | Grain | Notes |
 |---|---|---|
 | `dim_customer` | 1 row per LD user context key | Upserted via `MERGE` — VIP keys recur across runs. Guests absent by design. |
-| `dim_product` | 1 row per catalog product | Seeded from [productData.ts](../src/components/Products/productData.ts) so warehouse rows use real SKUs. |
+| `dim_product` | 1 row per catalog product | Hand-seeded snapshot of [productData.ts](../src/components/Products/productData.ts). **The loader never writes it** — re-run Block 1 by hand after a catalog change. |
 | `fact_session` | 1 row per journey | `customer_key` nullable — NULL for guest-only journeys. |
-| `fact_engagement_event` | 1 row per `product_viewed` / `add_to_cart` / `banner_click` | Carries the true LD `context_kind`. |
+| `fact_engagement_event` | 1 row per `product_viewed` / `add_to_cart` / `banner_click` / `search_performed` / `search_result_clicked` / `search_zero_results` | Carries the true LD `context_kind`. |
 | `fact_order` | 1 row per `checkout_initiated` / `vip_upgrade` | `order_type` distinguishes them. |
 
 `fact_session` is what makes session-level analysis possible at all: a session grain
@@ -121,18 +130,28 @@ metric event if a dimension row were missing — corrupting experiment results i
 that's very hard to spot. Check 3 in the parity file counts orphans for the same
 reason.
 
-### The `context_kind` quirk, and why Query B replicates it
+### `context_kind`: both projections now write the true kind
 
-`generate_metric_event_data()` hardcodes `'context_kind': 'user'`
-([darktrainers_simulation.py:478](../darktrainers_simulation.py:478)) even for events
-tracked on a session context. Journeys A and B therefore write **session keys labelled
-as user-kind**. The runbook's join is on `context_key` alone, so it works in practice,
-but it is wrong.
+Both the star tables and the flat `metric_events` table record the kind of the context
+each event actually fired on: `session` for events on a session-only context, `user`
+for events on a `multi{session,user}` context. A verification run shows the split
+plainly — `product_viewed` comes back as a mix of `session` (journey A, and journey B
+pre-identify) and `user` (journey C).
 
-The star tables record the true kind. Query B deliberately **replicates the bug** so
-old and new reconcile row-for-row — fixing it there would defeat the only check that
-proves the swap is safe. Query A exposes the real value as `tracked_context_kind`,
-carried for diagnostics and not mapped in LD.
+This used to differ between the two. `generate_metric_event_data()` hardcoded
+`'context_kind': 'user'` for every row, so journeys A and B wrote **session keys
+labelled as user-kind** into `metric_events`. The runbook's join is on `context_key`
+alone so it went unnoticed, but those rows could not join LaunchDarkly's user-context
+assignment data, which makes a user-randomized experiment's metrics under-count
+silently. `_track()` now threads the real kind through to the row builder; the star
+loader never had the bug and is unchanged.
+
+Consequently **Query B no longer projects a literal `'user'`** on the star side, and
+Check 2 in the parity file no longer needs to cancel the mismatch out — `context_kind`
+is compared like any other column. Rows written before the fix still carry the old
+label, so bound a parity run's `RUN_START`/`RUN_END` to a post-fix run or those rows
+show up as kind-only mismatches. Query A continues to expose the same value under the
+clearer name `tracked_context_kind`, carried for diagnostics and not mapped in LD.
 
 ## Constraints found in LD docs
 
@@ -164,7 +183,8 @@ a context pair — so they work on Databricks today.
 | [01_star_schema.sql](../sql/databricks/01_star_schema.sql) | DDL for the five tables | Once, against the warehouse |
 | [02_ld_data_source.sql](../sql/databricks/02_ld_data_source.sql) | Query A (the LD data source) + Query B (legacy-equivalent projection) | Not run against the warehouse — Query A is pasted into LD |
 | [03_parity_check.sql](../sql/databricks/03_parity_check.sql) | Checks 1-5: reconciliation, referential sanity, analysis-unit constraint, data-source shape | By hand, one check at a time |
-| [04_seed_fake_data.sql](../sql/databricks/04_seed_fake_data.sql) | Blocks 0-6: reset, seed, verify | By hand, blocks in order, **once each** |
+| [04_seed_fake_data.sql](../sql/databricks/04_seed_fake_data.sql) | Blocks 0-6: reset, seed, verify | By hand, blocks in order, **once each**. Block 1 (`dim_product`) is also re-run on its own after a catalog change. |
+| [darktrainers_simulation.py](../darktrainers_simulation.py) | `insert_star_schema_events_databricks()` — the loader | `--warehouse-schema star\|both` on the `test-databricks` profile |
 
 ### Running it from scratch
 
@@ -177,28 +197,78 @@ a context pair — so they work on Databricks today.
 4. Run Checks 3, 4, and 5 from `03_parity_check.sql`.
 5. Paste Query A from `02_ld_data_source.sql` into the LD data source and map the
    columns per the table above.
+6. For results that actually mean something, run the loader so the star rows carry
+   keys from a run that evaluated the flags:
+   `python darktrainers_simulation.py --profile test-databricks --warehouse-schema both --records 300`
 
-Checks 1 and 2 compare against `metric_events` and will **not** reconcile for seeded
-data — those rows never went through the legacy path. They exist for a future loader,
-not for this seed.
+Checks 1 and 2 compare against `metric_events`. They will **not** reconcile for seeded
+data — those rows never went through the legacy path, which is why their star side is
+scoped to `run_id LIKE 'sim-%'`. Even for loader rows they are diagnostic rather than a
+gate: exact reconciliation is explicitly not a requirement.
 
 ## Deliberately not built
 
 Scoped out, recorded here so the absence reads as a decision rather than an oversight:
 
-- **A loader.** The original plan had the simulation dual-write both projections from
-  one canonical event record, with a `--warehouse-schema {legacy,star,both}` flag
-  defaulting to `legacy`. Not built. `darktrainers_simulation.py` is untouched.
-- **Real experiment results.** This follows from having no loader. LaunchDarkly joins
-  metric events to the `evaluation_events` it exported from actual flag evaluations.
-  The seed's customer keys reproduce the real `vip-user-NNN` / `standard-user-NNN`
-  patterns and may join to past evaluations, but its session keys are synthetic and
-  join to nothing. **Metrics built on this data source can show empty or meaningless
-  results, and that is expected.** Trustworthy numbers need a loader writing keys from
-  the same run that evaluated the flags.
-- **BigQuery and Snowflake variants.** Databricks only. The `sql/databricks/` path
-  leaves room for siblings.
+- **BigQuery and Snowflake loader variants.** Databricks only. The `sql/databricks/`
+  path and the `insert_star_schema_events_databricks` naming both leave room for
+  siblings, so adding one is an addition rather than a rewrite.
 - **Ratio metrics and clustered analysis.** Snowflake-only features — see Constraints.
+  If the narrative needs either, that is a separate scoped decision, not something to
+  assume this model delivers.
+- **Flag / variation / exposure tables.** LaunchDarkly exports `evaluation_events`
+  itself; see the non-goals above. The loader writes metric events only.
+
+~~**A loader.**~~ Built — see below.
+
+## The loader
+
+`insert_star_schema_events_databricks()` in
+[darktrainers_simulation.py](../darktrainers_simulation.py) writes the dimensional
+model from the same journeys that feed `metric_events`. It exists because the
+server-side search experiment randomizes on `multi{session,user}`, and a
+single-context-kind row cannot carry that.
+
+```sh
+# default — unchanged behavior, metric_events only
+python darktrainers_simulation.py --profile test-databricks --records 300
+
+# star tables only, metric_events untouched
+python darktrainers_simulation.py --profile test-databricks --warehouse-schema star --records 300
+
+# both projections from the same journeys
+python darktrainers_simulation.py --profile test-databricks --warehouse-schema both --records 300
+```
+
+| Aspect | Behavior |
+|---|---|
+| Default | `legacy`. Star output is off unless explicitly asked for. |
+| Warehouse | Databricks only. `star`/`both` on any other profile exits with an error rather than writing a partial anything. |
+| Preflight | Verifies the five tables exist and names `01_star_schema.sql` if they don't. It never creates them — two copies of the DDL would drift. |
+| `dim_customer` | `MERGE` upsert, deduped per run first (a Databricks `MERGE` fails outright if the source matches a target row twice, and VIP keys recur within a run). `first_seen_ts` is never overwritten. |
+| `dim_product` | Never written. Referenced only. |
+| `fact_session` | One row per journey, `customer_key` NULL for guest-only, one customer per session by construction (a journey has exactly one `identify()` point). |
+| Product keys | Parsed out of `productData.ts` at import, so they track the catalog automatically instead of via a second hardcoded list. Best-effort: a failed parse logs a warning and writes NULL product keys rather than failing the run. |
+| Traceability | Every star row carries `run_id = 'sim-<timestamp>-<rand>'`, logged at the start of the run, so one run can be deleted exactly. Seeded rows carry `seed-v1`. |
+
+**The bar it clears** is a demo capability proof: a `both` run completes without
+errors and produces non-empty star rows. Exact reconciliation with `metric_events`
+(Checks 1 and 2) is explicitly *not* required — dropped events or minor
+discrepancies are fine. Checks 3 and 4 are the ones that matter, because a
+referential orphan or a session bound to two customers is what makes an LD results
+screen look visibly broken rather than just quietly imperfect.
+
+**After a catalog change**, re-run Block 1 of
+[04_seed_fake_data.sql](../sql/databricks/04_seed_fake_data.sql) by hand. The loader
+references product keys but never writes `dim_product`, so new SKUs otherwise show up
+as orphaned `product_id`s (Check 3 counts them) and Query A returns NULL product
+columns for those rows.
+
+**Real experiment results** now follow from having a loader: LaunchDarkly joins metric
+events to the `evaluation_events` it exported from actual flag evaluations, and the
+loader writes keys from the same run that evaluated the flags. The hand-seeded
+`seed-v1` rows still join to nothing on the session side — **metrics computed over
+seed data alone can show empty or meaningless results, and that is expected.**
 
 The informational `PRIMARY KEY`/`FOREIGN KEY` block at the end of
 `01_star_schema.sql` is optional — Unity Catalog does not enforce these, they only
