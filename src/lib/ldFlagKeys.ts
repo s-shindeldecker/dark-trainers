@@ -62,6 +62,36 @@ export const LD_FLAGS = {
    * experiment exposure recorded deliberately on Hero mount via useFlagExposure.
    */
   heroContentExperiment: 'hero-content-experiment',
+  /**
+   * String flag, RESERVED — nothing reads this yet. Per-vertical storefront
+   * theming is a stub in this pass: the key exists so it evaluates safely to
+   * 'default' (the current, unthemed storefront). 'parks' and 'cruise' are
+   * placeholder variations that render nothing today. Do not attach UI to it
+   * until that workstream is actually scoped.
+   *
+   * Deliberately vertical-generic: flag keys are immutable and visible on the
+   * LD flag list, so this must not carry a customer or prospect name.
+   */
+  storefrontTheme: 'storefront-theme',
+} as const;
+
+/**
+ * Flags evaluated **only** on the Express server via the Node SDK. They are
+ * listed here so the project has one inventory of flag keys, but nothing in
+ * `src/` may read them — a client-side read would bucket the visitor on the
+ * browser's own evaluation and break the server-side story the demo is making.
+ */
+export const LD_SERVER_FLAGS = {
+  /**
+   * String flag: which product-search ranking algorithm the backend serves.
+   * 'legacy-keyword' (control) | 'weighted-relevance' | 'personalized-affinity'.
+   * Default/off → 'legacy-keyword'. Evaluated per request in
+   * server/routes/search.ts with `variationDetail` (which is also the
+   * experiment exposure), on a multi{session,user} context. The served arm
+   * comes back to the client as the `_served` field on the search response —
+   * read that, never the flag.
+   */
+  searchRankingAlgorithm: 'search-ranking-algorithm',
 } as const;
 
 export const DEFAULT_CHECKOUT_VIP_BANNER = {

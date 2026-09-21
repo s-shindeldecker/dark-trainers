@@ -123,15 +123,45 @@ interface ProductCardProps {
   product: Product;
   /** Route prefix for the card CTA (e.g. '/products' or '/collectibles'). */
   linkBase?: string;
+  /**
+   * Fired when the visitor clicks through to the PDP. Optional: the default
+   * catalog grid passes nothing, while the PLP search results pass a handler
+   * that tracks `search_result_clicked`. Navigation happens either way.
+   */
+  onSelect?: (product: Product) => void;
+  /**
+   * Drop-access entitlement, resolved by the caller. `false` is the `view-only`
+   * state: show the product, block the purchase.
+   *
+   * Passed in rather than resolved here because the two call sites learn it from
+   * different places — the grid maps the client's `ac26-drop-access` read, while
+   * a search result carries the server's own `_purchasable`. Resolving it inside
+   * this component would mean the search card silently re-deriving entitlement
+   * from a client flag read that can disagree with what the server returned.
+   *
+   * Defaults to `true` so callers with no entitlement concept (e.g. the
+   * collectibles grid) are unaffected.
+   */
+  purchasable?: boolean;
 }
 
-export function ProductCard({ product, linkBase = '/products' }: ProductCardProps) {
+export function ProductCard({
+  product,
+  linkBase = '/products',
+  onSelect,
+  purchasable = true,
+}: ProductCardProps) {
   const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
   const { value: showDropToNonVip } = useFeatureFlag(LD_FLAGS.showDropExclusiveProducts, false);
   const { user } = useUser();
 
   const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
+  // Pre-existing gate, independent of ac26-drop-access: a non-VIP seeing a
+  // drop-exclusive SKU only because `show-drop-exclusive-products` is on.
   const lockedDrop = product.isDropExclusive && !isVip && !showDropToNonVip;
+  // The view-only state. Same treatment, different reason — so the copy differs
+  // (the visitor *can* see this one, they just can't buy it).
+  const viewOnly = !purchasable && !lockedDrop;
 
   return (
     <Card>
@@ -153,8 +183,12 @@ export function ProductCard({ product, linkBase = '/products' }: ProductCardProp
         </PriceRow>
         {lockedDrop ? (
           <Locked>VIP early access — sign in as VIP or upgrade to view.</Locked>
+        ) : viewOnly ? (
+          <Locked>VIP early access — upgrade to purchase this drop.</Locked>
         ) : (
-          <Cta to={`${linkBase}/${product.id}`}>View drop</Cta>
+          <Cta to={`${linkBase}/${product.id}`} onClick={() => onSelect?.(product)}>
+            View drop
+          </Cta>
         )}
       </Body>
     </Card>

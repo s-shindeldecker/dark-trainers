@@ -4,7 +4,8 @@ import Box from '@mui/material/Box';
 import { useUser } from '../../context/UserContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { useExposureLog } from '../../context/ExposureLog';
-import { LD_FLAGS } from '../../lib/ldFlagKeys';
+import { useServerSearchLog } from '../../context/ServerSearchLog';
+import { LD_FLAGS, LD_SERVER_FLAGS } from '../../lib/ldFlagKeys';
 import { STANDARD_ROSTER, VIP_ROSTER } from '../../types/darktrainers';
 import { generateRandomStandardUser, generateRandomVipUser } from '../../lib/generateRandomUser';
 import { MemberBadge } from '../Member/MemberBadge';
@@ -230,6 +231,7 @@ export function DemoControlsPanel() {
     setRandomVip,
   } = useUser();
   const { exposures, clear } = useExposureLog();
+  const { lastSearch } = useServerSearchLog();
   const [exposuresOpen, setExposuresOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(readCollapsed);
 
@@ -396,6 +398,31 @@ export function DemoControlsPanel() {
                 ))
               )}
             </>
+          )}
+        </ExposureSection>
+        <ExposureSection>
+          <Label style={{ marginBottom: '0.35rem' }}>Server-side search</Label>
+          {lastSearch ? (
+            <>
+              <ExposureItem>
+                <ExpKey title={LD_SERVER_FLAGS.searchRankingAlgorithm}>{lastSearch.served}</ExpKey>
+                <ExpVar>#{lastSearch.variationIndex ?? '?'}</ExpVar>
+                <ExpTag $inExperiment={lastSearch.inExperiment}>
+                  {lastSearch.inExperiment ? 'in exp' : 'no exp'}
+                </ExpTag>
+              </ExposureItem>
+              <Hint>
+                “{lastSearch.query}” → {lastSearch.resultCount}{' '}
+                {lastSearch.resultCount === 1 ? 'result' : 'results'}. The ranking arm is chosen by
+                the Node SDK inside <code>/api/search</code>; the browser never evaluates{' '}
+                <code>{LD_SERVER_FLAGS.searchRankingAlgorithm}</code>.
+              </Hint>
+            </>
+          ) : (
+            <Hint>
+              No search yet — run one on <code>/products</code> to see which ranking arm the backend
+              served.
+            </Hint>
           )}
         </ExposureSection>
       </Panel>

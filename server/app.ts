@@ -9,6 +9,7 @@ import { createChatRouter } from './routes/chat.js';
 import { createCardCreatorRouter } from './routes/card-creator.js';
 import { createSignupAgentRouter } from './routes/signup-agent.js';
 import { createSimulateRouter } from './routes/simulate.js';
+import { createSearchRouter } from './routes/search.js';
 
 /**
  * Builds and returns the configured Express app. Shared by the local dev
@@ -45,6 +46,7 @@ export async function createApp() {
   app.use('/api/card-creator', createCardCreatorRouter(ldClient, aiClient));
   app.use('/api/signup-agent', createSignupAgentRouter(ldClient, aiClient));
   app.use('/api/simulate', createSimulateRouter(ldClient));
+  app.use('/api/search', createSearchRouter(ldClient));
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

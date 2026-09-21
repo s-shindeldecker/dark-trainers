@@ -8,6 +8,7 @@ import { UserProvider, useUser } from './context/UserContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { VipModalProvider, useVipModal } from './context/VipModalContext';
 import { ExposureLogProvider } from './context/ExposureLog';
+import { ServerSearchLogProvider } from './context/ServerSearchLog';
 import { useFeatureFlag } from './hooks/useFeatureFlag';
 import { LD_FLAGS } from './lib/ldFlagKeys';
 import { HeroSection } from './components/Hero/HeroSection';
@@ -129,11 +130,13 @@ function AppWithLd() {
   return (
     <LDContextProvider>
       <ExposureLogProvider>
-        <VipModalProvider>
-          <CartProvider>
-            <AppShell />
-          </CartProvider>
-        </VipModalProvider>
+        <ServerSearchLogProvider>
+          <VipModalProvider>
+            <CartProvider>
+              <AppShell />
+            </CartProvider>
+          </VipModalProvider>
+        </ServerSearchLogProvider>
       </ExposureLogProvider>
     </LDContextProvider>
   );
