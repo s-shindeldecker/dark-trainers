@@ -33,21 +33,37 @@
 -- ===========================================================================
 -- Run this before ANY re-seed, and to recover from duplicated keys. Safe to
 -- paste as-is: metric_events is never referenced. The fact deletes are scoped to
--- run_id so loader-written rows survive; the dimension tables are seed-only and
--- are cleared wholesale.
+-- run_id so loader-written rows survive.
+--
+-- dim_customer is NO LONGER seed-only — the star-schema loader upserts into it
+-- (see darktrainers_simulation.py, insert_star_schema_events_databricks). So the
+-- delete below is scoped to the seed's own key space (vip-user-NNN /
+-- standard-user-NNN, which Block 2 recreates) instead of clearing the table.
+-- That deliberately preserves the loader's UUID-keyed "unknown" customers,
+-- whose fact rows would otherwise be left orphaned.
+--
+-- dim_product stays a wholesale clear: the loader only ever references it.
 
 DELETE FROM test_data_export.sshindel_metrics.fact_order            WHERE run_id = 'seed-v1';
 DELETE FROM test_data_export.sshindel_metrics.fact_engagement_event WHERE run_id = 'seed-v1';
 DELETE FROM test_data_export.sshindel_metrics.fact_session          WHERE run_id = 'seed-v1';
-DELETE FROM test_data_export.sshindel_metrics.dim_customer;
+DELETE FROM test_data_export.sshindel_metrics.dim_customer
+  WHERE customer_key LIKE 'vip-user-%' OR customer_key LIKE 'standard-user-%';
 DELETE FROM test_data_export.sshindel_metrics.dim_product;
 
 
 -- ===========================================================================
--- Block 1 — dim_product  (31 rows, the real app catalog)
+-- Block 1 — dim_product  (55 rows, the real app catalog)
 -- ===========================================================================
 -- Extracted from src/components/Products/productData.ts, so warehouse rows
 -- reference the same SKUs the storefront renders.
+--
+-- RE-RUN THIS BLOCK (after Block 0) WHENEVER THE CATALOG CHANGES. The star
+-- schema loader in darktrainers_simulation.py references product keys but never
+-- writes dim_product, so a SKU added to productData.ts and not re-seeded here
+-- shows up as an orphaned product_id in fact_engagement_event — Check 3 in
+-- 03_parity_check.sql counts exactly that, and Query A returns NULL product
+-- columns for those rows.
 
 INSERT INTO test_data_export.sshindel_metrics.dim_product
   (product_id, product_name, category, list_price)
@@ -67,6 +83,30 @@ VALUES
   ('vault-proto', 'DarkTrainers VAULT PROTO', 'basketball', 195),
   ('pulse-tr', 'DarkTrainers PULSE TR', 'training', 145),
   ('apex-low-x-control-freak', 'DarkTrainers Apex Low X Control Freak', 'running', 190),
+  ('volt-2-pacer', 'DarkTrainers VOLT-2 PACER', 'running', 195),
+  ('shadow-runner-trail', 'DarkTrainers SHADOW RUNNER TRAIL', 'running', 170),
+  ('shadow-runner-lite', 'DarkTrainers SHADOW RUNNER LITE', 'running', 140),
+  ('volt-1-eclipse', 'DarkTrainers VOLT-1', 'running', 185),
+  ('shadow-tempo', 'DarkTrainers SHADOW TEMPO', 'running', 165),
+  ('volt-hydro', 'DarkTrainers VOLT HYDRO', 'running', 175),
+  ('phantom-hi-elite', 'DarkTrainers PHANTOM HI ELITE', 'basketball', 205),
+  ('phantom-lo', 'DarkTrainers PHANTOM LO', 'basketball', 160),
+  ('vault-proto-ii', 'DarkTrainers VAULT PROTO II', 'basketball', 215),
+  ('vault-court-classic', 'DarkTrainers VAULT COURT CLASSIC', 'basketball', 150),
+  ('phantom-post', 'DarkTrainers PHANTOM POST', 'basketball', 185),
+  ('apex-low-sail', 'DarkTrainers APEX LOW', 'lifestyle', 145),
+  ('apex-mid-oxide', 'DarkTrainers APEX MID OXIDE', 'lifestyle', 158),
+  ('gridlock-noir', 'DarkTrainers GRIDLOCK NOIR', 'lifestyle', 135),
+  ('gridlock-court-canvas', 'DarkTrainers GRIDLOCK COURT CANVAS', 'lifestyle', 120),
+  ('volt-hi-city', 'DarkTrainers VOLT-HI CITY', 'lifestyle', 210),
+  ('phantom-hi-heritage', 'DarkTrainers PHANTOM HI HERITAGE', 'lifestyle', 195),
+  ('apex-low-ac26-sequel', 'APEX LOW x AC26', 'lifestyle', 275),
+  ('circuit-mid-pro', 'DarkTrainers CIRCUIT MID PRO', 'training', 180),
+  ('circuit-low-flex', 'DarkTrainers CIRCUIT LOW FLEX', 'training', 138),
+  ('pulse-tr-2', 'DarkTrainers PULSE TR 2', 'training', 155),
+  ('pulse-tr-studio', 'DarkTrainers PULSE TR STUDIO', 'training', 130),
+  ('circuit-strap', 'DarkTrainers CIRCUIT STRAP', 'training', 172),
+  ('pulse-trail-tr', 'DarkTrainers PULSE TRAIL TR', 'training', 168),
   ('toggle-figure-volt', 'Toggle Figure – Volt', 'collectibles', 34.99),
   ('toggle-figure-matte-black', 'Toggle Figure – Matte Black', 'collectibles', 29.99),
   ('toggle-figure-glow', 'Toggle Figure – Glow Edition', 'collectibles', 39.99),
@@ -196,8 +236,8 @@ FROM (SELECT explode(sequence(1, 300)) AS id);
 -- 4a — product_viewed (one per session)
 -- rand() cannot appear in a JOIN condition on Spark, so the random product
 -- index is computed in a projection (sess) and joined deterministically against
--- a numbered product list (prod). 31 matches dim_product's row count, asserted
--- by Block 6.
+-- a numbered product list (prod). 55 matches dim_product's row count, asserted
+-- by Block 6 — keep the two in step when the catalog changes.
 -- Subqueries inline rather than CTEs: `INSERT INTO ... WITH ... SELECT` is
 -- accepted unevenly across engines, and this form is unambiguous.
 INSERT INTO test_data_export.sshindel_metrics.fact_engagement_event
@@ -217,7 +257,7 @@ FROM (
     session_key,
     customer_key,
     session_start_ts,
-    CAST(rand() * 31 AS INT) + 1                                      AS prod_rn,
+    CAST(rand() * 55 AS INT) + 1                                      AS prod_rn,
     CAST(rand() * 5 AS INT)                                           AS view_offset_min
   FROM test_data_export.sshindel_metrics.fact_session
   WHERE run_id = 'seed-v1'
@@ -323,8 +363,13 @@ WHERE s.run_id = 'seed-v1'
 -- ===========================================================================
 -- Block 6 — verify
 -- ===========================================================================
--- Expected shape: dim_product 31, dim_customer 300, fact_session 1200,
+-- Expected shape: dim_product 55, dim_customer 300, fact_session 1200,
 -- fact_engagement_event roughly 1500-1800, fact_order roughly 300-400.
+--
+-- Note that dim_customer and the fact tables will read HIGHER than this if the
+-- star-schema loader has run (darktrainers_simulation.py --warehouse-schema
+-- star|both). Loader rows carry run_id = 'sim-...'; seeded rows carry
+-- 'seed-v1'. Filter on run_id to look at one or the other.
 
 -- RUN THIS FIRST. `dupes` must be 0 on every row.
 --

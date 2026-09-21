@@ -121,19 +121,20 @@ LEFT JOIN test_data_export.sshindel_metrics.dim_customer c ON o.customer_key = c
 -- from the star tables, so 03_parity_check.sql can prove the new model lost
 -- nothing before you repoint LaunchDarkly.
 --
--- It hardcodes context_kind = 'user' on purpose. The simulation's
--- generate_metric_event_data() does that today even for events tracked on a
--- session context, so journeys A and B write session keys labelled as
--- user-kind. That is a bug — but replicating it here is the only way the
--- reconciliation is meaningful. Query A above exposes the true value as
--- `tracked_context_kind`.
+-- It selects the real context_kind from the fact tables. This used to hardcode
+-- 'user' to replicate a bug in the simulation's generate_metric_event_data(),
+-- which labelled every row 'user' even when the event was tracked on a session
+-- context (journeys A and B wrote session keys as user-kind). That write now
+-- passes the true kind, so both projections agree and the reconciliation is
+-- meaningful without compensating for anything. Query A above still exposes the
+-- same value under the clearer name `tracked_context_kind`.
 --
 -- 03_parity_check.sql already inlines this query; it is repeated here so the
 -- two projections sit side by side and stay in sync when either changes.
 
 SELECT
   context_key,
-  'user'          AS context_kind,
+  context_kind,
   event_name      AS event_key,
   event_value,
   event_ts        AS received_time
@@ -143,7 +144,7 @@ UNION ALL
 
 SELECT
   context_key,
-  'user'          AS context_kind,
+  context_kind,
   order_type      AS event_key,
   order_total     AS event_value,
   order_ts        AS received_time
