@@ -1,10 +1,11 @@
 import styled from '@emotion/styled';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/Products/ProductCard';
 import { ProductGridSkeleton } from '../components/Products/ProductGridSkeleton';
 import { ProductSearchBar } from '../components/Products/ProductSearchBar';
 import { products, type Product } from '../components/Products/productData';
+import { buildProductLines, type ProductLine } from '../components/Products/productLines';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { useTrackConversion } from '../hooks/useTrackConversion';
 import { LD_FLAGS } from '../lib/ldFlagKeys';
@@ -41,6 +42,37 @@ interface SearchState {
 }
 
 const IDLE: SearchState = { status: 'idle', query: '', results: [] };
+
+/**
+ * Typeahead state, separate from the grid's `SearchState`.
+ *
+ * The dropdown and the grid answer different questions — "what might I mean"
+ * vs "what did I search for" — and conflating them made the grid flicker on
+ * every keystroke.
+ */
+interface SuggestState {
+  /** Presentation the server chose for this visitor's arm. */
+  mode: 'submit' | 'typeahead' | undefined;
+  /** The query these suggestions belong to. */
+  query: string;
+  suggestions: RankedProduct[];
+  /** Full result count for the query, so the panel can offer "see all N". */
+  total: number;
+  served?: string;
+}
+
+const NO_SUGGESTIONS: SuggestState = { mode: undefined, query: '', suggestions: [], total: 0 };
+
+/**
+ * Trailing-edge debounce. Requests go out once typing pauses, not once per
+ * keystroke — which is what makes it safe to reuse /api/search for suggestions:
+ * one request per pause means one `search_performed` per completed search
+ * intent, comparable to one submit in the control arm.
+ */
+const SUGGEST_DEBOUNCE_MS = 350;
+
+/** The ranking tokenizer ignores single characters, so don't bother asking. */
+const MIN_SUGGEST_LENGTH = 2;
 
 const PageContainer = styled.div`
   max-width: 1400px;
@@ -137,12 +169,24 @@ const EmptyState = styled.div`
   color: #a3a3a3;
 `;
 
-function sortProducts(list: Product[], mode: 'featured' | 'price-low' | 'new', preferredCategory?: string) {
-  const arr = [...list];
+/**
+ * Sorts the grouped cards, not the raw SKUs — grouping happens first, so the
+ * sort has to operate on lines or the order would be discarded when members
+ * collapse. Each mode reads the line-level equivalent of the SKU field:
+ * `priceFrom` for price, the newest member for recency.
+ */
+function sortLines(
+  lines: ProductLine[],
+  mode: 'featured' | 'price-low' | 'new',
+  preferredCategory?: string,
+) {
+  const arr = [...lines];
   if (mode === 'price-low') {
-    arr.sort((a, b) => a.price - b.price);
+    arr.sort((a, b) => a.priceFrom - b.priceFrom);
   } else if (mode === 'new') {
-    arr.sort((a, b) => (a.releaseDate < b.releaseDate ? 1 : -1));
+    const newest = (l: ProductLine) =>
+      l.members.reduce((max, p) => (p.releaseDate > max ? p.releaseDate : max), '');
+    arr.sort((a, b) => (newest(a) < newest(b) ? 1 : -1));
   } else if (preferredCategory) {
     arr.sort((a, b) => {
       const aFirst = a.category === preferredCategory ? 0 : 1;
@@ -153,6 +197,7 @@ function sortProducts(list: Product[], mode: 'featured' | 'price-low' | 'new', p
   return arr;
 }
 
+
 export default function Products() {
   const { value: sortDefault } = useFeatureFlag(LD_FLAGS.plpSortDefault, 'featured');
   const { value: ac26DropAccess } = useFeatureFlag(LD_FLAGS.ac26DropAccess, 'teaser');
@@ -161,6 +206,9 @@ export default function Products() {
   const { recordSearch, showServedBadge } = useServerSearchLog();
   const preferred = isIdentifiedUser(user) ? user.preferredCategory : undefined;
   const [search, setSearch] = useState<SearchState>(IDLE);
+  const [suggest, setSuggest] = useState<SuggestState>(NO_SUGGESTIONS);
+  const suggestTimerRef = useRef<number | undefined>(undefined);
+  const suggestRequestRef = useRef(0);
 
   // Only the newest request may write state. Without this, a slow "volt" can
   // land after a fast "limited" and show results for a query the box no longer
@@ -191,7 +239,10 @@ export default function Products() {
     // render, and the card decides the CTA from `purchasable` below. Gating is on
     // isDropExclusive, not tag text — see lib/dropAccess for why that matters.
     const visible = sneakers.filter((product) => isDropProductVisible(product, dropAccessState));
-    return sortProducts(visible, mode, preferred);
+    // Group before sorting: several SKUs share one photograph, and showing the
+    // same shoe four times is what this collapses. A line whose every member is
+    // hidden by entitlement simply never appears.
+    return sortLines(buildProductLines(visible), mode, preferred);
   }, [sortDefault, dropAccessState, preferred]);
 
   const runSearch = useCallback(
@@ -251,10 +302,81 @@ export default function Products() {
     [user, sessionKey, recordSearch],
   );
 
+  /**
+   * Debounced suggestion fetch, on the trailing edge of a typing burst.
+   *
+   * Reuses POST /api/search rather than a dedicated suggest endpoint: the
+   * server already ranks, applies entitlement, counts, and emits the events
+   * there, and a second endpoint would have meant a second copy of all of it.
+   * Debouncing is what makes that safe — one request per pause, not per key.
+   *
+   * The response's `mode` is the server telling us whether this visitor's arm
+   * wants typeahead. Once it says `submit` (the control arm) we stop asking
+   * altogether, so a control visitor makes exactly one extra request per
+   * search session and never sees a dropdown flash.
+   */
+  const requestSuggestions = useCallback(
+    (query: string) => {
+      window.clearTimeout(suggestTimerRef.current);
+      const trimmed = query.trim();
+
+      if (trimmed.length < MIN_SUGGEST_LENGTH) {
+        setSuggest((prev) => ({ ...prev, query: trimmed, suggestions: [], total: 0 }));
+        return;
+      }
+      // Control arm: the server has already said this visitor doesn't get
+      // typeahead. Stop making requests entirely.
+      if (suggest.mode === 'submit') return;
+
+      suggestTimerRef.current = window.setTimeout(async () => {
+        const requestId = ++suggestRequestRef.current;
+        try {
+          const res = await fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              q: trimmed,
+              userContext: userToApiContext(user),
+              sessionKey,
+            }),
+          });
+          if (!res.ok) return;
+          const data = (await res.json()) as {
+            resultCount: number;
+            results: RankedProduct[];
+            _served: { variation: string; mode: 'submit' | 'typeahead' };
+          };
+          // Ignore a response that a newer keystroke has already superseded.
+          if (requestId !== suggestRequestRef.current) return;
+          setSuggest({
+            mode: data._served?.mode,
+            query: trimmed,
+            suggestions: data.results ?? [],
+            total: data.resultCount ?? 0,
+            served: data._served?.variation,
+          });
+        } catch (error) {
+          // A failed suggestion is not worth surfacing — the visitor can still
+          // submit, which has its own error state.
+          console.error('[PLP] Suggestion request failed:', error);
+        }
+      }, SUGGEST_DEBOUNCE_MS);
+    },
+    [user, sessionKey, suggest.mode],
+  );
+
+  // Don't leave a pending request behind on unmount.
+  useEffect(() => () => window.clearTimeout(suggestTimerRef.current), []);
+
   const clearSearch = useCallback(() => {
     // Invalidate any in-flight request so its response can't repopulate the grid.
     requestIdRef.current += 1;
+    window.clearTimeout(suggestTimerRef.current);
+    suggestRequestRef.current += 1;
     setSearch(IDLE);
+    // Keep `mode` — it's a property of this visitor's arm, not of the query,
+    // and re-learning it would cost another request on the next keystroke.
+    setSuggest((prev) => ({ ...NO_SUGGESTIONS, mode: prev.mode, served: prev.served }));
   }, []);
 
   // `search_performed` / `search_zero_results` fire server-side; the click is
@@ -277,6 +399,14 @@ export default function Products() {
         onClear={clearSearch}
         isSearching={search.status === 'loading'}
         hasResults={isSearchActive}
+        onQueryChange={requestSuggestions}
+        mode={suggest.mode}
+        suggestions={suggest.suggestions}
+        suggestionsQuery={suggest.query}
+        totalSuggestionCount={suggest.total}
+        onSuggestionSelect={handleResultClick}
+        servedArm={suggest.served}
+        showServedBadge={showServedBadge}
       />
       {search.status === 'loading' ? (
         <ProductGridSkeleton />
@@ -330,11 +460,21 @@ export default function Products() {
         </>
       ) : (
         <Grid>
-          {defaultGrid.map((p) => (
+          {defaultGrid.map((l) => (
             <ProductCard
-              key={p.id}
-              product={p}
-              purchasable={isDropProductPurchasable(p, dropAccessState)}
+              key={l.key}
+              product={l.primary}
+              purchasable={isDropProductPurchasable(l.primary, dropAccessState)}
+              line={
+                l.isSingle
+                  ? undefined
+                  : {
+                      name: l.name,
+                      modelCount: l.members.length,
+                      priceFrom: l.priceFrom,
+                      memberPriceFrom: l.memberPriceFrom,
+                    }
+              }
             />
           ))}
         </Grid>

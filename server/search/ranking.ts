@@ -30,6 +30,26 @@ export type SearchVariation = (typeof SEARCH_VARIATIONS)[number];
 /** Control arm. Also the flag's off/fallback value — see section 3 of the plan. */
 export const DEFAULT_SEARCH_VARIATION: SearchVariation = 'legacy-keyword';
 
+/**
+ * How the storefront should present this arm's results.
+ *
+ * The three variations differ in *interaction*, not only in ordering — the
+ * control is the old submit-then-see-a-grid experience, and both candidates
+ * surface suggestions as you type. That is deliberately a bigger behavioral
+ * delta than a re-sort, because "we swapped the whole search experience behind
+ * a flag" is the story the demo is telling.
+ *
+ * Returned to the client as `mode` on the search response rather than derived
+ * in the browser from the variation name. Mapping arm → presentation is a
+ * server decision; a client-side copy of this table is exactly the kind of
+ * duplicated gate that has already drifted twice in this codebase.
+ */
+export type SearchMode = 'submit' | 'typeahead';
+
+export function searchModeFor(variation: SearchVariation): SearchMode {
+  return variation === 'legacy-keyword' ? 'submit' : 'typeahead';
+}
+
 export function isSearchVariation(value: unknown): value is SearchVariation {
   return SEARCH_VARIATIONS.includes(value as SearchVariation);
 }
