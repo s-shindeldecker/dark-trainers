@@ -29,6 +29,9 @@ These events are manually tracked via `ldClient.track()`:
 | `vip_upgrade_modal_shown` | `VIPUpgradeModal.tsx` | VIP upgrade modal is shown |
 | `product_viewed` | Product detail page | User views a product detail page |
 | `banner_click` | `SeasonalBanner.tsx` | User clicks the promo banner |
+| `search_performed` | `server/routes/search.ts` | **Server-side.** Every `/api/search` call (value = number of results returned) |
+| `search_zero_results` | `server/routes/search.ts` | **Server-side.** A search query returned nothing |
+| `search_result_clicked` | `Products.tsx` (PLP) | User clicks through to a search result (value = product price) |
 
 ## Feature Flags
 
@@ -82,9 +85,31 @@ Shows a countdown timer for upcoming drops.
 
 #### 8. AC26 Drop Access (`ac26-drop-access`)
 
-**Type:** String
+**Type:** String &nbsp; **Variations:** `teaser` / `early-access` / `full-access` &nbsp; **Default:** `teaser`
 
-VIP-only drop access gate for the AC26 collection.
+Drop entitlement for `isDropExclusive` products. All three variations do something
+distinct, and each maps to one internal state in
+[`src/lib/dropAccess.ts`](src/lib/dropAccess.ts):
+
+| Variation | State | Behavior on a drop-exclusive product |
+|---|---|---|
+| `teaser` | `hidden` | Not shown at all — absent from the grid, absent from search results, and the PDP returns the same "Product not found." as an unknown ID |
+| `early-access` | `view-only` | Shown everywhere, **purchase blocked**: the card's CTA becomes access-required messaging, the PDP's button becomes "Unlock with VIP" |
+| `full-access` | `full-access` | Shown and purchasable, normal CTA |
+
+Anything unrecognized (including a variation added in the LD UI that the code
+doesn't know yet) falls to `hidden` — the closed state. An unknown variation must
+never accidentally unlock a drop.
+
+Gating keys off the catalog's **`isDropExclusive` boolean**, never on tag text. The
+older grid filter tested `tags.includes('early-access')` and silently missed
+`volt-1` (tagged `'Early access'`, capitalized), leaking a drop-exclusive SKU into
+the guest grid. Tag strings are untouched; nothing gates on them.
+
+One mapping, two evaluations: the browser evaluates the flag with the React SDK for
+the grid and PDP, the Express server evaluates it with the Node SDK via the single
+resolver [`server/search/access.ts`](server/search/access.ts) for `/api/search`.
+Both map the value through the same table, so they cannot drift.
 
 #### 9. PDP Hero Layout (`pdp-hero-layout`)
 
@@ -163,6 +188,62 @@ Controls how conversions (e.g. `add_to_cart`, `product_viewed`, `card_downloaded
 
 Both pages share the `useTrackConversion` hook (`src/hooks/useTrackConversion.ts`), so exactly one path fires per action (never double-counted), and the numeric conversion value is forwarded in both modes so numeric metrics behave identically either way. In GTM mode the Custom HTML tag must read a `dlv - value` Data Layer Variable and pass it to `ldClient.track()` — see `src/lib/gtmStub.ts`.
 
+### Server-Side Flags
+
+Evaluated with the **Node server SDK** inside Express, never in the browser. Listed in
+`LD_SERVER_FLAGS` (`src/lib/ldFlagKeys.ts`) so the project keeps one flag inventory,
+but nothing in `src/` may read them.
+
+#### 19. Search Ranking Algorithm (`search-ranking-algorithm`)
+
+**Type:** String &nbsp; **Variations:** `legacy-keyword` (control) / `weighted-relevance` / `personalized-affinity` &nbsp; **Default:** `legacy-keyword`
+
+Which ranking algorithm the backend search engine serves. This is the server-side
+experimentation demo: the flag is evaluated per request in `server/routes/search.ts` on
+a `multi{session,user}` context, the served arm selects the ranking function, and the
+`search_performed` / `search_zero_results` events are emitted by the server. The client
+gets the served arm back only as the response's `_served` field and never evaluates the
+flag itself.
+
+- **`legacy-keyword`** — naive substring match, every field weighted the same, ties
+  broken alphabetically. Meant to look basic.
+- **`weighted-relevance`** — field weighting (name > tags > body), exact tag overlap,
+  price proximity to the matched set's median, and exponential recency decay on
+  `releaseDate`.
+- **`personalized-affinity`** — flat keyword base plus the requester's
+  `preferredCategory` and `memberTier`; VIP gets a further push toward
+  `isDropExclusive` and limited/collab items, Standard toward the biggest member
+  savings, a guest toward general-release stock. A guest with no attributes degrades
+  to the control arm's ordering, which is the honest outcome.
+
+**Requires:** the Express API server running (`npm run dev:server`). The served arm is
+visible live in the Demo controls panel under "Server-side search".
+
+The route also evaluates **`ac26-drop-access`** on the same context to apply drop
+entitlement before it counts results, so `search_performed`'s value equals what the
+visitor sees. Guest/Standard get `teaser` (early-access drops withheld); VIP gets
+`full-access`. Searching `ac26` as a guest is the clean way to demo it: 6 ranked hits,
+0 shown, `search_zero_results` fires.
+
+**Experiment setup:** primary metric `search_result_clicked`; `search_performed` as a
+volume guardrail. Randomize on `session` so guest traffic is bucketed too — that
+context kind must be marked *available for experiments* in LD (Code → Contexts → gear
+→ Edit); kinds auto-created from SDKs are not by default.
+
+#### 20. Storefront Theme (`storefront-theme`)
+
+**Type:** String &nbsp; **Variations:** `default` / `parks` / `cruise` &nbsp; **Default:** `default`
+
+**Reserved, wired to nothing.** The key exists so it evaluates safely to `default` —
+the current, unthemed storefront. `parks` and `cruise` are placeholder variations that
+render nothing today. Do not attach UI to it until per-vertical theming is actually
+scoped.
+
+> Naming note: flag keys are **immutable** in LaunchDarkly and appear on the main flag
+> list, so a key must never carry a customer or prospect name. This flag replaced an
+> earlier vertical-specific key for exactly that reason — the only way to change a key
+> is to create a new flag and repoint the code.
+
 ## AI Configs
 
 The Express server (`server/routes/`) uses the LaunchDarkly Node.js server-side AI SDK (`@launchdarkly/server-sdk-ai`):
@@ -196,6 +277,9 @@ The Python simulation script [`darktrainers_simulation.py`](darktrainers_simulat
 ```bash
 python darktrainers_simulation.py --profile production-bq --records 300
 python darktrainers_simulation.py --records 100  # LD-only (no --profile)
+
+# Dimensional (star) warehouse model, Databricks only. Default is --warehouse-schema legacy.
+python darktrainers_simulation.py --profile test-databricks --warehouse-schema both --records 300
 ```
 
 ## Environment Variables

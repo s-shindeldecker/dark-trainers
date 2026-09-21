@@ -17,6 +17,7 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 
 | Concept | Entry point | Notes |
 |---|---|---|
+| Drop entitlement (3-state) | `src/lib/dropAccess.ts` | `teaser`/`early-access`/`full-access` → `hidden`/`view-only`/`full-access`; one mapping, used by browser (grid, PDP) and server (`server/search/access.ts`) |
 | SDK init / provider | `src/context/LDContext.tsx:64` | `LDProvider` + client-side ID + options |
 | Context build (session vs multi) | `src/context/LDContext.tsx:69` | anonymous → `session`; identified → `multi{session,user}` |
 | Context sync / identify | `src/context/LDContextSync.tsx:20` | `identify()` on context change → bumps `contextVersion` |
@@ -88,10 +89,10 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 
 ## 5. Product catalog (PLP / PDP)
 
-- **PLP — `src/pages/Products.tsx:68`**: `plp-sort-default` (`:69`), `ac26-drop-access` filter (`:70`), preferred-category sort for identified users (`:58`)
-- **PDP — `src/pages/ProductDetail.tsx:140`**: `pdp-hero-layout` standard/editorial (`:148`), `show-vip-pricing` (`:149`), `show-early-access-countdown` (`:151`), `vip-upgrade-cta-copy` (`:152`); drop-exclusive lock (`:181`); fires `product_viewed` (`:188`) + `add_to_cart` (`:243`)
-- **`src/components/Products/ProductCard.tsx:128`**: VIP price strike (`:145`), drop badge / locked state
-- **`src/components/Products/productData.ts:24`**: `products[]`; `getProductById()` (`:513`); fields `isDropExclusive`, `releaseDate`, `memberPrice`, `tags`, `category`
+- **PLP — `src/pages/Products.tsx`**: `plp-sort-default`; `ac26-drop-access` → `dropAccessStateFromFlag` gates the **default grid only** (`hidden` excluded, `view-only` shown with `purchasable=false`); search results render verbatim off the server's `_purchasable`; preferred-category sort for identified users; server-side search call + `search_result_clicked`
+- **PDP — `src/pages/ProductDetail.tsx:224`**: `pdp-hero-layout` standard/editorial, `show-vip-pricing`, `show-early-access-countdown`, `vip-upgrade-cta-copy`; **entitlement guard** — `hidden` renders the same "Product not found." as an unknown ID (`:329`), `view-only` renders in full with `purchaseBlocked` → "Unlock with VIP"; fires `product_viewed` (suppressed when hidden) + `add_to_cart`
+- **`src/components/Products/ProductCard.tsx`**: VIP price strike, drop badge; `purchasable={false}` (the `view-only` state) swaps the CTA for access-required messaging — the caller resolves entitlement, the card never re-derives it
+- **`src/components/Products/productData.ts:24`**: `products[]` — 55 SKUs (39 footwear + 16 collectibles); `getProductById()` (`:911`); fields `isDropExclusive`, `releaseDate`, `memberPrice`, `tags`, `category`. Single source of truth — the Express search route and `dim_product` both derive from it.
 
 > **Concept:** one page, many flag-driven variants (layout, sort, pricing, gating) — the "change UX without a deploy" story.
 
@@ -111,22 +112,35 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 
 - **`server/routes/simulate.ts:43`** — `POST /api/simulate/start`, Server-Sent Events stream; validates `SimulationParams` (`:8`); calls `runSimulation()` (`:77`)
 - **`server/simulation/engine.ts`** — synthetic journeys via LD `variationDetail()`; per-tier signup/revenue baselines (`:43`); Z-score / p-value / lift significance calc (`:108`)
-- **`darktrainers_simulation.py`** — multi-context journeys; tier ratios (`:73`); per-tier event probabilities (VIP add_to_cart 70% / Standard 12% / …) (`:87`); BigQuery/Databricks/Snowflake connectors (`:26`)
-- **`run_continuous_simulation.py`** — infinite runner with time-of-day / day-of-week traffic multipliers (`:34`)
+- **`darktrainers_simulation.py`** — multi-context journeys; tier ratios (`:73`); per-tier event probabilities (VIP add_to_cart 70% / Standard 12% / …) (`:91`); per-arm search behavior (`:130`); search journey leg (`:1300`); BigQuery/Databricks/Snowflake connectors (`:26`)
+- **Star-schema loader — `darktrainers_simulation.py:782`** (`insert_star_schema_events_databricks`) — `--warehouse-schema {legacy,star,both}`, default `legacy`; `StarJourney` accumulator (`:399`); `dim_customer` `MERGE` upsert (`:720`); product keys parsed from `productData.ts` (`:205`). Databricks only — see `docs/WAREHOUSE_MODEL.md`
+- **`run_continuous_simulation.py`** — infinite runner with time-of-day / day-of-week traffic multipliers (`:34`). Picks up new journey steps automatically: it imports `simulate_user_journey_v2` rather than reimplementing it
 
 > **Concept:** synthetic traffic → warehouse → native experiment results; realistic per-tier behavior makes experiment metrics meaningful.
 
 ---
 
-## 8. Demo controls
+## 8. Server-side search (backend experimentation)
+
+- **`server/routes/search.ts:46`** — `POST /api/search`; `variationDetail` on `search-ranking-algorithm` is both the decision and the experiment exposure; then the shared resolver `server/search/access.ts` applies three-state drop entitlement on the **same** context, plus the response cap, *before* the count is taken — so `search_performed` === `results.length` === cards rendered; `search_zero_results` covers "no match" and "all hidden" (view-only hits are real results, not zeroes); awaits `ldClient.flush()` before responding
+- **`server/search/ranking.ts`** — three genuinely different algorithms over real `Product` fields: `rankLegacyKeyword` (`:143`), `rankWeightedRelevance` (`:193`), `rankPersonalizedAffinity` (`:246`); `applyDropAccessState` is the entitlement gate (hidden → dropped, view-only → kept + `_purchasable: false`), separate from scoring; dispatched by `runSearch`
+- **`server/ld-context.ts`** — shared `multi{session,user}` context builder, used by both the search and card-creator routes so every server flag evaluation buckets identically
+- **`src/context/ServerSearchLog.tsx`** — records the `_served` arm the server reported, for the demo panel. The browser never evaluates this flag
+- **`src/components/Products/ProductSearchBar.tsx`**, **`ProductGridSkeleton.tsx`** — PLP search box and its mandatory loading skeleton
+
+> **Concept:** the variant decision happens in the backend, on every request — the "experiment on a service, not just a UI" story. Contrast with §5, where the same page's variants are decided client-side.
+
+---
+
+## 9. Demo controls
 
 - **`src/components/Demo/PersonaSwitcher.tsx:121`** — Guest/Standard/VIP radio → `resetToGuest()` / `setRandomStandard()` / `setRandomVip()` (`:148`)
-- **`src/components/Demo/DemoControlsPanel.tsx:82`** — persona dropdown + session-key display + "New session" (desktop only)
+- **`src/components/Demo/DemoControlsPanel.tsx:221`** — persona dropdown + durable-key roster + session-key display + "New session" + deferred-exposure log + the server-side search `_served` readout (desktop only)
 - **`src/components/Demo/QRCodeModal.tsx:13`** — Cmd/Ctrl+D QR modal → the deployed URL (handler in `App.tsx:144`)
 
 ---
 
-## 9. Promo / seasonal banners
+## 10. Promo / seasonal banners
 
 - **`src/components/Layout/SeasonalBanner.tsx:39`** — `promo-banner-text` (empty = hidden, `:58`); `promo-banner-position` top/bottom decided in `App.tsx:55`; fires `banner_click` (`:47`)
 - **`src/components/Layout/Header.tsx`** — nav links gated by props (`showProducts`/`showFeed`/`showCollectibles`/`showSignup`) set from flags in `App.tsx`
@@ -145,5 +159,6 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 | 5 | PLP / PDP | `pages/Products.tsx`, `pages/ProductDetail.tsx`, `productData.ts` |
 | 6 | Observability | `LDContext.tsx:92` |
 | 7 | Simulation | `simulate.ts`, `engine.ts`, `darktrainers_simulation.py` |
-| 8 | Demo controls | `Demo/PersonaSwitcher.tsx`, `DemoControlsPanel.tsx` |
-| 9 | Banners | `Layout/SeasonalBanner.tsx` |
+| 8 | Server-side search | `server/routes/search.ts`, `server/search/ranking.ts` |
+| 9 | Demo controls | `Demo/PersonaSwitcher.tsx`, `DemoControlsPanel.tsx` |
+| 10 | Banners | `Layout/SeasonalBanner.tsx` |
