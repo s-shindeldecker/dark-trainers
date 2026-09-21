@@ -1330,10 +1330,24 @@ def _simulate_search_step(ld_client, mode, eval_ctx, context_key, context_kind, 
 
     Returns the served variation, or None if this journey didn't search.
     """
+    # Whether this visitor searches at all is decided before any arm is known —
+    # assignment happens *on* the search, so this gate uses the caller's lift.
     if not _metric_fires(probs.get("search_performed", 0.0), lift):
         return None
 
     served = _eval_search_flag(ld_client, eval_ctx, variation_indices)
+
+    # Recompute the forced lift now that the search arm has been evaluated and
+    # its variation index recorded. The caller computed `lift` before this point,
+    # so `--force-flag search-ranking-algorithm` could never match and silently
+    # applied no lift to anything. Evaluating the flag earlier is not the fix:
+    # that would fire an exposure on every journey, including ones that never
+    # search, and pollute the experiment with assignments that have no event.
+    #
+    # For any other forced flag the index was already recorded upstream, so this
+    # returns exactly what the caller passed in.
+    lift = _forced_metric_lift(variation_indices)
+
     result_count = 0 if _search_zero_result(served) else _sample_result_count()
 
     events.append("search_performed")
