@@ -209,6 +209,12 @@ export default function Products() {
   const [suggest, setSuggest] = useState<SuggestState>(NO_SUGGESTIONS);
   const suggestTimerRef = useRef<number | undefined>(undefined);
   const suggestRequestRef = useRef(0);
+  // The served mode, in a ref as well as state. A queued debounce callback
+  // closes over the value from when the keystroke happened; if the first
+  // response lands in that window and says `submit`, the closure would still
+  // fire a request the control arm should never make.
+  const suggestModeRef = useRef<SuggestState['mode']>(undefined);
+  suggestModeRef.current = suggest.mode;
 
   // Only the newest request may write state. Without this, a slow "volt" can
   // land after a fast "limited" and show results for a query the box no longer
@@ -248,6 +254,11 @@ export default function Products() {
   const runSearch = useCallback(
     async (query: string) => {
       const requestId = ++requestIdRef.current;
+      // Submitting supersedes any queued suggestion request. Without this, a
+      // pause that ends in Enter fires both — two requests and two
+      // `search_performed` events for one search.
+      window.clearTimeout(suggestTimerRef.current);
+      suggestRequestRef.current += 1;
       setSearch({ status: 'loading', query, results: [] });
 
       try {
@@ -321,14 +332,20 @@ export default function Products() {
       const trimmed = query.trim();
 
       if (trimmed.length < MIN_SUGGEST_LENGTH) {
-        setSuggest((prev) => ({ ...prev, query: trimmed, suggestions: [], total: 0 }));
+        // Clear the query rather than recording the short one. Writing it would
+        // make the panel's freshness check pass with an empty list, rendering
+        // "No matches" for a query that was never sent — the ranking tokenizer
+        // ignores single characters, so there is nothing to ask for.
+        setSuggest((prev) => ({ ...prev, query: '', suggestions: [], total: 0 }));
         return;
       }
       // Control arm: the server has already said this visitor doesn't get
       // typeahead. Stop making requests entirely.
-      if (suggest.mode === 'submit') return;
+      if (suggestModeRef.current === 'submit') return;
 
       suggestTimerRef.current = window.setTimeout(async () => {
+        // Re-check: the arm may have been revealed while this was queued.
+        if (suggestModeRef.current === 'submit') return;
         const requestId = ++suggestRequestRef.current;
         try {
           const res = await fetch('/api/search', {
@@ -362,11 +379,24 @@ export default function Products() {
         }
       }, SUGGEST_DEBOUNCE_MS);
     },
-    [user, sessionKey, suggest.mode],
+    [user, sessionKey],
   );
 
   // Don't leave a pending request behind on unmount.
   useEffect(() => () => window.clearTimeout(suggestTimerRef.current), []);
+
+  // Reset everything suggestion-related when the visitor changes.
+  //
+  // `mode` is a property of the LaunchDarkly context, not of the query: a
+  // previous visitor's `submit` would otherwise block typeahead for a new one
+  // who is entitled to it. And stale suggestions can contain products the new
+  // visitor is not entitled to see — a VIP's drop-exclusive hits must not
+  // linger in the panel after switching to a guest.
+  useEffect(() => {
+    window.clearTimeout(suggestTimerRef.current);
+    suggestRequestRef.current += 1;
+    setSuggest(NO_SUGGESTIONS);
+  }, [user.key, sessionKey]);
 
   const clearSearch = useCallback(() => {
     // Invalidate any in-flight request so its response can't repopulate the grid.

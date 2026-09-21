@@ -316,9 +316,20 @@ export function ProductSearchBar({
     onSearch(trimmed);
   };
 
+  /**
+   * A suggestion was chosen by pointer. Tracking fires, but navigation is left
+   * to the underlying <Link>: on a cmd/ctrl/middle click it opens a new tab and
+   * deliberately does *not* move the current page, and calling navigate() here
+   * would drag this page along with it.
+   */
   const choose = (product: Suggestion) => {
     setOpen(false);
     onSuggestionSelect(product);
+  };
+
+  /** Keyboard selection — no anchor activation happens, so navigate here. */
+  const chooseWithKeyboard = (product: Suggestion) => {
+    choose(product);
     navigate(`/products/${product.id}`);
   };
 
@@ -338,7 +349,7 @@ export function ProductSearchBar({
       // Enter on a highlighted row opens it; Enter with nothing highlighted
       // falls through to the form's submit and shows the full grid.
       e.preventDefault();
-      choose(rows[active]);
+      chooseWithKeyboard(rows[active]);
     }
   };
 
