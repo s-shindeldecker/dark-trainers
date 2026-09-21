@@ -30,6 +30,14 @@ interface SearchState {
   status: 'idle' | 'loading' | 'done' | 'error';
   query: string;
   results: RankedProduct[];
+  /**
+   * The arm the server reported for *this* result set. Held here rather than
+   * read back off the shared log so the badge can never describe one search
+   * while the grid below it shows another.
+   */
+  served?: string;
+  variationIndex?: number | null;
+  inExperiment?: boolean;
 }
 
 const IDLE: SearchState = { status: 'idle', query: '', results: [] };
@@ -78,6 +86,48 @@ const ResultsNote = styled.p`
   margin: 0 auto 1.5rem;
 `;
 
+/**
+ * Served-arm badge, shown beside the results line when the demo panel's
+ * "show on page" toggle is on. Sized to be legible from the back of a room —
+ * this exists so the served variation can be narrated live on stage.
+ */
+const ServedRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin: -1rem auto 1.5rem;
+`;
+
+const ServedChip = styled.code`
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #c8f000;
+  background: rgba(200, 240, 0, 0.08);
+  border: 1px solid #4d5c00;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+`;
+
+const ServedVar = styled.span`
+  font-size: 0.8rem;
+  color: #737373;
+  font-variant-numeric: tabular-nums;
+`;
+
+const ServedExpTag = styled.span<{ $inExperiment: boolean }>`
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  color: ${({ $inExperiment }) => ($inExperiment ? '#c8f000' : '#666')};
+  border: 1px solid ${({ $inExperiment }) => ($inExperiment ? '#4d5c00' : '#333')};
+  background: ${({ $inExperiment }) => ($inExperiment ? 'rgba(200, 240, 0, 0.08)' : 'transparent')};
+`;
+
 const EmptyState = styled.div`
   text-align: center;
   padding: 3rem 1.5rem;
@@ -108,7 +158,7 @@ export default function Products() {
   const { value: ac26DropAccess } = useFeatureFlag(LD_FLAGS.ac26DropAccess, 'teaser');
   const { user, sessionKey } = useUser();
   const { trackConversion } = useTrackConversion();
-  const { recordSearch } = useServerSearchLog();
+  const { recordSearch, showServedBadge } = useServerSearchLog();
   const preferred = isIdentifiedUser(user) ? user.preferredCategory : undefined;
   const [search, setSearch] = useState<SearchState>(IDLE);
 
@@ -175,7 +225,14 @@ export default function Products() {
 
         if (requestId !== requestIdRef.current) return;
 
-        setSearch({ status: 'done', query, results: data.results ?? [] });
+        setSearch({
+          status: 'done',
+          query,
+          results: data.results ?? [],
+          served: data._served?.variation,
+          variationIndex: data._served?.variationIndex ?? null,
+          inExperiment: Boolean(data._served?.inExperiment),
+        });
         // The served arm is decided by the Node SDK inside the route; the panel
         // shows what the server reported rather than re-evaluating the flag here.
         recordSearch({
@@ -240,6 +297,18 @@ export default function Products() {
               ? `No matches for “${search.query}”.`
               : `${search.results.length} ${search.results.length === 1 ? 'result' : 'results'} for “${search.query}”, ranked server-side.`}
           </ResultsNote>
+          {showServedBadge && search.served && (
+            <ServedRow>
+              <ServedVar>ranked by</ServedVar>
+              <ServedChip title="ac26-drop-access is separate; this is the ranking arm">
+                {search.served}
+              </ServedChip>
+              <ServedVar>#{search.variationIndex ?? '?'}</ServedVar>
+              <ServedExpTag $inExperiment={Boolean(search.inExperiment)}>
+                {search.inExperiment ? 'in exp' : 'no exp'}
+              </ServedExpTag>
+            </ServedRow>
+          )}
           {search.results.length === 0 ? (
             <EmptyState>
               <p style={{ margin: 0 }}>Try a broader term — a silhouette (“volt”, “apex”), a category (“running”), or a tag (“limited”).</p>

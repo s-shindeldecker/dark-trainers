@@ -31,12 +31,33 @@ interface ServerSearchLogValue {
   lastSearch: ServerSearchRecord | undefined;
   recordSearch: (record: Omit<ServerSearchRecord, 'at'>) => void;
   clear: () => void;
+  /**
+   * Whether the PLP renders the served-arm badge beside its results line.
+   *
+   * Defaults to OFF and is toggled from the demo controls panel: it's stage
+   * narration, not product UI, and a real customer looking at the storefront
+   * shouldn't see a flag key on the page. Persisted so it survives a reload
+   * once it's been switched on for a demo.
+   */
+  showServedBadge: boolean;
+  setShowServedBadge: (visible: boolean) => void;
 }
 
 const ServerSearchLogContext = createContext<ServerSearchLogValue | undefined>(undefined);
 
+const BADGE_VISIBLE_KEY = 'dt-show-served-badge';
+
+function readBadgeVisible(): boolean {
+  try {
+    return localStorage.getItem(BADGE_VISIBLE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export function ServerSearchLogProvider({ children }: { children: ReactNode }) {
   const [lastSearch, setLastSearch] = useState<ServerSearchRecord | undefined>(undefined);
+  const [showServedBadge, setShowServedBadgeState] = useState<boolean>(readBadgeVisible);
 
   const recordSearch = useCallback((record: Omit<ServerSearchRecord, 'at'>) => {
     setLastSearch({ ...record, at: Date.now() });
@@ -44,9 +65,18 @@ export function ServerSearchLogProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => setLastSearch(undefined), []);
 
+  const setShowServedBadge = useCallback((visible: boolean) => {
+    setShowServedBadgeState(visible);
+    try {
+      localStorage.setItem(BADGE_VISIBLE_KEY, visible ? '1' : '0');
+    } catch {
+      /* private browsing — the toggle still works for this page view */
+    }
+  }, []);
+
   const value = useMemo<ServerSearchLogValue>(
-    () => ({ lastSearch, recordSearch, clear }),
-    [lastSearch, recordSearch, clear],
+    () => ({ lastSearch, recordSearch, clear, showServedBadge, setShowServedBadge }),
+    [lastSearch, recordSearch, clear, showServedBadge, setShowServedBadge],
   );
 
   return (
