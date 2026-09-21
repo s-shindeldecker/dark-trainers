@@ -108,6 +108,13 @@ const Cta = styled(Link)`
   }
 `;
 
+const FromLabel = styled.span`
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #737373;
+`;
+
 const Locked = styled.div`
   margin-top: 0.65rem;
   padding: 0.55em 0.65em;
@@ -143,6 +150,21 @@ interface ProductCardProps {
    * collectibles grid) are unaffected.
    */
   purchasable?: boolean;
+  /**
+   * Set when this card stands for a product *line* rather than a single SKU —
+   * i.e. several models share one photograph. Renders the line name, a model
+   * count, and a "from" price, and links to the cheapest member (the product
+   * that price refers to).
+   *
+   * Absent for ordinary one-SKU cards, which is every card the collectibles
+   * grid and the search results render.
+   */
+  line?: {
+    name: string;
+    modelCount: number;
+    priceFrom: number;
+    memberPriceFrom: number;
+  };
 }
 
 export function ProductCard({
@@ -150,6 +172,7 @@ export function ProductCard({
   linkBase = '/products',
   onSelect,
   purchasable = true,
+  line,
 }: ProductCardProps) {
   const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
   const { value: showDropToNonVip } = useFeatureFlag(LD_FLAGS.showDropExclusiveProducts, false);
@@ -170,23 +193,27 @@ export function ProductCard({
   // drop-exclusive SKU only because `show-drop-exclusive-products` is on. Only
   // consulted when drop access hasn't already blocked the purchase.
   const lockedDrop = !viewOnly && product.isDropExclusive && !isVip && !showDropToNonVip;
+  // A line card only exists when several models share one photo; a one-model
+  // "line" is just an ordinary card and the caller omits the prop.
+  const isLine = Boolean(line && line.modelCount > 1);
 
   return (
     <Card>
       <Img src={product.imageUrl} alt="" width={800} height={800} loading="lazy" />
       <Body>
         <Cat>{product.category}</Cat>
-        <Name className="font-display">{product.name}</Name>
-        <Colorway>{product.colorway}</Colorway>
+        <Name className="font-display">{isLine ? line!.name : product.name}</Name>
+        <Colorway>{isLine ? `${line!.modelCount} models` : product.colorway}</Colorway>
         {product.isDropExclusive && <Badge style={{ marginBottom: '0.35rem', alignSelf: 'flex-start' }}>Drop</Badge>}
         <PriceRow>
+          {isLine && <FromLabel>from</FromLabel>}
           {showVipPricing ? (
             <>
-              <Strike>${product.price}</Strike>
-              <MemberPrice>${product.memberPrice}</MemberPrice>
+              <Strike>${isLine ? line!.priceFrom : product.price}</Strike>
+              <MemberPrice>${isLine ? line!.memberPriceFrom : product.memberPrice}</MemberPrice>
             </>
           ) : (
-            <Price>${product.price}</Price>
+            <Price>${isLine ? line!.priceFrom : product.price}</Price>
           )}
         </PriceRow>
         {viewOnly ? (
@@ -195,7 +222,7 @@ export function ProductCard({
           <Locked>VIP early access — sign in as VIP or upgrade to view.</Locked>
         ) : (
           <Cta to={`${linkBase}/${product.id}`} onClick={() => onSelect?.(product)}>
-            View drop
+            {isLine ? 'Shop the line' : 'View drop'}
           </Cta>
         )}
       </Body>
