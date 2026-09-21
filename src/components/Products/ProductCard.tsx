@@ -156,12 +156,20 @@ export function ProductCard({
   const { user } = useUser();
 
   const isVip = isIdentifiedUser(user) && user.memberTier === 'vip';
-  // Pre-existing gate, independent of ac26-drop-access: a non-VIP seeing a
-  // drop-exclusive SKU only because `show-drop-exclusive-products` is on.
-  const lockedDrop = product.isDropExclusive && !isVip && !showDropToNonVip;
-  // The view-only state. Same treatment, different reason — so the copy differs
-  // (the visitor *can* see this one, they just can't buy it).
-  const viewOnly = !purchasable && !lockedDrop;
+  // The `view-only` drop-access state: the resolver has already decided this
+  // visitor may see the product but not buy it.
+  //
+  // Checked FIRST, and this ordering is load-bearing. `show-drop-exclusive-products`
+  // serves false to every non-VIP, and a VIP gets ac26-drop-access=full-access, so
+  // evaluating `lockedDrop` first made it true for the entire early-access audience
+  // — shadowing this branch completely and showing the older "upgrade to view" copy
+  // to people who can already see the product. Drop access is the more specific
+  // signal, so it wins.
+  const viewOnly = !purchasable;
+  // Older, broader gate, independent of ac26-drop-access: a non-VIP seeing a
+  // drop-exclusive SKU only because `show-drop-exclusive-products` is on. Only
+  // consulted when drop access hasn't already blocked the purchase.
+  const lockedDrop = !viewOnly && product.isDropExclusive && !isVip && !showDropToNonVip;
 
   return (
     <Card>
@@ -181,10 +189,10 @@ export function ProductCard({
             <Price>${product.price}</Price>
           )}
         </PriceRow>
-        {lockedDrop ? (
-          <Locked>VIP early access — sign in as VIP or upgrade to view.</Locked>
-        ) : viewOnly ? (
+        {viewOnly ? (
           <Locked>VIP early access — upgrade to purchase this drop.</Locked>
+        ) : lockedDrop ? (
+          <Locked>VIP early access — sign in as VIP or upgrade to view.</Locked>
         ) : (
           <Cta to={`${linkBase}/${product.id}`} onClick={() => onSelect?.(product)}>
             View drop
