@@ -161,6 +161,54 @@ export function buildProductLines(visible: Product[]): ProductLine[] {
   return lines;
 }
 
+/** SKU id → the declared multi-model line it belongs to. */
+const LINE_BY_MEMBER = new Map(
+  LINE_DEFS.flatMap((line) => line.memberIds.map((id) => [id, line] as const)),
+);
+
+export interface RankedLine<T extends Product> {
+  /** Line key for a declared group; the SKU id for an ungrouped result. */
+  key: string;
+  /** The declared line name, or undefined when the result is ungrouped. */
+  lineName?: string;
+  /** The highest-ranked member in this result set — the card, and its link target. */
+  primary: T;
+  /** Every other member of the line that is in this result set, in rank order. */
+  others: T[];
+}
+
+/**
+ * Collapse an already-ranked result list into one entry per line.
+ *
+ * Unlike `buildProductLines`, order is everything here: the list arrives
+ * ranked, and the card for a line is whichever member ranked highest in *this*
+ * list, not a fixed representative. Different ranking arms favor different
+ * SKUs, and collapsing must not hide that. Each line sits at the position of
+ * its best-ranked member.
+ *
+ * Grouping reads the declared `LINE_DEFS` membership, never `imageUrl`, for the
+ * same reason the grid does. Anything absent from the input (hidden by
+ * entitlement, or cut by a cap) is simply not a member here, so a line whose
+ * every member is absent never appears.
+ */
+export function groupRankedByLine<T extends Product>(ranked: T[]): RankedLine<T>[] {
+  const out: RankedLine<T>[] = [];
+  const byKey = new Map<string, RankedLine<T>>();
+  for (const product of ranked) {
+    const def = LINE_BY_MEMBER.get(product.id);
+    const key = def?.key ?? product.id;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.others.push(product);
+      continue;
+    }
+    const entry: RankedLine<T> = { key, lineName: def?.name, primary: product, others: [] };
+    byKey.set(key, entry);
+    out.push(entry);
+  }
+  return out;
+}
+
 /**
  * Dev-only guard: a SKU added to the catalog that reuses an existing photo but
  * was never placed in a line would silently reintroduce a duplicate image.

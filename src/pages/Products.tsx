@@ -24,8 +24,24 @@ import { useServerSearchLog } from '../context/ServerSearchLog';
  * the server's own entitlement verdict. `_purchasable` is authoritative — the
  * server resolved it on the context it evaluated the ranking flag with, so the
  * card must not second-guess it from a client flag read.
+ *
+ * Each result is one card: the server has already collapsed SKUs that share a
+ * photo into their product line, with the highest-ranked member as the result
+ * itself and the line's other matching members in `_variants`.
  */
-type RankedProduct = Product & { _score?: number; _purchasable?: boolean };
+type RankedProduct = Product & {
+  _score?: number;
+  _purchasable?: boolean;
+  _variants?: Array<{
+    id: string;
+    name: string;
+    subtitle?: string;
+    colorway: string;
+    price: number;
+    memberPrice: number;
+    _purchasable: boolean;
+  }>;
+};
 
 interface SearchState {
   status: 'idle' | 'loading' | 'done' | 'error';
@@ -408,7 +424,9 @@ export default function Products() {
   // `search_performed` / `search_zero_results` fire server-side; the click is
   // the one search event the client owns. Value matches `add_to_cart` (price).
   const handleResultClick = useCallback(
-    (product: Product) => {
+    // Takes just id + price so a grouped card's sibling link can report the
+    // exact SKU opened, not the card's ranked member.
+    (product: Pick<Product, 'id' | 'price'>) => {
       trackConversion('search_result_clicked', { value: product.price, productId: product.id });
     },
     [trackConversion],
@@ -479,6 +497,7 @@ export default function Products() {
                   // The server's verdict, not a client re-derivation. Absent
                   // (an older response shape) means purchasable.
                   purchasable={p._purchasable !== false}
+                  variants={p._variants}
                 />
               ))}
             </Grid>
