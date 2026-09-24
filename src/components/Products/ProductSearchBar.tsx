@@ -243,11 +243,11 @@ interface ProductSearchBarProps {
    */
   onQueryChange: (query: string) => void;
   /**
-   * Presentation for the served arm, as reported by the server. `undefined`
-   * until the first response: the dropdown stays closed until the backend has
-   * told us this visitor gets typeahead, so the control arm never flashes one.
+   * Whether this visitor gets keystroke suggestions, from the `search-typeahead`
+   * flag. Independent of the ranking arm — every arm has the same cadence, so
+   * the ranking experiment isn't confounded with request volume.
    */
-  mode: 'submit' | 'typeahead' | undefined;
+  typeaheadEnabled: boolean;
   suggestions: Suggestion[];
   /** The query `suggestions` belong to — stale results are not rendered. */
   suggestionsQuery: string;
@@ -265,7 +265,7 @@ export function ProductSearchBar({
   isSearching,
   hasResults,
   onQueryChange,
-  mode,
+  typeaheadEnabled,
   suggestions,
   suggestionsQuery,
   totalSuggestionCount,
@@ -284,7 +284,7 @@ export function ProductSearchBar({
   // Only show the panel for the query currently in the box. Without this a
   // slower response for "vol" can briefly render under "volt running".
   const fresh = suggestionsQuery === trimmed && trimmed.length > 0;
-  const showPanel = open && mode === 'typeahead' && fresh;
+  const showPanel = open && typeaheadEnabled && fresh;
 
   // Close on click outside. mousedown rather than click so the panel is gone
   // before a click on the page behind it resolves.

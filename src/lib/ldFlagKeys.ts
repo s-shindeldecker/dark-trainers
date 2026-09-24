@@ -63,6 +63,25 @@ export const LD_FLAGS = {
    */
   heroContentExperiment: 'hero-content-experiment',
   /**
+   * Boolean flag: does the PLP search box fire on keystroke (debounced) or only
+   * on submit? Off → submit only.
+   *
+   * Independent of `search-ranking-algorithm` on purpose. Request cadence used
+   * to be derived from the served ranking arm, which confounded the ranking
+   * experiment with request volume: the candidate arms searched on every typing
+   * pause while the control searched once, so any measured difference mixed
+   * "better ranking" with "more searches". Cadence is now one flag for
+   * everybody and the arm has no influence on it.
+   *
+   * Deliberately client-side readable, unlike `search-ranking-algorithm`: the
+   * browser has to know the cadence *before* it makes the first request, and
+   * learning it from a response meant firing a throwaway probe request.
+   *
+   * Not `show-`-prefixed despite the app's other booleans: this is a behavior
+   * toggle in the `search-*` family, not a visibility gate.
+   */
+  searchTypeahead: 'search-typeahead',
+  /**
    * String flag, RESERVED — nothing reads this yet. Per-vertical storefront
    * theming is a stub in this pass: the key exists so it evaluates safely to
    * 'default' (the current, unthemed storefront). 'parks' and 'cruise' are
