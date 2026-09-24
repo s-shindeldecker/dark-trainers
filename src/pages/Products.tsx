@@ -428,7 +428,9 @@ export default function Products() {
   // `search_performed` / `search_zero_results` fire server-side; the click is
   // the one search event the client owns. Value matches `add_to_cart` (price).
   const handleResultClick = useCallback(
-    (product: Product) => {
+    // Takes just id + price so a grouped card's sibling link can report the
+    // exact SKU opened, not the card's ranked member.
+    (product: Pick<Product, 'id' | 'price'>) => {
       trackConversion('search_result_clicked', { value: product.price, productId: product.id });
     },
     [trackConversion],

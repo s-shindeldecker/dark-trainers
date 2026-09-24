@@ -118,7 +118,16 @@ const FromLabel = styled.span`
 const MoreColors = styled.p`
   margin: -0.3rem 0 0.55rem;
   font-size: 0.75rem;
+  color: #a3a3a3;
+  line-height: 1.5;
+`;
+
+const VariantLink = styled(Link)`
   color: #c8f000;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const Locked = styled.div`
@@ -141,7 +150,7 @@ interface ProductCardProps {
    * catalog grid passes nothing, while the PLP search results pass a handler
    * that tracks `search_result_clicked`. Navigation happens either way.
    */
-  onSelect?: (product: Product) => void;
+  onSelect?: (product: Pick<Product, 'id' | 'price'>) => void;
   /**
    * Drop-access entitlement, resolved by the caller. `false` is the `view-only`
    * state: show the product, block the purchase.
@@ -176,8 +185,20 @@ interface ProductCardProps {
    * matched the same query. The card still IS `product` (its name, price,
    * CTA and click target all belong to the SKU the arm ranked highest); this
    * just adds a "+N more colors" note so the collapsed siblings aren't lost.
+   *
+   * Each sibling is its own link, independent of the card's CTA. That matters
+   * when the card is a locked drop: a line can mix drop-exclusive and
+   * general-release members, and without these links a view-only visitor would
+   * have no way to reach the siblings they CAN buy.
    */
-  variants?: Array<{ id: string; name: string; subtitle?: string; colorway: string }>;
+  variants?: Array<{
+    id: string;
+    name: string;
+    subtitle?: string;
+    colorway: string;
+    price: number;
+    _purchasable?: boolean;
+  }>;
 }
 
 export function ProductCard({
@@ -219,12 +240,22 @@ export function ProductCard({
         <Name className="font-display">{isLine ? line!.name : product.name}</Name>
         <Colorway>{isLine ? `${line!.modelCount} models` : product.colorway}</Colorway>
         {!isLine && variants && variants.length > 0 && (
-          <MoreColors
-            title={variants
-              .map((v) => `${v.name}${v.subtitle ? ` ${v.subtitle}` : ''} (${v.colorway})`)
-              .join('\n')}
-          >
-            +{variants.length} more {variants.length === 1 ? 'color' : 'colors'}
+          <MoreColors>
+            +{variants.length} more {variants.length === 1 ? 'color' : 'colors'}:{' '}
+            {variants.map((v, i) => (
+              <span key={v.id}>
+                {i > 0 && ' · '}
+                <VariantLink
+                  to={`${linkBase}/${v.id}`}
+                  title={`${v.name}${v.subtitle ? ` ${v.subtitle}` : ''}`}
+                  // The click is recorded against the sibling actually opened.
+                  onClick={() => onSelect?.(v)}
+                >
+                  {v.colorway}
+                </VariantLink>
+                {v._purchasable === false && ' (drop)'}
+              </span>
+            ))}
           </MoreColors>
         )}
         {product.isDropExclusive && <Badge style={{ marginBottom: '0.35rem', alignSelf: 'flex-start' }}>Drop</Badge>}
