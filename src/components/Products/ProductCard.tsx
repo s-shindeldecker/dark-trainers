@@ -115,6 +115,12 @@ const FromLabel = styled.span`
   color: #737373;
 `;
 
+const MoreColors = styled.p`
+  margin: -0.3rem 0 0.55rem;
+  font-size: 0.75rem;
+  color: #c8f000;
+`;
+
 const Locked = styled.div`
   margin-top: 0.65rem;
   padding: 0.55em 0.65em;
@@ -165,6 +171,13 @@ interface ProductCardProps {
     priceFrom: number;
     memberPriceFrom: number;
   };
+  /**
+   * Search results only: the other members of this SKU's product line that
+   * matched the same query. The card still IS `product` (its name, price,
+   * CTA and click target all belong to the SKU the arm ranked highest); this
+   * just adds a "+N more colors" note so the collapsed siblings aren't lost.
+   */
+  variants?: Array<{ id: string; name: string; subtitle?: string; colorway: string }>;
 }
 
 export function ProductCard({
@@ -173,6 +186,7 @@ export function ProductCard({
   onSelect,
   purchasable = true,
   line,
+  variants,
 }: ProductCardProps) {
   const { value: showVipPricing } = useFeatureFlag(LD_FLAGS.showVipPricing, false);
   const { value: showDropToNonVip } = useFeatureFlag(LD_FLAGS.showDropExclusiveProducts, false);
@@ -204,6 +218,15 @@ export function ProductCard({
         <Cat>{product.category}</Cat>
         <Name className="font-display">{isLine ? line!.name : product.name}</Name>
         <Colorway>{isLine ? `${line!.modelCount} models` : product.colorway}</Colorway>
+        {!isLine && variants && variants.length > 0 && (
+          <MoreColors
+            title={variants
+              .map((v) => `${v.name}${v.subtitle ? ` ${v.subtitle}` : ''} (${v.colorway})`)
+              .join('\n')}
+          >
+            +{variants.length} more {variants.length === 1 ? 'color' : 'colors'}
+          </MoreColors>
+        )}
         {product.isDropExclusive && <Badge style={{ marginBottom: '0.35rem', alignSelf: 'flex-start' }}>Drop</Badge>}
         <PriceRow>
           {isLine && <FromLabel>from</FromLabel>}
