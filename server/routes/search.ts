@@ -11,6 +11,7 @@ import {
   type SearchVariation,
 } from '../search/ranking.js';
 import { getDropAccessState } from '../search/access.js';
+import { groupRankedByLine } from '../../src/components/Products/productLines.js';
 
 /**
  * Server-side product search — the demo's "we're upgrading our backend search
@@ -96,13 +97,35 @@ export function createSearchRouter(ldClient: LDClient) {
       // non-purchasable; full-access → kept and purchasable.
       const entitled = applyDropAccessState(ranked, dropAccessState);
 
-      // Everything below counts `results` and nothing else. Entitlement and the
-      // response cap are both applied BEFORE the count is taken, so
-      // `search_performed`'s value is always exactly the length of the array the
-      // caller receives — and therefore exactly what the visitor sees rendered.
-      // view-only hits are part of that count: they are real results the visitor
-      // can see and click, they just can't be bought.
-      const results = entitled.slice(0, MAX_RESULTS);
+      const capped = entitled.slice(0, MAX_RESULTS);
+
+      // Collapse SKUs that share a photo into one card per declared product line
+      // (src/components/Products/productLines.ts), AFTER ranking, entitlement and
+      // the cap. The card is whichever member ranked highest in this result set
+      // for this arm, so the experiment's reordering stays visible. A line whose
+      // every member was hidden never reaches this point. The card carries its
+      // own `_purchasable` (the same per-SKU rule as before grouping), and the
+      // line's other ranked members ride along in `_variants`.
+      const results = groupRankedByLine(capped).map(({ key, lineName, primary, others }) => ({
+        ...primary,
+        _line: lineName ? { key, name: lineName } : undefined,
+        _variants: others.map((p) => ({
+          id: p.id,
+          name: p.name,
+          subtitle: p.subtitle,
+          colorway: p.colorway,
+          price: p.price,
+          memberPrice: p.memberPrice,
+          _purchasable: p._purchasable,
+        })),
+      }));
+
+      // Everything below counts `results` and nothing else: one entry per
+      // rendered card, with entitlement, the cap and grouping all applied BEFORE
+      // the count is taken. So `search_performed`'s value is always exactly the
+      // length of the array the caller receives, and therefore exactly the number
+      // of cards the visitor sees. view-only hits are part of that count: they are
+      // real results the visitor can see and click, they just can't be bought.
       const resultCount = results.length;
 
       // Both events fire server-side, as part of handling the request — the
@@ -150,6 +173,8 @@ export function createSearchRouter(ldClient: LDClient) {
           rankedBeforeEntitlement: ranked.length,
           hidden: ranked.length - entitled.length,
           viewOnly: results.filter((r) => !r._purchasable).length,
+          // SKUs in the capped list before they collapsed into `results` cards.
+          skusBeforeGrouping: capped.length,
         },
       });
     } catch (error) {
