@@ -899,6 +899,89 @@ def get_snowflake_table_ref() -> str:
     return f"{database}.{schema}.{table}"
 
 
+# Column types this loader can work with, spelled as INFORMATION_SCHEMA reports
+# them (Snowflake stores VARCHAR as TEXT). Each entry is the set of acceptable
+# types, so the check catches a missing or genuinely wrong column without
+# asserting a preference the data doesn't support.
+#
+# RECEIVED_TIME deliberately accepts both: the DDL below declares TIMESTAMP_NTZ,
+# but LaunchDarkly's own Data Export tables
+# (LD_EXPORT.EXPORT_DARK_TRAINERS__SNOWFLAKE.METRIC_EVENTS) use TIMESTAMP_TZ for
+# both RECEIVED_TIME and CREATED_TIME -- so TZ is the vendor's own convention and
+# cannot be treated as an error. Which one this table *should* use is an open
+# question; until it's settled, flagging either as "drift" would be noise.
+EXPECTED_SNOWFLAKE_COLUMN_TYPES = {
+    "EVENT_ID": ("TEXT",),
+    "EVENT_KEY": ("TEXT",),
+    "CONTEXT_KIND": ("TEXT",),
+    "CONTEXT_KEY": ("TEXT",),
+    "EVENT_VALUE": ("FLOAT",),
+    "RECEIVED_TIME": ("TIMESTAMP_NTZ", "TIMESTAMP_TZ"),
+}
+
+
+def warn_on_snowflake_schema_drift(conn, table_ref: str) -> None:
+    """Compare the live table's column types against the DDL's and log any mismatch.
+
+    `CREATE TABLE IF NOT EXISTS` is a silent no-op against a table that already
+    exists: it will not add columns and will not reconcile types. So a table
+    created by an older version of this loader keeps its original schema forever,
+    while the DDL above claims otherwise and every insert still succeeds. Nothing
+    surfaces the disagreement — which is exactly how RECEIVED_TIME stayed
+    TIMESTAMP_TZ after the DDL was corrected to TIMESTAMP_NTZ.
+
+    Warns rather than raises: the drift does not break writes, and a metric data
+    source that casts explicitly reads correctly in spite of it. Failing here
+    would block loads that are otherwise fine.
+    """
+    parts = [p.strip('"') for p in table_ref.split(".")]
+    if len(parts) != 3:
+        # Not a fully-qualified ref, so INFORMATION_SCHEMA can't be targeted.
+        logger.debug("Skipping schema-drift check for unqualified ref %s", table_ref)
+        return
+    database, schema, table = parts
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT COLUMN_NAME, DATA_TYPE
+                FROM {database}.INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+                """,
+                (schema.upper(), table.upper()),
+            )
+            actual = {row[0].upper(): row[1].upper() for row in cursor.fetchall()}
+    except Exception as e:
+        # A diagnostic must never be the thing that fails a load.
+        logger.debug("Schema-drift check could not run for %s: %s", table_ref, e)
+        return
+
+    if not actual:
+        logger.debug("Schema-drift check found no columns for %s", table_ref)
+        return
+
+    drift = [
+        (column, accepted, actual.get(column, "MISSING"))
+        for column, accepted in EXPECTED_SNOWFLAKE_COLUMN_TYPES.items()
+        if actual.get(column, "MISSING") not in accepted
+    ]
+    if not drift:
+        return
+
+    logger.warning("=" * 72)
+    logger.warning("SNOWFLAKE SCHEMA DRIFT: %s", table_ref)
+    logger.warning("The live table does not match this loader's DDL. CREATE TABLE IF NOT")
+    logger.warning("EXISTS cannot fix it, so the difference persists silently:")
+    for column, accepted, found in drift:
+        logger.warning("    %-14s expected %-28s actual %s", column, "|".join(accepted), found)
+    logger.warning("")
+    logger.warning("Inserts will keep succeeding, but downstream reads may not. If a")
+    logger.warning("timestamp column is involved, make every LaunchDarkly metric data")
+    logger.warning("source cast it explicitly rather than relying on the column's type.")
+    logger.warning("=" * 72)
+
+
 def create_snowflake_table_if_not_exists(conn, table_ref: str) -> None:
     ddl = f"""
     CREATE TABLE IF NOT EXISTS {table_ref} (
@@ -912,6 +995,8 @@ def create_snowflake_table_if_not_exists(conn, table_ref: str) -> None:
     """
     with conn.cursor() as cursor:
         cursor.execute(ddl)
+    # The DDL above is a no-op on an existing table; verify what's really there.
+    warn_on_snowflake_schema_drift(conn, table_ref)
 
 
 def insert_metric_events_to_snowflake(conn, table_ref: str, events, chunk_size: int = 25) -> None:
