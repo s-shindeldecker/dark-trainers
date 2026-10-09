@@ -15,19 +15,23 @@ import {
   type TrackData,
 } from '@launchdarkly/ai-node';
 import type { Pack } from '../../src/packs/types.js';
-import { validateAiResult } from './validateAiResult.js';
+import { validateAiResult, type InvalidReason } from './validateAiResult.js';
 
 const DEFAULT_CONFIG_KEY = 'ai-search-lab-model';
 
 export type FallbackReason = 'config-missing' | 'config-disabled' | 'invalid-output' | 'error';
 
-/** Thrown by aiSearch. Carries trackData/usage when the model did respond. */
+/**
+ * Thrown by aiSearch. Carries trackData/usage when the model did respond, and
+ * invalidReason when its output failed validation.
+ */
 export class AiSearchError extends Error {
   constructor(
     readonly fallbackReason: FallbackReason,
     readonly trackData?: TrackData,
     readonly usage?: TokenUsage,
     options?: { cause?: unknown },
+    readonly invalidReason: InvalidReason | null = null,
   ) {
     super(`AI search failed: ${fallbackReason}`, options);
     this.name = 'AiSearchError';
@@ -87,10 +91,17 @@ export async function aiSearch(pack: Pack, query: string, context: LDContext): P
     throw new AiSearchError(await classifyFailure(key, context), undefined, undefined, { cause: error });
   }
 
-  // Typed as string by the SDK, but an object at runtime when outputFormat is set.
-  const validated = validateAiResult(pack, result.response as unknown);
+  // Typed as string by the SDK. It is an object when the AI Config sets an
+  // outputFormat, and the model's raw text (parsed by the validator) when not.
+  const raw = result.response as unknown;
+  const validated = validateAiResult(pack, raw);
   if (!validated.ok) {
-    throw new AiSearchError('invalid-output', result.trackData, result.usage);
+    // Model output only, capped; never the request, env, or catalog.
+    const preview = (typeof raw === 'string' ? raw : String(JSON.stringify(raw))).slice(0, 300);
+    console.error(
+      `[SearchLab] invalid-output reason=${validated.reason} type=${typeof raw} raw=${JSON.stringify(preview)}`,
+    );
+    throw new AiSearchError('invalid-output', result.trackData, result.usage, undefined, validated.reason);
   }
 
   return {

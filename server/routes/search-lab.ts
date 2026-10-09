@@ -77,6 +77,7 @@ export function createSearchLabRouter(ldClient: LDClient) {
       let fallbackUsed = false;
       let fallbackReason: FallbackReason | null = null;
       let invalidIdCount: number | null = null;
+      let invalidReason: string | null = null;
       let trackData: TrackData | undefined;
       let usage: TokenUsage | undefined;
 
@@ -101,6 +102,7 @@ export function createSearchLabRouter(ldClient: LDClient) {
           if (error instanceof AiSearchError) {
             trackData = error.trackData;
             usage = error.usage;
+            invalidReason = error.invalidReason;
           }
         }
       }
@@ -134,6 +136,7 @@ export function createSearchLabRouter(ldClient: LDClient) {
           variationKey,
           modelName,
           invalidIdCount,
+          invalidReason,
         },
         resultCount,
       );
