@@ -8,6 +8,7 @@ import { initAi } from '@launchdarkly/server-sdk-ai';
 import { createCardCreatorRouter } from './routes/card-creator.js';
 import { createSimulateRouter } from './routes/simulate.js';
 import { createSearchRouter } from './routes/search.js';
+import { createSearchLabRouter } from './routes/search-lab.js';
 
 /**
  * Builds and returns the configured Express app. Shared by the local dev
@@ -43,6 +44,7 @@ export async function createApp() {
   app.use('/api/card-creator', createCardCreatorRouter(ldClient, aiClient));
   app.use('/api/simulate', createSimulateRouter(ldClient));
   app.use('/api/search', createSearchRouter(ldClient));
+  app.use('/api/search-lab', createSearchLabRouter(ldClient));
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
