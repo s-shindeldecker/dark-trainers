@@ -33,19 +33,26 @@ function stem(token: string): string {
   return token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token;
 }
 
-/** Lowercase, replace punctuation with spaces, split on whitespace, fold plurals. */
-function words(text: string): string[] {
+/** Lowercase, replace punctuation with spaces, split on whitespace. */
+function rawWords(text: string): string[] {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter(Boolean)
-    .map(stem);
+    .filter(Boolean);
 }
 
-/** Query tokens: `words`, minus stopwords, deduped. */
+/** `rawWords` with plurals folded. */
+function words(text: string): string[] {
+  return rawWords(text).map(stem);
+}
+
+/**
+ * Query tokens: stopwords removed *before* plural folding (otherwise "this"
+ * and "does" fold to "thi" and "doe" and slip past the list), then deduped.
+ */
 export function tokenizeQuery(query: string): string[] {
-  return [...new Set(words(query).filter((w) => !STOPWORDS.has(w)))];
+  return [...new Set(rawWords(query).filter((w) => !STOPWORDS.has(w)).map(stem))];
 }
 
 function fieldWords(item: PackItem): Record<Field, Set<string>> {

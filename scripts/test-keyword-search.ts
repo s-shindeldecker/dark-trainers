@@ -6,7 +6,7 @@
  * Exits non-zero on any failure.
  */
 import { akPark } from '../src/packs/ak-park';
-import { keywordSearch } from '../server/lab/keywordSearch';
+import { keywordSearch, tokenizeQuery } from '../server/lab/keywordSearch';
 
 interface Case {
   name: string;
@@ -45,5 +45,23 @@ for (const c of CASES) {
   }
 }
 
-console.log(`\n${CASES.length - failures}/${CASES.length} passed`);
+// Checked on the tokenizer directly: no pack item contains "this" or "does",
+// so a keywordSearch case would pass even with the bug.
+const TOKEN_CASES: { name: string; query: string; expected: string[] }[] = [
+  // "this" and "does" end in s; they must be dropped before plural folding.
+  { name: 'tokens: stopwords ending in s', query: 'does this ride have gorillas', expected: ['ride', 'have', 'gorilla'] },
+];
+for (const c of TOKEN_CASES) {
+  const actual = tokenizeQuery(c.query);
+  const pass = JSON.stringify(actual) === JSON.stringify(c.expected);
+  if (!pass) failures += 1;
+  console.log(`${pass ? 'PASS' : 'FAIL'}  ${c.name}  (${JSON.stringify(c.query)})`);
+  if (!pass) {
+    console.log(`        expected ${JSON.stringify(c.expected)}`);
+    console.log(`        actual   ${JSON.stringify(actual)}`);
+  }
+}
+
+const total = CASES.length + TOKEN_CASES.length;
+console.log(`\n${total - failures}/${total} passed`);
 if (failures > 0) process.exitCode = 1;
