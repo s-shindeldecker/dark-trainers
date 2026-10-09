@@ -56,7 +56,7 @@ function parseStringResponse(raw: string): Parsed {
  * model's text, which is parsed here (see parseStringResponse).
  *
  * Ids not in the pack are dropped and counted; repeated ids are kept once and
- * not counted as invalid.
+ * not counted as invalid. An empty or blank message becomes null.
  */
 export function validateAiResult(pack: Pack, raw: unknown): ValidatedAiResult {
   let value = raw;
@@ -88,5 +88,8 @@ export function validateAiResult(pack: Pack, raw: unknown): ValidatedAiResult {
     else if (!kept.includes(id)) kept.push(id);
   }
 
-  return { ok: true, ids: kept, message, invalidIdCount };
+  // The prompt asks for "" when there is nothing to say; report that as null,
+  // the same as the keyword path.
+  const normalizedMessage = message === null || message.trim() === '' ? null : message;
+  return { ok: true, ids: kept, message: normalizedMessage, invalidIdCount };
 }
