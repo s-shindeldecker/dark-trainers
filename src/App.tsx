@@ -27,6 +27,7 @@ import FAQ from './pages/FAQ';
 import Reviews from './pages/Reviews';
 import Signup from './pages/Signup';
 import DropsPage from './pages/DropsPage';
+import SearchLab from './pages/SearchLab';
 import { DemoControlsPanel } from './components/Demo/DemoControlsPanel';
 import { PersonaSwitcher } from './components/Demo/PersonaSwitcher';
 import { QRCodeModal } from './components/Demo/QRCodeModal';
@@ -104,6 +105,7 @@ function AppShell() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/reviews" element={<Reviews />} />
+          <Route path="/search-lab" element={<SearchLab />} />
         </Routes>
       </MainContent>
       {promoBannerAtBottom && <SeasonalBanner />}
