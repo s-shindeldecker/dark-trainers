@@ -36,6 +36,17 @@ const CASES: Case[] = [
     expected: { ok: true, ids: [], message: 'There is no submarine ride here.', invalidIdCount: 0 },
   },
 
+  {
+    name: 'empty message becomes null',
+    raw: { ids: ['placeholder-grill'], message: '' },
+    expected: GRILL_OK,
+  },
+  {
+    name: 'blank message becomes null',
+    raw: { ids: ['placeholder-grill'], message: '   ' },
+    expected: GRILL_OK,
+  },
+
   // String responses (no outputFormat).
   { name: 'valid JSON string', raw: GRILL_JSON, expected: GRILL_OK },
   { name: 'string wrapped in ```json fences', raw: '```json\n' + GRILL_JSON + '\n```', expected: GRILL_OK },
