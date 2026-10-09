@@ -1,4 +1,5 @@
 import type { PackItemKind } from '../packs/types';
+import { getLabSessionKey } from './labSession';
 
 /**
  * Client for POST /api/search-lab (server/routes/search-lab.ts). The AI search
@@ -69,17 +70,13 @@ async function readServerError(res: Response): Promise<string> {
   return GENERIC_ERROR;
 }
 
-export async function searchLab(
-  q: string,
-  sessionKey: string,
-  signal?: AbortSignal,
-): Promise<SearchLabResult> {
+export async function searchLab(q: string, signal?: AbortSignal): Promise<SearchLabResult> {
   let res: Response;
   try {
     res = await fetch('/api/search-lab', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q, sessionKey }),
+      body: JSON.stringify({ q, sessionKey: getLabSessionKey() }),
       signal,
     });
   } catch (error) {
@@ -103,5 +100,26 @@ export async function searchLab(
       return { ok: false, error: { kind: 'aborted', status: null, message: 'Aborted' } };
     }
     return { ok: false, error: { kind: 'http', status: res.status, message: GENERIC_ERROR } };
+  }
+}
+
+/**
+ * Records a result click (POST /api/search-lab/click). Fire-and-forget: never
+ * throws, and failures are ignored.
+ */
+export async function recordLabClick(
+  itemId: string,
+  position: number,
+  query: string,
+): Promise<void> {
+  try {
+    await fetch('/api/search-lab/click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionKey: getLabSessionKey(), itemId, position, query }),
+      keepalive: true,
+    });
+  } catch {
+    /* ignored: click tracking must never affect the page */
   }
 }

@@ -43,7 +43,12 @@ const FallbackBadge = styled.div`
 
 const show = (v: string | number | null) => (v === null ? '—' : String(v));
 
-export function DebugStrip({ data }: { data: SearchLabResponse }) {
+interface DebugStripProps {
+  data: SearchLabResponse;
+  sessionKey: string;
+}
+
+export function DebugStrip({ data, sessionKey }: DebugStripProps) {
   return (
     <Strip aria-label="Debug info">
       {data.fallbackUsed && (
@@ -60,6 +65,8 @@ export function DebugStrip({ data }: { data: SearchLabResponse }) {
         <Value>{show(data.tokens)}</Value>
         <Term>latencyMs</Term>
         <Value>{data.latencyMs}</Value>
+        <Term>sessionKey</Term>
+        <Value>{sessionKey}</Value>
       </Grid>
     </Strip>
   );

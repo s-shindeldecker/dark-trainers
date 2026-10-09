@@ -41,8 +41,12 @@ const Button = styled.button`
   border-radius: 10px;
   cursor: pointer;
   white-space: nowrap;
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${LAB.accentHover};
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
@@ -54,15 +58,18 @@ const Hint = styled.p`
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  /** A request is in flight: the button is disabled and Enter is ignored. */
+  busy: boolean;
 }
 
 /** Submit-only search: no typeahead, no debounced requests. */
-export function SearchBar({ onSearch }: SearchBarProps) {
+export function SearchBar({ onSearch, busy }: SearchBarProps) {
   const [value, setValue] = useState('');
   const [hint, setHint] = useState<string | null>(null);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (busy) return;
     const query = value.trim();
     if (query.length < MIN_QUERY || query.length > MAX_QUERY) {
       setHint(`Enter ${MIN_QUERY} to ${MAX_QUERY} characters.`);
@@ -84,7 +91,9 @@ export function SearchBar({ onSearch }: SearchBarProps) {
           aria-invalid={hint !== null}
           $invalid={hint !== null}
         />
-        <Button type="submit">Search</Button>
+        <Button type="submit" disabled={busy}>
+          Search
+        </Button>
       </Form>
       {hint && <Hint role="alert">{hint}</Hint>}
     </div>

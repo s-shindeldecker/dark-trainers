@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -43,6 +43,7 @@ const MainContent = styled.main`
 
 function AppShell() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { isIdentified, logout } = useUser();
   const [personaSwitcherOpen, setPersonaSwitcherOpen] = useState(false);
   const { value: showAc26DropFeed } = useFeatureFlag(LD_FLAGS.showAc26DropFeed, false);
@@ -77,6 +78,9 @@ function AppShell() {
     vip.clearPendingCartAdd();
   };
 
+  // The search lab is a bare page: no storefront header, footer, or overlays.
+  if (pathname === '/search-lab') return <SearchLab />;
+
   return (
     <>
       {!promoBannerAtBottom && <SeasonalBanner />}
@@ -105,7 +109,6 @@ function AppShell() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/reviews" element={<Reviews />} />
-          <Route path="/search-lab" element={<SearchLab />} />
         </Routes>
       </MainContent>
       {promoBannerAtBottom && <SeasonalBanner />}

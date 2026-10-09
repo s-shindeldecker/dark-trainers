@@ -5,22 +5,22 @@ import { DeclineCard } from '../components/SearchLab/DeclineCard';
 import { ResultCard } from '../components/SearchLab/ResultCard';
 import { SearchBar } from '../components/SearchLab/SearchBar';
 import { LAB } from '../components/SearchLab/palette';
-import { getOrCreateLdSessionKey } from '../lib/ldSessionKey';
-import { searchLab, type SearchLabResponse } from '../lib/searchLabApi';
+import { getLabSessionKey } from '../lib/labSession';
+import { recordLabClick, searchLab, type SearchLabResponse } from '../lib/searchLabApi';
 
 /**
  * AI search lab page (/search-lab). Unlinked from the storefront nav; talks
- * only to POST /api/search-lab. No click tracking yet.
+ * only to POST /api/search-lab and POST /api/search-lab/click.
  */
 
 type LabState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'done'; data: SearchLabResponse }
+  | { status: 'done'; data: SearchLabResponse; query: string; sessionKey: string }
   | { status: 'error'; message: string };
 
 const Page = styled.div`
-  min-height: 100%;
+  min-height: 100vh;
   padding: 2rem 16px 3rem;
   background: ${LAB.pageBg};
   color: ${LAB.ink};
@@ -103,23 +103,26 @@ function useElapsedSeconds(running: boolean): number {
 
 export default function SearchLab() {
   const [state, setState] = useState<LabState>({ status: 'idle' });
-  const abortRef = useRef<AbortController | null>(null);
-  const elapsed = useElapsedSeconds(state.status === 'loading');
-
-  useEffect(() => () => abortRef.current?.abort(), []);
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  // Items already recorded as clicked in the current result list.
+  const clickedRef = useRef<Set<string>>(new Set());
+  // Guards against a second submit before the 'loading' render lands.
+  const inFlightRef = useRef(false);
+  const loading = state.status === 'loading';
+  const elapsed = useElapsedSeconds(loading);
 
   const runSearch = useCallback(async (query: string) => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    clickedRef.current = new Set();
+    setExpanded(new Set());
     setState({ status: 'loading' });
 
-    // Read per request: the key can be rotated (guest reset) while on the page.
-    const result = await searchLab(query, getOrCreateLdSessionKey(), controller.signal);
-    if (controller.signal.aborted) return;
+    const result = await searchLab(query);
+    inFlightRef.current = false;
 
     if (result.ok) {
-      setState({ status: 'done', data: result.data });
+      setState({ status: 'done', data: result.data, query, sessionKey: getLabSessionKey() });
     } else {
       setState({
         status: 'error',
@@ -128,11 +131,24 @@ export default function SearchLab() {
     }
   }, []);
 
+  const handleCardClick = (itemId: string, position: number, query: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+    if (!clickedRef.current.has(itemId)) {
+      clickedRef.current.add(itemId);
+      void recordLabClick(itemId, position, query);
+    }
+  };
+
   return (
     <Page>
       <Column>
         <Title>Animal Kingdom Search (demo)</Title>
-        <SearchBar onSearch={runSearch} />
+        <SearchBar onSearch={runSearch} busy={loading} />
 
         {state.status === 'loading' && (
           <Results aria-busy="true">
@@ -155,10 +171,17 @@ export default function SearchLab() {
               {state.data.declined ? (
                 <DeclineCard message={state.data.message} />
               ) : (
-                state.data.items.map((item) => <ResultCard key={item.id} item={item} />)
+                state.data.items.map((item, index) => (
+                  <ResultCard
+                    key={item.id}
+                    item={item}
+                    expanded={expanded.has(item.id)}
+                    onToggle={() => handleCardClick(item.id, index + 1, state.query)}
+                  />
+                ))
               )}
             </Results>
-            <DebugStrip data={state.data} />
+            <DebugStrip data={state.data} sessionKey={state.sessionKey} />
           </>
         )}
       </Column>
