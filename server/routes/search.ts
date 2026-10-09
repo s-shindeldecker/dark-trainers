@@ -26,7 +26,7 @@ import { groupRankedByLine } from '../../src/components/Products/productLines.js
  * POST rather than GET: the ranking needs the caller's LaunchDarkly context
  * (session key + user attributes) to bucket consistently with the rest of the
  * app, and every other context-carrying route here already POSTs that body
- * shape — see routes/chat.ts and routes/card-creator.ts.
+ * shape — see routes/card-creator.ts.
  *
  * Drop entitlement is applied here too, not on the client. The invariant that
  * buys: `search_performed`'s metric value === `results.length` in the response

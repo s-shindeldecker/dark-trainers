@@ -121,7 +121,7 @@ export const LDContextProvider = ({ children }: LDContextProps) => {
   );
 };
 
-/** Serialize user for chat / signup API bodies */
+/** Serialize user for API request bodies */
 export function userToApiContext(user: import('../types/darktrainers').AppUser) {
   if (!isIdentifiedUser(user)) {
     return { key: user.key, anonymous: true };

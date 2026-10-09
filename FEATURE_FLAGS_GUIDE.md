@@ -43,39 +43,31 @@ These events are manually tracked via `ldClient.track()`:
 
 Adds the "Products" link to the navigation and exposes the `/products` (PLP) and `/products/:id` (PDP) routes.
 
-#### 2. AI Chatbot (`show-chatbot`)
-
-**Type:** Boolean &nbsp; **Default:** `false`
-
-Renders a floating chat widget in the bottom-right corner. The chatbot uses the `darktrainers-chatbot` AI Config to control model, system prompt, and generation parameters.
-
-**Requires:** The Express API server running (`npm run dev:server`) and a valid `OPENAI_API_KEY` in `.env`.
-
-#### 3. VIP Signup (`show-vip-signup`)
+#### 2. Member Signup (`show-vip-signup`)
 
 **Type:** Boolean &nbsp; **Default:** `true`
 
-Shows the VIP signup nav link and the `/signup` route, which runs an AI onboarding agent backed by the `darktrainers-signup-agent` AI Config.
+Gates only the "Signup" nav link (`Header.tsx`). The `/signup` route renders `MemberSignupForm` regardless of this flag.
 
-#### 4. AC26 Drop Feed (`show-ac26-drop-feed`)
+#### 3. AC26 Drop Feed (`show-ac26-drop-feed`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
 Enables the `/drops` page — the AgentControl '26 (AC26) limited-drop collection feed.
 
-#### 5. VIP Pricing (`show-vip-pricing`)
+#### 4. VIP Pricing (`show-vip-pricing`)
 
 **Type:** Boolean &nbsp; **Default:** `true`
 
 Shows VIP member pricing alongside standard pricing on the PLP and PDP.
 
-#### 6. Drop-Exclusive Products (`show-drop-exclusive-products`)
+#### 5. Drop-Exclusive Products (`show-drop-exclusive-products`)
 
 **Type:** Boolean &nbsp; **Default:** `true`
 
 Controls whether drop-exclusive products (`isDropExclusive: true`) appear on the product listing page.
 
-#### 7. Early Access Countdown (`show-early-access-countdown`)
+#### 6. Early Access Countdown (`show-early-access-countdown`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
@@ -83,7 +75,7 @@ Shows a countdown timer for upcoming drops.
 
 ### String / JSON Flags
 
-#### 8. AC26 Drop Access (`ac26-drop-access`)
+#### 7. AC26 Drop Access (`ac26-drop-access`)
 
 **Type:** String &nbsp; **Variations:** `teaser` / `early-access` / `full-access` &nbsp; **Default:** `teaser`
 
@@ -111,25 +103,25 @@ the grid and PDP, the Express server evaluates it with the Node SDK via the sing
 resolver [`server/search/access.ts`](server/search/access.ts) for `/api/search`.
 Both map the value through the same table, so they cannot drift.
 
-#### 9. PDP Hero Layout (`pdp-hero-layout`)
+#### 8. PDP Hero Layout (`pdp-hero-layout`)
 
 **Type:** String / JSON
 
 Selects the product detail page hero layout variant (e.g. `default` | `splash`).
 
-#### 10. PLP Sort Default (`plp-sort-default`)
+#### 9. PLP Sort Default (`plp-sort-default`)
 
 **Type:** String
 
 Default sort order on the product listing page (`relevance` | `newest` | `price-asc`).
 
-#### 11. VIP Upgrade CTA Copy (`vip-upgrade-cta-copy`)
+#### 10. VIP Upgrade CTA Copy (`vip-upgrade-cta-copy`)
 
 **Type:** String
 
 Button text shown on the VIP upgrade call-to-action.
 
-#### 12. Checkout VIP Banner (`checkout-vip-banner`)
+#### 11. Checkout VIP Banner (`checkout-vip-banner`)
 
 **Type:** JSON
 
@@ -144,13 +136,13 @@ Configures the VIP upsell banner shown at checkout for non-VIP users.
 }
 ```
 
-#### 13. Promo Banner Text (`promo-banner-text`)
+#### 12. Promo Banner Text (`promo-banner-text`)
 
 **Type:** String &nbsp; **Default:** `""` (empty — banner hidden)
 
 Displays a promotional strip near the top of the site. The banner only renders when the flag has a non-empty value. Clicking the banner tracks a `banner_click` event.
 
-#### 14. Promo Banner Position (`promo-banner-position`)
+#### 13. Promo Banner Position (`promo-banner-position`)
 
 **Type:** String &nbsp; **Default:** `top`
 
@@ -158,19 +150,19 @@ Controls placement of the promo strip (`top` | `bottom`).
 
 ### Collectibles & Card Creator Flags
 
-#### 15. Collectibles Catalog (`show-collectibles-catalog`)
+#### 14. Collectibles Catalog (`show-collectibles-catalog`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
 Gates the entire Collectibles experience: the nav link, the `/collectibles` and `/collectibles/:id` routes, and the Togglemon Card Creator entry-point CTA on the PLP.
 
-#### 16. Collectibles VIP Content (`show-collectibles-vip-content`)
+#### 15. Collectibles VIP Content (`show-collectibles-vip-content`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
 Unlocks VIP-gated collectibles content (e.g. unblurs the special-edition card in the drops feed). LD typically targets `tier=vip → true`.
 
-#### 17. Card Creator (`show-card-creator`)
+#### 16. Card Creator (`show-card-creator`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
@@ -178,7 +170,7 @@ Gates the Togglemon Card Creator page (`/collectibles/card-creator`) and its CTA
 
 **Requires:** the Express API server running (`npm run dev:server`) and a valid `OPENAI_API_KEY`.
 
-#### 18. Conversion Routing (`track-conversions-via-gtm`)
+#### 17. Conversion Routing (`track-conversions-via-gtm`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
@@ -194,7 +186,7 @@ Evaluated with the **Node server SDK** inside Express, never in the browser. Lis
 `LD_SERVER_FLAGS` (`src/lib/ldFlagKeys.ts`) so the project keeps one flag inventory,
 but nothing in `src/` may read them.
 
-#### 19. Search Ranking Algorithm (`search-ranking-algorithm`)
+#### 18. Search Ranking Algorithm (`search-ranking-algorithm`)
 
 **Type:** String &nbsp; **Variations:** `legacy-keyword` (control) / `weighted-relevance` / `personalized-affinity` &nbsp; **Default:** `legacy-keyword`
 
@@ -237,7 +229,7 @@ context kind must be marked *available for experiments* in LD (Code → Contexts
 > difference mixed "better ranking" with "more requests". The experiment now measures
 > ranking only.
 
-#### 20. Search Typeahead (`search-typeahead`)
+#### 19. Search Typeahead (`search-typeahead`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
@@ -264,7 +256,7 @@ which was itself part of the old confound.
 Not `show-`-prefixed despite the app's other booleans — it is a behavior toggle in the
 `search-*` family rather than a visibility gate.
 
-#### 21. Storefront Theme (`storefront-theme`)
+#### 20. Storefront Theme (`storefront-theme`)
 
 **Type:** String &nbsp; **Variations:** `default` / `parks` / `cruise` &nbsp; **Default:** `default`
 
@@ -284,15 +276,13 @@ The Express server (`server/routes/`) uses the LaunchDarkly Node.js server-side 
 
 | AI Config key | Mode | Route | Purpose |
 |---|---|---|---|
-| `darktrainers-chatbot` | Completion | `POST /api/chat` | Floating chat widget |
-| `darktrainers-signup-agent` | Agent | `POST /api/signup-agent` | VIP onboarding agent |
 | `togglemon-card-creator` | Completion | `POST /api/card-creator` | Togglemon Card Creator (multiple prompt variations + Toxicity judge) |
 
 For each request the server:
 
 1. Evaluates the AI Config for the current user/session context
 2. Merges the AI Config's messages with conversation history and the user's message
-3. Calls the configured LLM provider via the OpenAI SDK (chatbot/agent default `gpt-4o-mini`; card creator `gpt-4o`)
+3. Calls the configured LLM provider via the OpenAI SDK (card creator `gpt-4o`)
 4. Tracks token usage, latency, and success/error back to LaunchDarkly via `trackOpenAIMetrics`, then flushes events (required on serverless) so they appear in the Monitor tab per variation
 
 ### Togglemon Card Creator
@@ -322,7 +312,7 @@ python darktrainers_simulation.py --profile test-databricks --warehouse-schema b
 |---|---|---|
 | `LAUNCHDARKLY_CLIENT_KEY` | Frontend | Client-side ID for the React SDK |
 | `LAUNCHDARKLY_SDK_KEY` | Backend | Server-side SDK key for the Express server |
-| `OPENAI_API_KEY` | Chatbot, signup agent, card creator | OpenAI API key for LLM calls, image generation, and moderation |
+| `OPENAI_API_KEY` | Card creator | OpenAI API key for LLM calls, image generation, and moderation |
 | `SERVER_PORT` | Backend | Express server port (default: 3001) |
 
 The simulation script uses additional per-warehouse keys — see [SIMULATION.md](SIMULATION.md) and [.env.example](.env.example).
@@ -332,10 +322,10 @@ The simulation script uses additional per-warehouse keys — see [SIMULATION.md]
 All flag reads go through the `useFeatureFlag` hook, which waits for SDK initialization to prevent UI flicker:
 
 ```typescript
-const { value, isLoading } = useFeatureFlag(LD_FLAGS.showChatbot, false);
+const { value, isLoading } = useFeatureFlag(LD_FLAGS.showProductCatalog, false);
 
 if (isLoading) return <SkeletonLoader />;
-return value ? <ChatWidget /> : null;
+return value ? <Products /> : null;
 ```
 
 ## Best Practices

@@ -1,6 +1,5 @@
 /**
  * LaunchDarkly flag keys for DarkTrainers (create these in your LD project).
- * AI Config keys (LaunchDarkly AI): `darktrainers-chatbot`, `darktrainers-signup-agent`.
  */
 export const PROMO_BANNER_POSITION = 'promo-banner-position';
 
@@ -13,7 +12,6 @@ export const LD_FLAGS = {
   showAc26DropFeed: 'show-ac26-drop-feed',
   ac26DropAccess: 'ac26-drop-access',
   checkoutVipBanner: 'checkout-vip-banner',
-  showChatbot: 'show-chatbot',
   showEarlyAccessCountdown: 'show-early-access-countdown',
   /** Optional top promo strip; empty string hides banner */
   promoBannerText: 'promo-banner-text',

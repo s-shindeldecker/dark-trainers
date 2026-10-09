@@ -2,17 +2,16 @@ import { useEffect, useState, type ChangeEvent } from 'react';
 import styled from '@emotion/styled';
 import Box from '@mui/material/Box';
 import { useUser } from '../../context/UserContext';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { useExposureLog } from '../../context/ExposureLog';
 import { useServerSearchLog } from '../../context/ServerSearchLog';
-import { LD_FLAGS, LD_SERVER_FLAGS } from '../../lib/ldFlagKeys';
+import { LD_SERVER_FLAGS } from '../../lib/ldFlagKeys';
 import { STANDARD_ROSTER, VIP_ROSTER } from '../../types/darktrainers';
 import { generateRandomStandardUser, generateRandomVipUser } from '../../lib/generateRandomUser';
 import { MemberBadge } from '../Member/MemberBadge';
 
-const Panel = styled.aside<{ $liftForChat: boolean }>`
+const Panel = styled.aside`
   position: fixed;
-  bottom: ${({ $liftForChat }) => ($liftForChat ? '5.5rem' : '1rem')};
+  bottom: 1rem;
   left: 1rem;
   z-index: 10001;
   width: min(280px, calc(100vw - 2rem));
@@ -164,9 +163,9 @@ const ExpTag = styled.span<{ $inExperiment: boolean }>`
 `;
 
 // Collapsed state: a small pill in the panel's spot that re-expands on click.
-const CollapsedHandle = styled.button<{ $liftForChat: boolean }>`
+const CollapsedHandle = styled.button`
   position: fixed;
-  bottom: ${({ $liftForChat }) => ($liftForChat ? '5.5rem' : '1rem')};
+  bottom: 1rem;
   left: 1rem;
   z-index: 10001;
   display: inline-flex;
@@ -219,7 +218,6 @@ function readCollapsed(): boolean {
 type Persona = 'guest' | 'standard' | 'vip';
 
 export function DemoControlsPanel() {
-  const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const {
     user,
     sessionKey,
@@ -286,7 +284,6 @@ export function DemoControlsPanel() {
       {collapsed ? (
         <CollapsedHandle
           type="button"
-          $liftForChat={showChatbot}
           onClick={() => setCollapsed(false)}
           aria-label="Show demo controls (Shift+D)"
           title="Show demo controls (Shift+D)"
@@ -294,7 +291,7 @@ export function DemoControlsPanel() {
           ⚙ Demo
         </CollapsedHandle>
       ) : (
-      <Panel $liftForChat={showChatbot} aria-label="Demo controls">
+      <Panel aria-label="Demo controls">
         <PanelHeader>
           <Label style={{ marginBottom: 0 }}>Demo controls</Label>
           <HideButton

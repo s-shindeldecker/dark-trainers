@@ -90,7 +90,7 @@ attribution risk, MAU inflation, for no benefit. Option A is right here
 ## Related
 
 - Conversion routing (`track-conversions-via-gtm`, the shared
-  `useTrackConversion` hook): see `FEATURE_FLAGS_GUIDE.md` §18 and
+  `useTrackConversion` hook): see `FEATURE_FLAGS_GUIDE.md` §17 and
   `TECHNICAL_DESIGN_CONTEXT.md`.
 - The GTM Custom HTML tag stub and value forwarding: `src/lib/gtmStub.ts`.
 - SPA + LD fundamentals (CSR lifecycle, anti-flicker, LD primitives):

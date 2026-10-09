@@ -15,7 +15,7 @@ npm install
 ```bash
 LAUNCHDARKLY_CLIENT_KEY=your-client-side-id    # browser React SDK
 LAUNCHDARKLY_SDK_KEY=your-server-side-sdk-key   # Express server (AI Configs)
-OPENAI_API_KEY=your-openai-api-key              # AI chatbot, signup agent, and Togglemon Card Creator (text + image)
+OPENAI_API_KEY=your-openai-api-key              # Togglemon Card Creator (text + image)
 SERVER_PORT=3001                                # Optional, defaults to 3001
 ```
 
@@ -26,7 +26,7 @@ The simulation script uses additional warehouse/environment keys — see [SIMULA
 # Terminal 1 — Vite frontend (proxies /api to the backend)
 npm run dev
 
-# Terminal 2 — Express API server (AI chatbot + signup agent backend)
+# Terminal 2 — Express API server (card creator, search, simulation)
 npm run dev:server
 ```
 
@@ -36,14 +36,13 @@ npm run dev:server
 ├── src/                      # React frontend (Vite + TypeScript, Emotion + MUI)
 │   ├── components/
 │   │   ├── Cart/             # CartDrawer
-│   │   ├── Chat/             # AI chatbot widget (ChatWidget, ChatMessage)
 │   │   ├── Collectibles/     # TogglemonCard (AI-generated trading card + holo foil)
 │   │   ├── Demo/             # Persona switcher (+ "New session"), demo controls, QR code modal
 │   │   ├── Hero/             # Hero section with skeleton loading
 │   │   ├── Layout/           # Header, Footer, SeasonalBanner (promo strip)
 │   │   ├── Member/           # MemberBadge
 │   │   ├── Products/         # ProductCard, product data
-│   │   ├── Signup/           # VIP signup AI agent
+│   │   ├── Signup/           # MemberSignupForm (member signup)
 │   │   ├── VIP/              # VIPUpgradeModal
 │   │   └── common/           # Modal
 │   ├── context/              # User, LaunchDarkly, Cart, VIP modal providers
@@ -55,9 +54,7 @@ npm run dev:server
 ├── server/                   # Express API server (TypeScript via tsx)
 │   ├── index.ts              # Server entry point (LD server SDK + AI init)
 │   ├── routes/
-│   │   ├── chat.ts           # POST /api/chat (AI Config: darktrainers-chatbot)
 │   │   ├── card-creator.ts   # POST /api/card-creator (+ /art) — AI Config: togglemon-card-creator
-│   │   ├── signup-agent.ts   # POST /api/signup-agent (AI Config: darktrainers-signup-agent)
 │   │   └── simulate.ts       # POST /api/simulate (flag evaluation for simulation)
 │   ├── app.ts                # createApp() — builds the Express app (shared: local + Vercel fn)
 │   └── simulation/engine.ts  # TypeScript simulation engine
@@ -76,13 +73,11 @@ For **native experimentation** debugging (Live Events vs Results, export cadence
 The app integrates `@launchdarkly/observability` and `@launchdarkly/session-replay` as plugins to the React client SDK. These automatically capture Web Vitals (CLS, FCP, LCP, TTFB, INP), errors, and session replays without manual instrumentation.
 
 ### AI Configs
-The chatbot and VIP signup agent use LaunchDarkly AI Configs via the Node.js server-side AI SDK (`@launchdarkly/server-sdk-ai`):
+The Togglemon Card Creator uses LaunchDarkly AI Configs via the Node.js server-side AI SDK (`@launchdarkly/server-sdk-ai`):
 
-- `darktrainers-chatbot` — Completion-mode config for the floating chat widget
-- `darktrainers-signup-agent` — Agent config for the VIP onboarding flow
 - `togglemon-card-creator` — Completion-mode config for the Togglemon Card Creator, with multiple prompt **variations** (`baseline`, `holographic`, `summer-beach`) for toggling/experimentation, and an out-of-the-box **Toxicity judge** attached (100% sampling)
 
-Each controls the model, system prompt, and parameters. Token usage, latency, and success/error are tracked per variation via `trackOpenAIMetrics` and surfaced in the AI Config **Monitor** tab. The configured LLM provider is called via the OpenAI SDK (chatbot/agent default `gpt-4o-mini`; card creator `gpt-4o`).
+Each controls the model, system prompt, and parameters. Token usage, latency, and success/error are tracked per variation via `trackOpenAIMetrics` and surfaced in the AI Config **Monitor** tab. The configured LLM provider is called via the OpenAI SDK (card creator `gpt-4o`).
 
 ### Togglemon Card Creator
 A flag-gated page (`/collectibles/card-creator`) that turns a free-text creature description into a rendered trading card with AI-generated art — the flagship AI Configs demo.
@@ -109,8 +104,7 @@ A flag-gated page (`/collectibles/card-creator`) that turns a free-text creature
 | Flag Key | Type | Purpose |
 |---|---|---|
 | `show-product-catalog` | Boolean | Products nav link + `/products` route guard |
-| `show-chatbot` | Boolean | Floating AI chat widget |
-| `show-vip-signup` | Boolean | VIP signup nav link + `/signup` AI agent page |
+| `show-vip-signup` | Boolean | Signup nav link only (`Header.tsx`); `/signup` renders `MemberSignupForm` regardless |
 | `show-ac26-drop-feed` | Boolean | `/drops` page (AC26 collection feed) |
 | `show-vip-pricing` | Boolean | VIP member price display on PLP/PDP |
 | `show-drop-exclusive-products` | Boolean | Drop-exclusive items visible on PLP |

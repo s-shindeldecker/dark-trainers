@@ -186,7 +186,7 @@ exposure call at its decision point. `Release/ops` → stays non-eventing foreve
 | `show-early-access-countdown` | Possible experiment | Countdown region shown on PDP |
 | `number-of-days-trial` | Experiment, **server-owned** | Server sim already emits `variationDetail`; decide whether client display double-counts |
 | `show-drop-exclusive-products`, `ac26-drop-access`, `show-ac26-drop-feed`, `show-collectibles-vip-content` | Release / targeting | stays non-eventing |
-| `show-chatbot`, `show-product-catalog`, `show-vip-signup`, `show-collectibles-catalog`, `show-card-creator` | Release / kill-switch | stays non-eventing |
+| `show-product-catalog`, `show-vip-signup`, `show-collectibles-catalog`, `show-card-creator` | Release / kill-switch | stays non-eventing |
 | `track-conversions-via-gtm` | Ops / routing | never expose |
 | `new-search-api` | Server/search routing | out of client-hook scope |
 

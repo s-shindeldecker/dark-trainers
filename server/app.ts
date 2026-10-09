@@ -5,9 +5,7 @@ import { ldClient } from './launchdarkly.js';
 import express from 'express';
 import cors from 'cors';
 import { initAi } from '@launchdarkly/server-sdk-ai';
-import { createChatRouter } from './routes/chat.js';
 import { createCardCreatorRouter } from './routes/card-creator.js';
-import { createSignupAgentRouter } from './routes/signup-agent.js';
 import { createSimulateRouter } from './routes/simulate.js';
 import { createSearchRouter } from './routes/search.js';
 
@@ -42,9 +40,7 @@ export async function createApp() {
 
   const aiClient = initAi(ldClient);
 
-  app.use('/api/chat', createChatRouter(ldClient, aiClient));
   app.use('/api/card-creator', createCardCreatorRouter(ldClient, aiClient));
-  app.use('/api/signup-agent', createSignupAgentRouter(ldClient, aiClient));
   app.use('/api/simulate', createSimulateRouter(ldClient));
   app.use('/api/search', createSearchRouter(ldClient));
 

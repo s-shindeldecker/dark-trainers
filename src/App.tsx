@@ -27,7 +27,6 @@ import FAQ from './pages/FAQ';
 import Reviews from './pages/Reviews';
 import Signup from './pages/Signup';
 import DropsPage from './pages/DropsPage';
-import { ChatWidget } from './components/Chat/ChatWidget';
 import { DemoControlsPanel } from './components/Demo/DemoControlsPanel';
 import { PersonaSwitcher } from './components/Demo/PersonaSwitcher';
 import { QRCodeModal } from './components/Demo/QRCodeModal';
@@ -47,7 +46,6 @@ function AppShell() {
   const [personaSwitcherOpen, setPersonaSwitcherOpen] = useState(false);
   const { value: showAc26DropFeed } = useFeatureFlag(LD_FLAGS.showAc26DropFeed, false);
   const { value: showProductCatalog } = useFeatureFlag(LD_FLAGS.showProductCatalog, true);
-  const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const { value: showVipSignup } = useFeatureFlag(LD_FLAGS.showVipSignup, true);
   const { value: showCollectibles } = useFeatureFlag(LD_FLAGS.showCollectiblesCatalog, false);
   const { value: promoBannerPosition, isLoading: isLoadingPromoBannerPosition } = useFeatureFlag(
@@ -110,7 +108,6 @@ function AppShell() {
       </MainContent>
       {promoBannerAtBottom && <SeasonalBanner />}
       <Footer />
-      {showChatbot && <ChatWidget />}
       <CartDrawer onJoinVip={() => vip.openVipModal()} />
       <DemoControlsPanel />
       <PersonaSwitcher open={personaSwitcherOpen} onOpenChange={setPersonaSwitcherOpen} />

@@ -40,7 +40,7 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | `/products/:id` | Product detail (PDP) | — |
 | `/drops` | Drop feed (AC26 collection) | `show-ac26-drop-feed` flag |
 | `/account` | User account | — |
-| `/signup` | VIP signup (AI agent) | `show-vip-signup` flag |
+| `/signup` | Member signup form (`MemberSignupForm`) | — (nav link gated by `show-vip-signup`) |
 | `/collectibles` | Collectibles catalog (PLP) | `show-collectibles-catalog` flag |
 | `/collectibles/card-creator` | Togglemon Card Creator | `show-card-creator` flag |
 | `/collectibles/:id` | Collectible detail | `show-collectibles-catalog` flag |
@@ -52,8 +52,6 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 
 | Route | Purpose |
 |---|---|
-| `POST /api/chat` | AI chatbot (LD AI Config: `darktrainers-chatbot`) |
-| `POST /api/signup-agent` | VIP onboarding AI agent (LD AI Config: `darktrainers-signup-agent`) |
 | `POST /api/card-creator` | Togglemon card text (LD AI Config: `togglemon-card-creator`); moderation gate → NoNoMon |
 | `POST /api/card-creator/art` | Togglemon card art via `gpt-image-1` (retry + graceful fallback) |
 | `POST /api/search` | Server-side product search. Evaluates `search-ranking-algorithm` (Node SDK) per request, ranks the static catalog with the served algorithm, applies three-state drop entitlement (`ac26-drop-access`, same context, via `server/search/access.ts`), fires `search_performed` / `search_zero_results`, returns results + `_served`. Each result carries `_purchasable` so a `view-only` hit renders its blocked CTA |
@@ -140,8 +138,7 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 | Key | Default | Controls |
 |---|---|---|
 | `show-product-catalog` | `false` | Products nav link + `/products` route guard |
-| `show-chatbot` | `false` | Floating AI chat widget |
-| `show-vip-signup` | `true` | VIP signup nav link |
+| `show-vip-signup` | `true` | Signup nav link only (`Header.tsx`); `/signup` renders regardless |
 | `show-ac26-drop-feed` | `false` | `/drops` page |
 | `show-vip-pricing` | `true` | VIP member price display on PLP/PDP |
 | `show-drop-exclusive-products` | `true` | Drop-exclusive items visible on PLP |
@@ -179,8 +176,6 @@ evaluation and undercut the server-side story.
 
 | Key | Mode | Purpose |
 |---|---|---|
-| `darktrainers-chatbot` | Completion | Controls model, system prompt, temperature, token limits for chatbot |
-| `darktrainers-signup-agent` | Completion | VIP onboarding AI agent config |
 | `togglemon-card-creator` | Completion | Card creator; variations `baseline` / `holographic` / `summer-beach`; Toxicity judge @ 100% |
 
 AI Configs track token usage (input/output/total), latency (ms), and success/error per variation via
@@ -264,19 +259,6 @@ The `checkout-vip-banner` JSON flag controls upsell messaging shown at checkout 
 
 ## AI Integration
 
-### Chatbot (`/api/chat`)
-
-- Reads `darktrainers-chatbot` AI Config from LD (server-side Node SDK).
-- Passes user context (tier, preferred category) to LD for targeted model/prompt selection.
-- Calls OpenAI with the AI Config-provided model, system prompt, temperature, and max tokens.
-- LD auto-tracks token usage and latency back to the AI Config metrics.
-
-### VIP Signup Agent (`/api/signup-agent`)
-
-- Reads `darktrainers-signup-agent` AI Config.
-- Handles multi-turn onboarding conversation for the `/signup` route.
-- Same token/latency tracking pattern as chatbot.
-
 ### Togglemon Card Creator (`/api/card-creator` + `/art`)
 
 - Reads `togglemon-card-creator` (variations `baseline` / `holographic` / `summer-beach`) on a **session-inclusive** context (mirrors the client: session-only for anonymous, `multi{session,user}` for identified) so session-randomized experiments align and metrics attribute correctly.
@@ -284,12 +266,10 @@ The `checkout-vip-banner` JSON flag controls upsell messaging shown at checkout 
 - Tracks metrics via `trackOpenAIMetrics` and `flush()`es (Monitor tab per variation). Returns `_served` (variationKey/model) for per-call verification.
 - **Art** (`/api/card-creator/art`): `gpt-image-1`, text-free illustration, bounded retry on transient errors, graceful fallback to the prompt text on the card.
 
-> Note the older chatbot/agent routes still use a user-only context — apply the same session-inclusive pattern if experimenting on them.
-
 ### AI Config Pattern (server-side)
 
 ```typescript
-const aiConfig = await ldClient.variation('darktrainers-chatbot', ldContext, defaultConfig);
+const aiConfig = await ldClient.variation('togglemon-card-creator', ldContext, defaultConfig);
 // aiConfig contains: { model, systemPrompt, temperature, maxTokens }
 const response = await openai.chat.completions.create({ ...aiConfig, messages });
 ldClient.trackTokenUsage(...);
@@ -420,7 +400,7 @@ LAUNCHDARKLY_SDK_KEY=             # server-side SDK key (Express server)
 LAUNCHDARKLY_SDK_KEY_TEST=        # test environment server SDK key (simulation)
 LAUNCHDARKLY_SDK_KEY_SNOWFLAKE=   # snowflake environment server SDK key (simulation)
 
-# AI (chatbot, signup agent, and Togglemon Card Creator — text, image, and moderation)
+# AI (Togglemon Card Creator — text, image, and moderation)
 OPENAI_API_KEY=
 
 # Server
@@ -488,12 +468,12 @@ SNOWFLAKE_WAREHOUSE=
 | Entity | Convention | Example |
 |---|---|---|
 | Feature flag keys | kebab-case | `show-product-catalog` |
-| AI Config keys | kebab-case | `darktrainers-chatbot` |
+| AI Config keys | kebab-case | `togglemon-card-creator` |
 | Event keys | snake_case | `add_to_cart` |
 | React component files | PascalCase.tsx | `ProductCard.tsx` |
 | Hook files | camelCase with `use` prefix | `useFeatureFlag.ts` |
 | Context files | PascalCase + `Context` | `UserContext.tsx` |
-| Server route files | kebab-case | `chat.ts` |
+| Server route files | kebab-case | `card-creator.ts` |
 
 ---
 

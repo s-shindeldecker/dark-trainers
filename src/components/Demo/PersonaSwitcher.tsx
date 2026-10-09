@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import styled from '@emotion/styled';
 import PersonIcon from '@mui/icons-material/Person';
 import { useUser } from '../../context/UserContext';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
-import { LD_FLAGS } from '../../lib/ldFlagKeys';
 import { generateRandomStandardUser, generateRandomVipUser } from '../../lib/generateRandomUser';
 import {
   STANDARD_DEMO_USER,
@@ -22,10 +20,10 @@ export interface PersonaSwitcherProps {
 const VOLT = '#C8F000';
 const BG = '#0a0a0a';
 
-const Trigger = styled.button<{ $liftForChat: boolean }>`
+const Trigger = styled.button`
   position: fixed;
   right: 1rem;
-  bottom: ${({ $liftForChat }) => ($liftForChat ? '5.75rem' : '1rem')};
+  bottom: 1rem;
   z-index: 10002;
   display: inline-flex;
   align-items: center;
@@ -119,7 +117,6 @@ function triggerLabel(user: AppUser): string {
 }
 
 export function PersonaSwitcher({ open: openProp, onOpenChange }: PersonaSwitcherProps) {
-  const { value: showChatbot } = useFeatureFlag(LD_FLAGS.showChatbot, false);
   const { user, resetToGuest, setRandomStandard, setRandomVip } = useUser();
   const [internalOpen, setInternalOpen] = useState(false);
   const [selected, setSelected] = useState<PersonaChoice>(() => personaFromUser(user));
@@ -158,7 +155,7 @@ export function PersonaSwitcher({ open: openProp, onOpenChange }: PersonaSwitche
 
   return (
     <>
-      <Trigger type="button" $liftForChat={showChatbot} onClick={openModal} aria-label="Switch persona">
+      <Trigger type="button" onClick={openModal} aria-label="Switch persona">
         <PersonIcon aria-hidden />
         <span>{currentLabel}</span>
       </Trigger>
