@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import type { LDClient, LDContext } from '@launchdarkly/node-server-sdk';
+import { LAB_WINDOW_MS, getClientIp, getLabGuard, sendTooManyRequests } from '../lab/guard.js';
 
 /**
  * AI search lab — result click tracking. The page posts here on the first
  * click of each result within a search; we record `lab_result_clicked` on the
  * same session-only context the search route (routes/search-lab.ts) uses.
+ * Rate-limited per IP by server/lab/guard.ts (per instance, demo-grade only).
  */
 
 const MAX_ITEM_ID = 100;
@@ -18,6 +20,13 @@ export function createSearchLabClickRouter(ldClient: LDClient) {
 
   router.post('/', async (req, res) => {
     try {
+      const { config, limiter } = getLabGuard();
+      const ipLimit = limiter.allow(`click-ip:${getClientIp(req)}`, config.clickPerIp, LAB_WINDOW_MS);
+      if (!ipLimit.allowed) {
+        sendTooManyRequests(res, ipLimit.retryAfterSeconds);
+        return;
+      }
+
       const { sessionKey, itemId, position, query } = (req.body ?? {}) as {
         sessionKey?: unknown;
         itemId?: unknown;
