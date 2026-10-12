@@ -19,7 +19,13 @@ import { validateAiResult, type InvalidReason } from './validateAiResult.js';
 
 const DEFAULT_CONFIG_KEY = 'ai-search-lab-model';
 
-export type FallbackReason = 'config-missing' | 'config-disabled' | 'invalid-output' | 'error';
+export type FallbackReason =
+  | 'config-missing'
+  | 'config-disabled'
+  | 'invalid-output'
+  | 'error'
+  // Set by routes/search-lab.ts when the hourly AI budget (lab/guard.ts) is spent.
+  | 'ai-budget';
 
 /**
  * Thrown by aiSearch. Carries trackData/usage when the model did respond, and

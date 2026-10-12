@@ -20,6 +20,13 @@ import { createSearchLabClickRouter } from './routes/search-lab-click.js';
  */
 export async function createApp() {
   const app = express();
+  // On Vercel the socket peer is Vercel's proxy, which overwrites
+  // x-forwarded-for with the real client IP; trust it so req.ip is the client
+  // (the search lab's per-IP limits in lab/guard.ts depend on this). Not set
+  // locally, where a client could spoof the header.
+  if (process.env.VERCEL) {
+    app.set('trust proxy', true);
+  }
   app.use(cors());
   app.use(express.json());
 

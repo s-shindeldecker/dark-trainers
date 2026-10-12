@@ -5,6 +5,13 @@ import type { PackItem } from '../../src/packs/types.js';
 import { keywordSearch } from '../lab/keywordSearch.js';
 import { getPack } from '../lab/packRegistry.js';
 import { AiSearchError, aiSearch, flushAiClient, type FallbackReason } from '../lab/aiSearch.js';
+import {
+  LAB_WINDOW_MS,
+  getClientIp,
+  getLabGuard,
+  sendTooManyRequests,
+  takeAiBudget,
+} from '../lab/guard.js';
 
 /**
  * AI search lab — search over a content pack, separate from the storefront
@@ -13,6 +20,9 @@ import { AiSearchError, aiSearch, flushAiClient, type FallbackReason } from '../
  * `ai-search-lab` is evaluated per request on a session-only context. Off:
  * keyword search. On: the AI Config (server/lab/aiSearch.ts), falling back to
  * keyword search on any failure.
+ *
+ * Rate limits (per IP, then per session) and an hourly AI-call budget come from
+ * server/lab/guard.ts; they are per instance and demo-grade only.
  */
 
 const FLAG_KEY = 'ai-search-lab';
@@ -37,6 +47,17 @@ export function createSearchLabRouter(ldClient: LDClient) {
   router.post('/', async (req, res) => {
     const started = Date.now();
     try {
+      const { config, limiter } = getLabGuard();
+      const ipLimit = limiter.allow(
+        `search-ip:${getClientIp(req)}`,
+        config.searchPerIp,
+        LAB_WINDOW_MS,
+      );
+      if (!ipLimit.allowed) {
+        sendTooManyRequests(res, ipLimit.retryAfterSeconds);
+        return;
+      }
+
       const { q, sessionKey, pack: packKey = DEFAULT_PACK } = (req.body ?? {}) as {
         q?: unknown;
         sessionKey?: unknown;
@@ -56,6 +77,15 @@ export function createSearchLabRouter(ldClient: LDClient) {
       }
       if (typeof sessionKey !== 'string' || sessionKey.length === 0) {
         res.status(400).json({ error: 'A sessionKey is required' });
+        return;
+      }
+      const sessionLimit = limiter.allow(
+        `search-session:${sessionKey}`,
+        config.searchPerSession,
+        LAB_WINDOW_MS,
+      );
+      if (!sessionLimit.allowed) {
+        sendTooManyRequests(res, sessionLimit.retryAfterSeconds);
         return;
       }
       const pack = typeof packKey === 'string' ? getPack(packKey) : undefined;
@@ -81,7 +111,11 @@ export function createSearchLabRouter(ldClient: LDClient) {
       let trackData: TrackData | undefined;
       let usage: TokenUsage | undefined;
 
-      if (aiEnabled) {
+      if (aiEnabled && !takeAiBudget()) {
+        // Budget spent: skip the model and serve keyword search.
+        fallbackUsed = true;
+        fallbackReason = 'ai-budget';
+      } else if (aiEnabled) {
         try {
           const ai = await aiSearch(pack, query, context);
           const byId = new Map(pack.items.map((item) => [item.id, item]));
