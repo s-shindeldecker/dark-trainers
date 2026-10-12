@@ -9,6 +9,7 @@ import { createCardCreatorRouter } from './routes/card-creator.js';
 import { createSimulateRouter } from './routes/simulate.js';
 import { createSearchRouter } from './routes/search.js';
 import { createSearchLabRouter } from './routes/search-lab.js';
+import { createSearchLabClickRouter } from './routes/search-lab-click.js';
 
 /**
  * Builds and returns the configured Express app. Shared by the local dev
@@ -44,6 +45,7 @@ export async function createApp() {
   app.use('/api/card-creator', createCardCreatorRouter(ldClient, aiClient));
   app.use('/api/simulate', createSimulateRouter(ldClient));
   app.use('/api/search', createSearchRouter(ldClient));
+  app.use('/api/search-lab/click', createSearchLabClickRouter(ldClient));
   app.use('/api/search-lab', createSearchLabRouter(ldClient));
 
   app.get('/api/health', (_req, res) => {

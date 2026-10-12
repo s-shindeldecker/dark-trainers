@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useLDClient } from 'launchdarkly-react-client-sdk';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -27,6 +27,7 @@ import FAQ from './pages/FAQ';
 import Reviews from './pages/Reviews';
 import Signup from './pages/Signup';
 import DropsPage from './pages/DropsPage';
+import SearchLab from './pages/SearchLab';
 import { DemoControlsPanel } from './components/Demo/DemoControlsPanel';
 import { PersonaSwitcher } from './components/Demo/PersonaSwitcher';
 import { QRCodeModal } from './components/Demo/QRCodeModal';
@@ -42,6 +43,7 @@ const MainContent = styled.main`
 
 function AppShell() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { isIdentified, logout } = useUser();
   const [personaSwitcherOpen, setPersonaSwitcherOpen] = useState(false);
   const { value: showAc26DropFeed } = useFeatureFlag(LD_FLAGS.showAc26DropFeed, false);
@@ -75,6 +77,9 @@ function AppShell() {
     }
     vip.clearPendingCartAdd();
   };
+
+  // The search lab is a bare page: no storefront header, footer, or overlays.
+  if (pathname === '/search-lab') return <SearchLab />;
 
   return (
     <>
