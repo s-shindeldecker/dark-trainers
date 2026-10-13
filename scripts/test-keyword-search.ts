@@ -5,8 +5,51 @@
  *
  * Exits non-zero on any failure.
  */
-import { akPark } from '../src/packs/ak-park';
 import { keywordSearch, tokenizeQuery } from '../server/lab/keywordSearch';
+import type { Pack } from '../src/packs/types';
+
+/** Local fixture pack: these tests must not depend on the real ak-park data. */
+const fixturePack: Pack = {
+  key: 'fixture',
+  displayName: 'PLACEHOLDER Animal Park',
+  domainDescription: 'PLACEHOLDER: a test fixture pack.',
+  items: [
+    {
+      id: 'placeholder-savanna-ride',
+      name: 'PLACEHOLDER Savanna Ride',
+      kind: 'attraction',
+      area: 'PLACEHOLDER Area A',
+      aliases: ['placeholder truck ride'],
+      species: ['giraffe', 'zebra'],
+      description: 'PLACEHOLDER: an open-vehicle ride through a grassland habitat.',
+      attributes: ['outdoor', 'kid-friendly'],
+      hoursNote: 'PLACEHOLDER: runs during park hours.',
+    },
+    {
+      id: 'placeholder-forest-trail',
+      name: 'PLACEHOLDER Forest Trail',
+      kind: 'trail',
+      area: 'PLACEHOLDER Area B',
+      aliases: [],
+      species: ['gorilla'],
+      description: 'PLACEHOLDER: a self-guided walking path past a primate habitat.',
+      attributes: ['outdoor', 'walking'],
+      hoursNote: 'PLACEHOLDER: closes one hour before the park.',
+    },
+    {
+      id: 'placeholder-grill',
+      name: 'PLACEHOLDER Grill',
+      kind: 'dining',
+      area: 'PLACEHOLDER Area A',
+      aliases: ['placeholder bbq'],
+      species: [],
+      description: 'PLACEHOLDER: a counter-service spot serving grilled food.',
+      attributes: ['indoor-seating', 'quick-service'],
+      hoursNote: 'PLACEHOLDER: lunch and dinner.',
+    },
+  ],
+  queries: [],
+};
 
 interface Case {
   name: string;
@@ -35,7 +78,7 @@ const CASES: Case[] = [
 
 let failures = 0;
 for (const c of CASES) {
-  const actual = keywordSearch(akPark, c.query, c.limit).map((hit) => hit.item.id);
+  const actual = keywordSearch(fixturePack, c.query, c.limit).map((hit) => hit.item.id);
   const pass = JSON.stringify(actual) === JSON.stringify(c.expected);
   if (!pass) failures += 1;
   console.log(`${pass ? 'PASS' : 'FAIL'}  ${c.name}  (${JSON.stringify(c.query)})`);
