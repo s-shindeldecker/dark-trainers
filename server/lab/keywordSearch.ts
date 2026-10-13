@@ -33,10 +33,24 @@ function stem(token: string): string {
   return token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token;
 }
 
-/** Lowercase, replace punctuation with spaces, split on whitespace. */
-function rawWords(text: string): string[] {
+/**
+ * Shared by query and item text: strip accents (NFKD, then drop combining
+ * marks U+0300–U+036F) so "Grévy" matches "grevy", lowercase, map typographic
+ * quotes to ASCII, and map en dash, em dash and minus sign to a space.
+ */
+function normalize(text: string): string {
   return text
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—−]/g, ' ');
+}
+
+/** Normalize, replace punctuation with spaces, split on whitespace. */
+function rawWords(text: string): string[] {
+  return normalize(text)
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .filter(Boolean);

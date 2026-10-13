@@ -1,0 +1,163 @@
+[
+  {
+    "id": "u01",
+    "text": "What is the name of the big tree in the center of the park?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "tree-of-life"
+    ],
+    "shouldDecline": false,
+    "note": "'Tree of Life' maps to tree-of-life (one match)."
+  },
+  {
+    "id": "u02",
+    "text": "Where do I find the safari ride?",
+    "category": "nickname",
+    "expectedItemIds": [
+      "kilimanjaro-safaris"
+    ],
+    "shouldDecline": false,
+    "note": "'Kilimanjaro Safaris' maps to kilimanjaro-safaris (one match). Its aliases include 'Safari'."
+  },
+  {
+    "id": "u03",
+    "text": "What is the BBQ place in Animal Kingdom?",
+    "category": "nickname",
+    "expectedItemIds": [
+      "flame-tree-barbecue"
+    ],
+    "shouldDecline": false,
+    "note": "holdout"
+  },
+  {
+    "id": "u04",
+    "text": "Are there any meerkats?",
+    "category": "species",
+    "expectedItemIds": [
+      "gorilla-falls-exploration-trail"
+    ],
+    "shouldDecline": false,
+    "note": "Kept: gorilla-falls-exploration-trail is the only pack item listing meerkat. Two directly read sources (the official trail page and the Parks Blog 2026-06-23) plus Wikipedia back it."
+  },
+  {
+    "id": "u05",
+    "text": "Can I see hippos anywhere?",
+    "category": "species",
+    "expectedItemIds": [
+      "gorilla-falls-exploration-trail",
+      "kilimanjaro-safaris"
+    ],
+    "shouldDecline": false,
+    "note": "Wording changed at your request (2026-10-13). Expects both pack items that list hippopotamus with two sources: gorilla-falls-exploration-trail and kilimanjaro-safaris (updated 2026-10-13 at your request). Both also list 'hippo' as a common-name synonym."
+  },
+  {
+    "id": "u06",
+    "text": "I need to get out of the heat with the kids for a bit",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "festival-of-the-lion-king",
+      "finding-nemo-big-blue",
+      "animal-care-conservation-station"
+    ],
+    "shouldDecline": false,
+    "note": "Expects the two shows with an approved 'indoor' attribute, plus Animal Care at Conservation Station (indoor, user-confirmed). Zootopia was removed because indoor wasn't confirmed."
+  },
+  {
+    "id": "u07",
+    "text": "Where can I get a sit-down lunch after the safari?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "tusker-house"
+    ],
+    "shouldDecline": false,
+    "note": "'Tusker House Restaurant' maps to tusker-house. No other pack dining item in Africa is table service. Tusker House's attributes are 'buffet', 'character dining', 'reservations'; it has no 'table service' attribute."
+  },
+  {
+    "id": "u08",
+    "text": "Something calm with animals, not a ride",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "discovery-island-trails",
+      "gorilla-falls-exploration-trail",
+      "maharajah-jungle-trek",
+      "oasis-exhibits"
+    ],
+    "shouldDecline": false,
+    "note": "'The four walking trails' maps to the four pack items of kind 'trail'. Jumping Junction (animal-habitat) also has 'walking' and 'animal viewing' but wasn't added."
+  },
+  {
+    "id": "u09",
+    "text": "A quick bite in Pandora, not a sit-down meal",
+    "category": "constraint",
+    "expectedItemIds": [
+      "satuli-canteen"
+    ],
+    "shouldDecline": false,
+    "note": "'Satu'li Canteen' maps to satuli-canteen, the only Pandora pack item with 'quick service'. Pongu Pongu (drinks, snack) is the only other Pandora dining item and wasn't added."
+  },
+  {
+    "id": "u10",
+    "text": "An indoor show, not a ride",
+    "category": "constraint",
+    "expectedItemIds": [
+      "festival-of-the-lion-king",
+      "finding-nemo-big-blue"
+    ],
+    "shouldDecline": false,
+    "note": "Only pack shows with an approved 'indoor' attribute. Zootopia was removed because indoor wasn't confirmed."
+  },
+  {
+    "id": "u11",
+    "text": "Where do I find Countdown to Extinction?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "'Countdown to Extinction' is a user-confirmed alias of dinosaur, which is closed and not in the pack."
+  },
+  {
+    "id": "u12",
+    "text": "Where is the Rock 'n' Roller Coaster?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "Not a Disney's Animal Kingdom attraction, so there's no ledger or pack item."
+  },
+  {
+    "id": "u13",
+    "text": "When is the next Rivers of Light show?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "holdout"
+  },
+  {
+    "id": "u14",
+    "text": "Is Flight of Passage open right now?",
+    "category": "time-sensitive",
+    "expectedItemIds": [
+      "avatar-flight-of-passage"
+    ],
+    "shouldDecline": false,
+    "note": "'Flight of Passage' maps to avatar-flight-of-passage (one match, also an alias). The pack has no live status, so the answer should point to the official app."
+  },
+  {
+    "id": "u15",
+    "text": "What attraction is inside of the Tree of Life?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "zootopia-better-zoogether"
+    ],
+    "shouldDecline": false,
+    "note": "Added at your request (2026-10-13). 'Zootopia: Better Zoogether!' maps to zootopia-better-zoogether (one match). Its description places it in the Tree of Life Theater, backed by the official page and the TWDC article. Tests that the question isn't answered with tree-of-life itself or with the closed It's Tough to be a Bug!."
+  },
+  {
+    "id": "u16",
+    "text": "What show is inside of the Tree of Life?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "zootopia-better-zoogether"
+    ],
+    "shouldDecline": false,
+    "note": "Added at your request (2026-10-13). 'Zootopia: Better Zoogether!' maps to zootopia-better-zoogether (one match). Its description places it in the Tree of Life Theater, backed by the official page and the TWDC article. Tests that the question isn't answered with tree-of-life itself or with the closed It's Tough to be a Bug!."
+  }
+]

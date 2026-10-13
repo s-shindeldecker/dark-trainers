@@ -1,0 +1,269 @@
+[
+  {
+    "id": "q01",
+    "text": "Kilimanjaro Safaris",
+    "category": "exact-name",
+    "expectedItemIds": [
+      "kilimanjaro-safaris"
+    ],
+    "shouldDecline": false,
+    "note": "Plain exact-name lookup."
+  },
+  {
+    "id": "q02",
+    "text": "Tell me about Na'vi River Journey",
+    "category": "exact-name",
+    "expectedItemIds": [
+      "navi-river-journey"
+    ],
+    "shouldDecline": false,
+    "note": "Tests the apostrophe in the name; the ledger also has the alias 'Navi River Journey'."
+  },
+  {
+    "id": "q03",
+    "text": "Tusker House Restaurant",
+    "category": "exact-name",
+    "expectedItemIds": [
+      "tusker-house"
+    ],
+    "shouldDecline": false,
+    "note": "holdout"
+  },
+  {
+    "id": "q04",
+    "text": "Zootopia: Better Zoogether!",
+    "category": "exact-name",
+    "expectedItemIds": [
+      "zootopia-better-zoogether"
+    ],
+    "shouldDecline": false,
+    "note": "Should not return the closed It's Tough to be a Bug!, which ran in the same theater."
+  },
+  {
+    "id": "q05",
+    "text": "How do I get to Everest?",
+    "category": "nickname",
+    "expectedItemIds": [
+      "expedition-everest"
+    ],
+    "shouldDecline": false,
+    "note": "Matches the short-form alias 'Everest'."
+  },
+  {
+    "id": "q06",
+    "text": "Is Flight of Passage worth it?",
+    "category": "nickname",
+    "expectedItemIds": [
+      "avatar-flight-of-passage"
+    ],
+    "shouldDecline": false,
+    "note": "Matches the alias 'Flight of Passage'. The answer should describe the attraction without giving wait times."
+  },
+  {
+    "id": "q07",
+    "text": "Where is the Pangani Forest trail?",
+    "category": "nickname",
+    "expectedItemIds": [
+      "gorilla-falls-exploration-trail"
+    ],
+    "shouldDecline": false,
+    "note": "holdout"
+  },
+  {
+    "id": "q08",
+    "text": "Can my kids still visit the Affection Section?",
+    "category": "nickname",
+    "expectedItemIds": [
+      "jumping-junction"
+    ],
+    "shouldDecline": false,
+    "note": "Matches the former name, kept as an alias on Jumping Junction. The answer should explain the space is now Jumping Junction and shouldn't promise hands-on contact with the animals."
+  },
+  {
+    "id": "q09",
+    "text": "Where can I see elephants?",
+    "category": "species",
+    "expectedItemIds": [
+      "kilimanjaro-safaris"
+    ],
+    "shouldDecline": false,
+    "note": "Elephant on Kilimanjaro Safaris is confirmed by three directly read sources. The Wildlife Express Train passes elephant care buildings but has no species listed, so it isn't expected."
+  },
+  {
+    "id": "q10",
+    "text": "Which trail has gorillas?",
+    "category": "species",
+    "expectedItemIds": [
+      "gorilla-falls-exploration-trail"
+    ],
+    "shouldDecline": false,
+    "note": "Western lowland gorilla is confirmed by three directly read sources."
+  },
+  {
+    "id": "q11",
+    "text": "I want to see flying foxes",
+    "category": "species",
+    "expectedItemIds": [
+      "maharajah-jungle-trek"
+    ],
+    "shouldDecline": false,
+    "note": "holdout"
+  },
+  {
+    "id": "q12",
+    "text": "Are there kangaroos anywhere in the park?",
+    "category": "species",
+    "expectedItemIds": [
+      "discovery-island-trails",
+      "jumping-junction"
+    ],
+    "shouldDecline": false,
+    "note": "Kangaroo is two-sourced for both Jumping Junction and Discovery Island Trails (the trail's official page plus the guidemap's Discovery Island animal highlights)."
+  },
+  {
+    "id": "q13",
+    "text": "Where do the macaws fly?",
+    "category": "species",
+    "expectedItemIds": [
+      "winged-encounters"
+    ],
+    "shouldDecline": false,
+    "note": "'Macaw' (general) is two-sourced for Winged Encounters."
+  },
+  {
+    "id": "q14",
+    "text": "Someone in my group got hurt, where can we get medical help?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "first-aid"
+    ],
+    "shouldDecline": false,
+    "note": "Guest-services query. First Aid's area (Discovery Island) is user-confirmed."
+  },
+  {
+    "id": "q15",
+    "text": "Is there a quiet place to nurse and change my baby?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "baby-care-center"
+    ],
+    "shouldDecline": false,
+    "note": "Guest-services query. Baby Care Center's area is waiting for your correction, so the answer shouldn't state a location until it's finalized."
+  },
+  {
+    "id": "q16",
+    "text": "Where can I rent a stroller?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "stroller-rental"
+    ],
+    "shouldDecline": false,
+    "note": "holdout"
+  },
+  {
+    "id": "q17",
+    "text": "I want a ride where I'll get soaked",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "kali-river-rapids"
+    ],
+    "shouldDecline": false,
+    "note": "Relies on the 'get wet' attribute from the official page."
+  },
+  {
+    "id": "q18",
+    "text": "A shaded walk with animals near the park entrance",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "oasis-exhibits"
+    ],
+    "shouldDecline": false,
+    "note": "Relies on the 'shaded' and 'walking' attributes and the Oasis area."
+  },
+  {
+    "id": "q19",
+    "text": "Rides with no height requirement",
+    "category": "constraint",
+    "expectedItemIds": [
+      "kilimanjaro-safaris",
+      "navi-river-journey",
+      "wildlife-express-train"
+    ],
+    "shouldDecline": false,
+    "note": "These are the items with both 'ride' and 'height: any'. Shows and trails also list 'height: any' but aren't rides."
+  },
+  {
+    "id": "q20",
+    "text": "Thrill rides my 46-inch kid can go on",
+    "category": "constraint",
+    "expectedItemIds": [
+      "expedition-everest",
+      "avatar-flight-of-passage"
+    ],
+    "shouldDecline": false,
+    "note": "holdout"
+  },
+  {
+    "id": "q21",
+    "text": "Quick-service food on Discovery Island that takes mobile orders",
+    "category": "constraint",
+    "expectedItemIds": [
+      "flame-tree-barbecue",
+      "pizzafari"
+    ],
+    "shouldDecline": false,
+    "note": "These are the only items with Discovery Island + 'quick service' + 'mobile order'. Creature Comforts and The Smiling Crocodile are quick service but have no mobile-order attribute."
+  },
+  {
+    "id": "q22",
+    "text": "How long is the line for DINOSAUR?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "DINOSAUR closed permanently with DinoLand U.S.A. The question also asks for a wait time, which the pack never gives."
+  },
+  {
+    "id": "q23",
+    "text": "What time is It's Tough to be a Bug! showing today?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "holdout"
+  },
+  {
+    "id": "q24",
+    "text": "Can I ride the new Indiana Jones ride at Animal Kingdom?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "Indiana Jones and the Myth of the Jade Serpent is announced but not open. It's a trap item, not pack-eligible."
+  },
+  {
+    "id": "q25",
+    "text": "Where is Space Mountain in Animal Kingdom?",
+    "category": "false-premise",
+    "expectedItemIds": [],
+    "shouldDecline": true,
+    "note": "Space Mountain is in a different park, not Disney's Animal Kingdom, so there's no match in the pack."
+  },
+  {
+    "id": "q26",
+    "text": "Is Tree of Life Awakenings on tonight?",
+    "category": "time-sensitive",
+    "expectedItemIds": [
+      "tree-of-life-awakenings"
+    ],
+    "shouldDecline": false,
+    "note": "It runs only after dark on nights the park stays open late enough; the official page said 'No performance today' on 2026-10-12. The answer should explain that and send the guest to the official app, without claiming any particular night."
+  },
+  {
+    "id": "q27",
+    "text": "Can I do Kilimanjaro Safaris at sunset?",
+    "category": "time-sensitive",
+    "expectedItemIds": [
+      "kilimanjaro-safaris"
+    ],
+    "shouldDecline": false,
+    "note": "The pack has no sunset or hours data. The answer should describe the safari and send the guest to the official app for that day's hours, without promising sunset availability or giving specific times."
+  }
+]

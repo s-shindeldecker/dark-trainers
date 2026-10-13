@@ -51,6 +51,7 @@ export interface LabeledQuery {
   /** True when the correct behavior is to decline rather than return items. */
   shouldDecline: boolean;
   note?: string;
+  holdout?: boolean;
 }
 
 export interface Pack {

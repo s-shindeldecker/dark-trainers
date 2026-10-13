@@ -1,0 +1,4882 @@
+[
+  {
+    "id": "kilimanjaro-safaris",
+    "name": "Kilimanjaro Safaris",
+    "kind": "attraction",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Safari",
+      "Safaris"
+    ],
+    "species": [
+      "hippopotamus",
+      "hippo",
+      "lion",
+      "giraffe",
+      "white rhinoceros",
+      "rhino",
+      "cheetah",
+      "crocodile",
+      "elephant",
+      "African painted dog",
+      "painted dog",
+      "wild dog",
+      "zebra"
+    ],
+    "description": "Guided tour in an open-air vehicle through a large African-style reserve, past savanna, forest, and wetland animal habitats.",
+    "attributes": [
+      "ride",
+      "outdoor",
+      "animal viewing",
+      "height: any"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/kilimanjaro-safaris/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "attributes",
+          "description"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/spot-your-favorite-animals-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-23",
+        "tier": "A",
+        "supports": [
+          "species"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "species",
+          "attributes"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Every species listed is named on the official page and also appears on Wikipedia's species list; six of them are also in the Parks Blog article. The official page calls them 'painted dog'; Wikipedia calls them 'African wild dog'. Wikipedia names many more species, but those are single-source and left out. 'Outdoor' comes from the official page's 'open-air vehicle' wording. The aliases are short forms of the official name, not sourced fan names. Confirmed for false-premise use: 'elephant' is named on the official page (read directly), in the Parks Blog article of 2026-06-23 (read directly), and on Wikipedia (read directly). Common-name synonyms added 2026-10-13 at user request ('hippo' for 'hippopotamus', 'rhino' for 'white rhinoceros'); each is a guest word for a species already two-sourced here, not a new fact. More common-name synonyms added 2026-10-13 at user request ('painted dog' for 'African painted dog', 'wild dog' for 'African painted dog'); guest words for species already two-sourced here, not new facts."
+  },
+  {
+    "id": "wildlife-express-train",
+    "name": "Wildlife Express Train",
+    "kind": "attraction",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Wildlife Express",
+      "the train to Conservation Station"
+    ],
+    "species": [],
+    "description": "Rustic train ride between Harambe in Africa and Conservation Station, passing behind-the-scenes animal care buildings on the way.",
+    "attributes": [
+      "ride",
+      "height: any",
+      "seating"
+    ],
+    "hoursNote": "This is the only way to reach Conservation Station. Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/wildlife-express-train/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/everything-you-need-to-know-about-bluey-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-22",
+        "tier": "A",
+        "supports": [
+          "status",
+          "description",
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'seating' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "It departs from Harambe in Africa. The official page mentions rhino and elephant care facilities along the route, but that's behind-the-scenes buildings, not animal viewing, so species is left empty. A B-extract says the train was closed from late February 2026 until shortly before 2026-05-26; I haven't confirmed that with a directly read page, and the train is open now either way. I removed 'seating' (inferred); it's in the open-questions decision table."
+  },
+  {
+    "id": "expedition-everest",
+    "name": "Expedition Everest - Legend of the Forbidden Mountain",
+    "kind": "attraction",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Expedition Everest",
+      "Everest"
+    ],
+    "species": [],
+    "description": "High-speed mountain coaster train that climbs, drops, and rolls backward through dark caverns said to be guarded by the Yeti.",
+    "attributes": [
+      "ride",
+      "roller coaster",
+      "height requirement: 44 in (112 cm)",
+      "thrill"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours. Disney has announced the Yeti will be restored; no closure dates have been given.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/expedition-everest/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/yeti-audio-animatronic-expedition-everest/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-08-15",
+        "tier": "A",
+        "supports": [
+          "notes",
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "attributes",
+          "notes"
+        ]
+      },
+      {
+        "url": "https://insidethemagic.net/2026/10/walt-disney-world-confirms-expedition-everest-coaster-shutting-down-updates-given-ab1/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-10-08",
+        "tier": "C",
+        "supports": [
+          "notes"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/expedition-everest/news/16aug2026-expedition-everest-yeti-getting-fixed-after-nearly-20-years-disney-confirms.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-16",
+        "tier": "B-extract",
+        "supports": [
+          "notes"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'thrill' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The Yeti is a mythical creature, so species is empty. Disney announced at D23 that the Yeti will be restored (Parks Blog 2026-08-15, read directly; Wikipedia, read directly); neither gives a closure date. I removed the single-rider end date because only one Tier C source states it. The 44 in height requirement comes from the official page alone, which your rule allows. This is a good time-sensitive item."
+  },
+  {
+    "id": "kali-river-rapids",
+    "name": "Kali River Rapids",
+    "kind": "attraction",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Kali",
+      "rapids ride",
+      "raft ride"
+    ],
+    "species": [],
+    "description": "Whitewater raft ride along a jungle river with waterfalls and a geyser; riders should expect to be splashed or soaked.",
+    "attributes": [
+      "ride",
+      "raft",
+      "get wet",
+      "height requirement: 38 in (97 cm)",
+      "lockers nearby",
+      "outdoor"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours. Operations may pause in bad weather.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/kali-river-rapids/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'outdoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "hoursNote"
+        ],
+        "note": "bad-weather pause approved by user, decision table row 9"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Get wet, raft, lockers near the entrance, and the height requirement all come from the official page. I removed 'outdoor' and the weather wording (both inferred); they're in the decision table. 'Rapids ride' and 'raft ride' are descriptive aliases, not sourced fan names."
+  },
+  {
+    "id": "avatar-flight-of-passage",
+    "name": "Avatar Flight of Passage",
+    "kind": "attraction",
+    "area": "Pandora – The World of Avatar",
+    "status": "open",
+    "aliases": [
+      "Flight of Passage",
+      "Valley of Mo'ara"
+    ],
+    "species": [],
+    "description": "3D flight attraction where each guest rides a mountain banshee, a winged Pandoran creature, on a soaring trip over the moon's landscapes.",
+    "attributes": [
+      "ride",
+      "3D",
+      "height requirement: 44 in (112 cm)",
+      "thrill"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/avatar-flight-of-passage/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'thrill' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Both sources say 3D; Wikipedia also says simulator. I moved 'thrill' to the decision table because it was inferred. Fan nicknames such as 'FOP' aren't sourced. 'Valley of Mo'ara' is listed as an alias because you decided it's an area name within Pandora, not a separate attraction; the official destinations page uses that name."
+  },
+  {
+    "id": "navi-river-journey",
+    "name": "Na'vi River Journey",
+    "kind": "attraction",
+    "area": "Pandora – The World of Avatar",
+    "status": "open",
+    "aliases": [
+      "Navi River Journey",
+      "Na'vi River",
+      "Valley of Mo'ara"
+    ],
+    "species": [],
+    "description": "Boat ride gliding through caves into a glowing, bioluminescent rainforest on the moon Pandora.",
+    "attributes": [
+      "ride",
+      "river ride",
+      "height: any",
+      "boat"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/navi-river-journey/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'boat' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The official page says 'river ride'; Wikipedia says 'dark boat ride'. I moved 'boat' to the decision table because the official page doesn't state it. The alias without the apostrophe is there so spelling variants still match. 'Valley of Mo'ara' is listed as an alias because you decided it's an area name within Pandora, not a separate attraction; the official destinations page uses that name."
+  },
+  {
+    "id": "tree-of-life",
+    "name": "Tree of Life",
+    "kind": "attraction",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "The Tree of Life",
+      "the big tree"
+    ],
+    "species": [],
+    "description": "The park's central landmark: a giant sculpted tree covered in hundreds of carved animal shapes, with trails and animal areas at its base.",
+    "attributes": [
+      "landmark",
+      "outdoor"
+    ],
+    "hoursNote": "A separate nighttime projection show (tree-of-life-awakenings) runs on the tree after dark on scheduled nights.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/tree-of-life/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "description"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'outdoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Species is empty on purpose: the animals at its base are recorded under discovery-island-trails. The official page gives height and carving counts, which I left out of the description. I moved 'outdoor' to the decision table because it was inferred. 'The big tree' is a descriptive alias."
+  },
+  {
+    "id": "wilderness-explorers",
+    "name": "Wilderness Explorers",
+    "kind": "attraction",
+    "area": "Multiple locations",
+    "status": "open",
+    "aliases": [
+      "Wilderness Explorer badges",
+      "Up badges"
+    ],
+    "species": [],
+    "description": "Self-guided, Up-themed challenge where guests earn sticker badges by completing nature and conservation activities around the park.",
+    "attributes": [
+      "self-guided",
+      "badges",
+      "height: any",
+      "kids",
+      "walking"
+    ],
+    "hoursNote": "Pick up handbooks at the headquarters on the bridge between Oasis and Discovery Island. Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/wilderness-explorers/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status",
+          "description",
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'kids' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'walking' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "area"
+        ],
+        "note": "user set area to 'Multiple locations'"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You set the area to 'Multiple locations', matching the official page. Headquarters is on the bridge between Oasis and Discovery Island, with Troop Leader spots in Africa, Conservation Station, Asia, and Pandora. Note: this isn't a land name, so filtering by land won't find it. 'Up badges' is a descriptive alias."
+  },
+  {
+    "id": "animal-care-conservation-station",
+    "name": "Animal Care at Conservation Station",
+    "kind": "attraction",
+    "area": "Conservation Station",
+    "status": "open",
+    "aliases": [
+      "Conservation Station",
+      "Rafiki's Planet Watch",
+      "vet hospital windows"
+    ],
+    "species": [
+      "amphibians",
+      "reptiles",
+      "invertebrates"
+    ],
+    "description": "Windows at Conservation Station that look into the veterinary treatment room and animal nutrition work, plus amphibian, reptile, and invertebrate displays.",
+    "attributes": [
+      "animal viewing",
+      "height: any",
+      "indoor"
+    ],
+    "hoursNote": "Reached only by the Wildlife Express Train. Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/conservation-station/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "description",
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/everything-you-need-to-know-about-bluey-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-22",
+        "tier": "A",
+        "supports": [
+          "status",
+          "species",
+          "description"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "aliases"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'indoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "This merges two Stage 1 items, conservation-station and animal-care-conservation-station. The official URL /conservation-station/ now serves the page titled 'Animal Care at Conservation Station'. Species are the broad groups named by both sources; the official page also names emperor newts, frogs, and lizards (single source). I moved 'indoor' to the decision table because it was inferred. Rafiki's Planet Watch is the area's former name: Wikipedia, read directly, says the name went back to Conservation Station in 2026."
+  },
+  {
+    "id": "blueys-wild-world",
+    "name": "Bluey's Wild World at Conservation Station",
+    "kind": "show",
+    "area": "Conservation Station",
+    "status": "open",
+    "aliases": [
+      "Bluey's Wild World",
+      "Bluey",
+      "Bluey and Bingo"
+    ],
+    "species": [],
+    "description": "Interactive group play session with Bluey and Bingo, full of games, music, and dancing, rather than one-on-one character meet-and-greets.",
+    "attributes": [
+      "character experience",
+      "interactive",
+      "group experience",
+      "no individual photos or autographs",
+      "kids"
+    ],
+    "hoursNote": "Runs in set sessions; check the official app for the day's operating hours. Check the app for how to get in.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/blueys-wild-world/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/everything-you-need-to-know-about-bluey-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-22",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "status",
+          "area"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'kids' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Opened 2026-05-26: the Parks Blog and Wikipedia, both read directly, agree. I changed the kind from Stage 1's 'attraction' to 'show' because Disney files the page under /entertainment/. Queue rules have changed since opening, so they're left out as unstable. I moved 'kids' to the decision table because it was inferred."
+  },
+  {
+    "id": "discovery-island-trails",
+    "name": "Discovery Island Trails",
+    "kind": "trail",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Tree of Life trails"
+    ],
+    "species": [
+      "Asian small-clawed otter",
+      "otter",
+      "flamingo",
+      "Galápagos tortoise",
+      "tortoise",
+      "Galapagos tortoise",
+      "kangaroo",
+      "ring-tailed lemur",
+      "lemur"
+    ],
+    "description": "Self-guided paths circling the Tree of Life's base, with bridges, tunnels, and viewing spots for birds, mammals, and reptiles.",
+    "attributes": [
+      "walking",
+      "self-guided",
+      "animal viewing",
+      "outdoor"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/discovery-island-trails/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/spot-your-favorite-animals-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-23",
+        "tier": "A",
+        "supports": [
+          "species",
+          "status"
+        ]
+      },
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/tree-of-life/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "area",
+          "description"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'outdoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Wikipedia doesn't mention this trail. Both supporting sources are Disney, but they're separate publications: the Disney World site and the Parks Blog. Species are limited to those the official trail page names and that the Parks Blog places around the Tree of Life. The official trail page also names white stork, red kangaroo, West African crowned crane, African crested porcupine, macaw, ring-tailed lemur, saddle-billed stork, and lappet-faced vulture (single source; add them if you'll accept one Tier A page). The Parks Blog also names a paroon shark catfish here; that's single source. I moved 'outdoor' to the decision table because it was inferred. Added kangaroo and ring-tailed lemur (2026-10-12): the guidemap lists both as Discovery Island animal highlights, alongside the official trail page. Common-name synonyms added 2026-10-13 at user request ('otter' for 'Asian small-clawed otter', 'tortoise' for 'Galápagos tortoise', 'lemur' for 'ring-tailed lemur'); each is a guest word for a species already two-sourced here, not a new fact. More common-name synonyms added 2026-10-13 at user request ('Galapagos tortoise' for 'Galápagos tortoise'); guest words for species already two-sourced here, not new facts."
+  },
+  {
+    "id": "gorilla-falls-exploration-trail",
+    "name": "Gorilla Falls Exploration Trail",
+    "kind": "trail",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Gorilla Falls",
+      "Pangani Forest Exploration Trail",
+      "gorilla trail"
+    ],
+    "species": [
+      "western lowland gorilla",
+      "gorilla",
+      "Grévy's zebra",
+      "zebra",
+      "meerkat",
+      "African birds",
+      "hippopotamus",
+      "hippo"
+    ],
+    "description": "Self-guided forest walk in Africa past a gorilla troop's hillside, meerkats, zebras, and other African wildlife.",
+    "attributes": [
+      "walking",
+      "self-guided",
+      "animal viewing",
+      "height: any",
+      "outdoor"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/gorilla-falls-forest-exploration-trail/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "description",
+          "attributes",
+          "aliases"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/spot-your-favorite-animals-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-23",
+        "tier": "A",
+        "supports": [
+          "species"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "species"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'outdoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The 'Pangani Forest Exploration Trail' alias is supported by the official page, which mentions Pangani Forest, and by Disney's older /pangani-forest-exploration-trail/ URL appearing in search results. 'African birds' rests on the Parks Blog plus Wikipedia's walkthrough aviary. Hippos are named only on the official page. Okapi, Angolan colobus, yellow-backed duiker, and naked mole-rat are named only by Wikipedia. Both groups are single source and left out. I moved 'outdoor' to the decision table because it was inferred. Confirmed for false-premise use: 'western lowland gorilla' is named on the official page (read directly), in the Parks Blog article of 2026-06-23 (read directly), and on Wikipedia (read directly). Added hippopotamus (2026-10-12): the guidemap's trail description mentions hippos, alongside the official page. Common-name synonyms added 2026-10-13 at user request ('gorilla' for 'western lowland gorilla', 'zebra' for 'Grévy's zebra', 'hippo' for 'hippopotamus'); each is a guest word for a species already two-sourced here, not a new fact."
+  },
+  {
+    "id": "maharajah-jungle-trek",
+    "name": "Maharajah Jungle Trek",
+    "kind": "trail",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Jungle Trek",
+      "tiger trail"
+    ],
+    "species": [
+      "Sumatran tiger",
+      "tiger",
+      "Komodo dragon",
+      "Malayan flying fox",
+      "flying fox",
+      "bat",
+      "fruit bat",
+      "blackbuck",
+      "water buffalo",
+      "buffalo",
+      "Asian birds",
+      "gibbon"
+    ],
+    "description": "Self-guided trail through jungle palace ruins in Asia with tigers, flying foxes, a Komodo dragon, and a walk-through bird aviary.",
+    "attributes": [
+      "walking",
+      "self-guided",
+      "animal viewing",
+      "height: any",
+      "walk-through aviary",
+      "outdoor"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/maharajah-jungle-trek/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/spot-your-favorite-animals-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-23",
+        "tier": "A",
+        "supports": [
+          "species"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "species"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'outdoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Gibbons and Eld's deer appear only on the official page; Wikipedia adds several bird species and the lion-tailed macaque. All of those are single source. 'Tiger trail' is a descriptive alias. I moved 'outdoor' to the decision table because it was inferred. Confirmed for false-premise use: 'Malayan flying fox' is named on the official page (read directly), in the Parks Blog article of 2026-06-23 (read directly), and on Wikipedia (read directly). Added gibbon (2026-10-12): the guidemap lists gibbon as an Asia animal highlight, alongside the official page. Common-name synonyms added 2026-10-13 at user request ('tiger' for 'Sumatran tiger', 'flying fox' for 'Malayan flying fox'); each is a guest word for a species already two-sourced here, not a new fact. More common-name synonyms added 2026-10-13 at user request ('bat' for 'Malayan flying fox', 'fruit bat' for 'Malayan flying fox', 'buffalo' for 'water buffalo'); guest words for species already two-sourced here, not new facts."
+  },
+  {
+    "id": "oasis-exhibits",
+    "name": "The Oasis Exhibits",
+    "kind": "trail",
+    "area": "Oasis",
+    "status": "open",
+    "aliases": [
+      "Oasis trails",
+      "Oasis animals"
+    ],
+    "species": [
+      "barking deer (Reeves's muntjac)",
+      "deer",
+      "barking deer",
+      "muntjac",
+      "giant anteater",
+      "anteater",
+      "babirusa",
+      "spoonbill"
+    ],
+    "description": "Shaded garden paths at the park entrance, winding past waterfalls, streams, and small animal habitats.",
+    "attributes": [
+      "walking",
+      "shaded",
+      "animal viewing",
+      "outdoor"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/oasis-exhibits/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/spot-your-favorite-animals-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-23",
+        "tier": "A",
+        "supports": [
+          "species"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'outdoor' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "species"
+        ],
+        "note": "user confirmed barking deer and Reeve's muntjac are the same species, decision table row 27"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "I changed the kind from Stage 1's 'animal-habitat' to 'trail', since the official page describes shaded trails past several habitats. The official page names barking deer and the Parks Blog names a Reeve's muntjac on the Oasis trails. You confirmed they're the same species (row 27). Giant anteaters, babirusas, wallabies, and spoonbills are named only on the official page (single source). The official name is 'The Oasis Exhibits'; the land label on the official page is 'Oasis'. I moved 'outdoor' to the decision table because it was inferred. Added giant anteater, babirusa, and spoonbill (2026-10-12): the guidemap lists them as Oasis animal highlights, alongside the official page. Common-name synonyms added 2026-10-13 at user request ('anteater' for 'giant anteater'); each is a guest word for a species already two-sourced here, not a new fact. More common-name synonyms added 2026-10-13 at user request ('deer' for 'barking deer (Reeves's muntjac)', 'barking deer' for 'barking deer (Reeves's muntjac)', 'muntjac' for 'barking deer (Reeves's muntjac)'); guest words for species already two-sourced here, not new facts."
+  },
+  {
+    "id": "jumping-junction",
+    "name": "Jumping Junction",
+    "kind": "animal-habitat",
+    "area": "Conservation Station",
+    "status": "open",
+    "aliases": [
+      "Affection Section",
+      "kangaroo habitat"
+    ],
+    "species": [
+      "kangaroo",
+      "wallaby"
+    ],
+    "description": "Australian animal habitat at Conservation Station where guests watch kangaroos and wallabies, with cast members guiding walk-throughs.",
+    "attributes": [
+      "animal viewing",
+      "walking",
+      "outdoor"
+    ],
+    "hoursNote": "Reached only by the Wildlife Express Train. Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/jumping-junction/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/everything-you-need-to-know-about-bluey-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-22",
+        "tier": "A",
+        "supports": [
+          "species",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/2026-disney-world-calendar-and-details/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-12-03",
+        "tier": "A",
+        "supports": [
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status",
+          "aliases"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "'Affection Section' is the former name of this space and is kept as an alias, as you decided, so it is no longer a separate closed record. Disney's old /affection-section/ URL now serves this page, and Wikipedia (read directly) says the area was renamed Jumping Junction in May 2026. 'Outdoor' is backed by the Parks Blog's Dec 2025 preview, which describes an outdoor section with Australian animals; 'walking' is backed by the Parks Blog's description of guided walk-throughs. A B-extract says guests can't touch the animals; I haven't confirmed that."
+  },
+  {
+    "id": "dinosaur",
+    "name": "DINOSAUR",
+    "kind": "attraction",
+    "area": "DinoLand U.S.A.",
+    "status": "closed",
+    "aliases": [
+      "Dinosaur ride",
+      "Countdown to Extinction"
+    ],
+    "species": [],
+    "description": "Former dinosaur-themed ride in DinoLand U.S.A.; it closed for good when the land shut down for Tropical Americas construction.",
+    "attributes": [],
+    "hoursNote": "Permanently closed; not operating.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "name",
+          "area"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/dinosaur/news/02sep2025-final-day-announced-for-dinosaur-ride-and-restaurantosaurus-at-disneys-animal-kingdom.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-09-02",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "aliases"
+        ],
+        "note": "user approved the 'Countdown to Extinction' alias (former name of the closed attraction), decision table row 26"
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Final closure on 2026-02-02 (last operating day 2026-02-01). Two directly read sources agree: the Parks Blog and Wikipedia. One search extract said 'January 2024'; the Parks Blog contradicts it, so I trusted the Parks Blog. You approved the 'Countdown to Extinction' alias (row 26). I moved 'ride' to the decision table because the directly read sources call it an attraction, not a ride. Keep this date out of the pack."
+  },
+  {
+    "id": "restaurantosaurus",
+    "name": "Restaurantosaurus",
+    "kind": "dining",
+    "area": "DinoLand U.S.A.",
+    "status": "closed",
+    "aliases": [
+      "Restaurantosaurus Lounge"
+    ],
+    "species": [],
+    "description": "Former quick-service restaurant in DinoLand U.S.A. that closed for good along with the rest of the land.",
+    "attributes": [],
+    "hoursNote": "Permanently closed; not operating.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "name",
+          "area",
+          "aliases"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/dinosaur/news/02sep2025-final-day-announced-for-dinosaur-ride-and-restaurantosaurus-at-disneys-animal-kingdom.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-09-02",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "I removed the closing date because only one directly read source (the Parks Blog) states it. The Parks Blog also lists Restaurantosaurus Lounge, which is kept as an alias. I moved 'quick bite' to the decision table because it was inferred."
+  },
+  {
+    "id": "triceratop-spin",
+    "name": "TriceraTop Spin",
+    "kind": "attraction",
+    "area": "DinoLand U.S.A.",
+    "status": "closed",
+    "aliases": [],
+    "species": [],
+    "description": "Former ride in DinoLand U.S.A.'s Dino-Rama area; it was removed to make room for Tropical Americas construction.",
+    "attributes": [],
+    "hoursNote": "Permanently closed and removed.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "name"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "status",
+          "area"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/tropical-americas/news/13jan2025-disneys-animal-kingdom-closes-dino-rama-walls-go-up-for-tropical-americas-expansion.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-01-13",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "I removed the closure dates because no two directly read sources agree on one. Wikipedia (read directly) places it in Dino-Rama. 'Ride' is in the decision table because only Tier C and B-extract sources describe it as a ride."
+  },
+  {
+    "id": "the-boneyard",
+    "name": "The Boneyard",
+    "kind": "attraction",
+    "area": "DinoLand U.S.A.",
+    "status": "closed",
+    "aliases": [],
+    "species": [],
+    "description": "Former play area in DinoLand U.S.A., closed ahead of the Tropical Americas project.",
+    "attributes": [],
+    "hoursNote": "Permanently closed.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "name"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/the-boneyard/news/16jun2025-disney-confirms-closure-date-for-the-boneyard-at-animal-kingdom-ahead-of-tropical-americas-project.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-06-16",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "I removed the closure dates because only Wikipedia gives one. The Parks Blog page (read directly) lists it as already closed; that page was clearly updated after its dateline. I moved 'play area' to the decision table because it's supported only by Tier C sources; the description uses the same wording, so drop it there too if you reject it."
+  },
+  {
+    "id": "trilo-bites",
+    "name": "Trilo-Bites",
+    "kind": "dining",
+    "area": "DinoLand U.S.A.",
+    "status": "closed",
+    "aliases": [],
+    "species": [],
+    "description": "Former snack window in DinoLand U.S.A. that shut down as the construction zone for the new land expanded.",
+    "attributes": [],
+    "hoursNote": "Permanently closed.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "name"
+        ]
+      },
+      {
+        "url": "https://wdwnt.com/2025/10/trilo-bites-dino-bite-snacks-permanently-closed-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-10",
+        "tier": "C",
+        "supports": [
+          "status",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Kept as a trap: the Parks Blog DinoLand post (read directly) names Trilo-Bites among the closed locations, which meets your condition. No closing date is recorded. I moved 'quick bite' to the decision table because it was inferred."
+  },
+  {
+    "id": "its-tough-to-be-a-bug",
+    "name": "It's Tough to be a Bug!",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "closed",
+    "aliases": [],
+    "species": [],
+    "description": "Former insect-themed 3D film shown inside the Tree of Life Theater; the theater now hosts the Zootopia show instead.",
+    "attributes": [],
+    "hoursNote": "Permanently closed.",
+    "sources": [
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user checked in a browser: the show closed and was replaced by the Zootopia show"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "status",
+          "area"
+        ]
+      },
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/zootopia-better-zoogether/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://thewaltdisneycompany.com/zootopia-better-zoogether/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-11-07",
+        "tier": "A",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/its-tough-to-be-a-bug/news/03feb2025-disney-announces-its-tough-to-be-a-bug!-closing-date---zootopia-experience-coming-soon.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-02-03",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/zootopia-better-zoogether/news/17mar2025-its-tough-to-be-a-bug-now-closed-at-disneys-animal-kingdom---entrance-marquee-removed.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-17",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Your hand-check confirmed the closure, and it's filed as user-confirmed. No directly read Tier A source states the closure; the Tier A pages only show that the Tree of Life Theater now hosts Zootopia. I removed the final-day dates because no two directly read sources agree. I moved 'indoor' and 'seating' to the decision table because they were inferred."
+  },
+  {
+    "id": "animation-experience-conservation-station",
+    "name": "The Animation Experience at Conservation Station",
+    "kind": "show",
+    "area": "Conservation Station",
+    "status": "closed",
+    "aliases": [
+      "Animation Experience"
+    ],
+    "species": [],
+    "description": "Former guided drawing class at Conservation Station, removed during the 2026 Bluey makeover of the building.",
+    "attributes": [],
+    "hoursNote": "Closed at this location.",
+    "sources": [
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user checked in a browser: it closed when Conservation Station was refurbished for Bluey"
+      },
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/animation-experience/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/everything-you-need-to-know-about-bluey-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-06-22",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/rafikis-planet-watch/news/25may2026-bluey-s-wild-world-soft-opens-at-conservation-station-ahead-of-tomorrow-s-official-launch.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-05-25",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://blogmickey.com/2026/05/new-animal-kingdom-map-debuts-as-bluey-joins-lineup-may-2026/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-05",
+        "tier": "C",
+        "supports": [
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Your hand-check confirmed the closure, and it's filed as user-confirmed. The Tier A evidence is only an absence: the old official URL falls back to the general attractions list, and the Parks Blog's June 2026 feature list for Conservation Station leaves it out. B-extract and BlogMickey (Tier C) say it was removed; Disney Food Blog's May 2026 guide still lists it."
+  },
+  {
+    "id": "antonios-fiesta-de-encanto",
+    "name": "Antonio's Fiesta de Encanto",
+    "kind": "attraction",
+    "area": "Tropical Americas",
+    "status": "announced",
+    "aliases": [
+      "Encanto ride"
+    ],
+    "species": [],
+    "description": "Upcoming family ride through the Madrigal family's magical house from Encanto, built around Antonio and his animal friends.",
+    "attributes": [
+      "ride"
+    ],
+    "hoursNote": "Not open yet; Disney says the land is expected in 2027, with no date for this ride.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/encanto-ride-updates-disney-world/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-15",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status",
+          "area",
+          "description",
+          "aliases"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/tropical-americas/news/15aug2026-antonio-s-fiesta-de-encanto-story-ride-vehicle-animals-and-cast-revealed-at-d23.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-15",
+        "tier": "B-extract",
+        "supports": [
+          "name",
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Named at D23 in August 2026. Species is empty because the animals are animated figures, not live animals. The animal-figure count appears only in Tier C and B-extract sources, so it's left out. The 'Encanto ride' alias comes from the Parks Blog post's headline. I removed the unsourced 'Casita ride' alias. 'Ride' is supported by the Parks Blog headline, which calls it the 'Encanto Ride'."
+  },
+  {
+    "id": "indiana-jones-myth-of-the-jade-serpent",
+    "name": "Indiana Jones and the Myth of the Jade Serpent",
+    "kind": "attraction",
+    "area": "Tropical Americas",
+    "status": "announced",
+    "aliases": [
+      "Indiana Jones ride",
+      "Jade Serpent"
+    ],
+    "species": [],
+    "description": "Upcoming Indiana Jones adventure ride planned for the new Tropical Americas land at Disney's Animal Kingdom.",
+    "attributes": [],
+    "hoursNote": "Not open yet; no opening date announced.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/encanto-ride-updates-disney-world/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-15",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status",
+          "area"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/indiana-jones-adventure/news/16aug2026-new-indiana-jones-ride-at-animal-kingdom-named-jade-serpent-maya-underworld-and-harrison-ford-animatronic.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-16",
+        "tier": "B-extract",
+        "supports": [
+          "name",
+          "status",
+          "aliases"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "I narrowed the description to what the Parks Blog page (read directly) states. Story details such as a temple and a serpent creature, and the reuse of DINOSAUR's building, appear only in B-extracts and Tier C sources. The 'Indiana Jones ride' alias comes from the wdwmagic headline. I removed the unsourced 'Indy ride' alias. I moved 'ride' to the decision table: the Parks Blog uses the word 'attraction', so 'ride' was an inference."
+  },
+  {
+    "id": "el-carrusel-de-los-animalitos",
+    "name": "El Carrusel de los Animalitos",
+    "kind": "attraction",
+    "area": "Tropical Americas",
+    "status": "announced",
+    "aliases": [
+      "carousel"
+    ],
+    "species": [],
+    "description": "Upcoming carousel whose ride figures are hand-carved Disney and Pixar animal characters, planned for the new Tropical Americas land.",
+    "attributes": [],
+    "hoursNote": "Not open yet; no opening date announced.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/encanto-ride-updates-disney-world/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-15",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status",
+          "area",
+          "description"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/dinoland-closing-animal-kingdom/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-03-06",
+        "tier": "A",
+        "supports": [
+          "description"
+        ]
+      },
+      {
+        "url": "https://www.wdwmagic.com/other/d23/news/16aug2026-every-walt-disney-world-announcement-from-d23-2026-full-recap.htm",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2026-08-16",
+        "tier": "B-extract",
+        "supports": [
+          "name",
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The Parks Blog page (read directly) says there will be 22 carved figures. One Tier C summary (Mickey Visit) said 21; I've trusted the Parks Blog, and the count isn't used in the description. I removed the unsourced aliases; 'carousel' is a plain generic term. I moved 'ride' to the decision table: the Parks Blog uses the word 'attraction', so 'ride' was an inference."
+  },
+  {
+    "id": "merry-menagerie",
+    "name": "Merry Menagerie",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Not researched, per your instructions. TouringPlans lists it as closed and reopening in November 2026; that's Tier C only. Excluded from the pack."
+  },
+  {
+    "id": "tam-tam-drummers-of-harambe",
+    "name": "Tam Tam Drummers of Harambe",
+    "kind": "show",
+    "area": "Africa",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Roaming or atmosphere performer; not researched, per your instructions. Excluded from the pack."
+  },
+  {
+    "id": "burudika",
+    "name": "Harambe Village Street Band – Burudika",
+    "kind": "show",
+    "area": "Africa",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Roaming or atmosphere performer; not researched, per your instructions. Excluded from the pack."
+  },
+  {
+    "id": "kora-tinga-tinga",
+    "name": "Kora Tinga Tinga",
+    "kind": "show",
+    "area": "Africa",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Roaming or atmosphere performer; not researched, per your instructions. Excluded from the pack."
+  },
+  {
+    "id": "beats-and-strings",
+    "name": "Beats and Strings",
+    "kind": "show",
+    "area": "Asia",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Roaming or atmosphere performer; not researched, per your instructions. Excluded from the pack."
+  },
+  {
+    "id": "divine",
+    "name": "DiVine",
+    "kind": "show",
+    "area": "Oasis",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Roaming or atmosphere performer; not researched, per your instructions. Excluded from the pack."
+  },
+  {
+    "id": "festival-of-the-lion-king",
+    "name": "Festival of the Lion King",
+    "kind": "show",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Lion King show",
+      "Festival"
+    ],
+    "species": [],
+    "description": "Big Lion King stage celebration with songs, pageantry, and puppetry, performed in Harambe Theatre.",
+    "attributes": [
+      "live show",
+      "puppetry",
+      "seating limited",
+      "indoor"
+    ],
+    "hoursNote": "Runs on a daily show schedule; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/festival-of-the-lion-king/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "area",
+          "attributes",
+          "name",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-13",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "user approved 'indoor' on 2026-10-13, based on the guidemap's 'Come inside and experience...' wording (guidemap retrieved 2026-10-12)"
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The venue is Harambe Theatre, per the official page; Wikipedia calls it the Harambe Theater. The official page says seating is limited and not guaranteed. The page mentions no live animals. 'Indoor' added 2026-10-13: the guidemap (retrieved 2026-10-12) says 'Come inside', and you confirmed it."
+  },
+  {
+    "id": "feathered-friends-in-flight",
+    "name": "Feathered Friends in Flight!",
+    "kind": "show",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "bird show",
+      "Feathered Friends"
+    ],
+    "species": [],
+    "description": "Outdoor bird show where trained birds fly low over the audience while bird experts lead short interactive moments.",
+    "attributes": [
+      "live show",
+      "outdoor",
+      "live birds",
+      "weather-dependent",
+      "audience participation"
+    ],
+    "hoursNote": "Runs on a show schedule and may be canceled in bad weather; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/feathered-friends/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Venue: the official page spells it 'Anadapur Theatre', while Wikipedia has 'Anandapur Theatre'. Species is left empty because only the official page names the birds (trumpeter hornbill, great horned owl, raven, African crowned crane, parrots, bald eagle); your rule needs two sources for species. The official page says the show may not run every day."
+  },
+  {
+    "id": "finding-nemo-big-blue",
+    "name": "Finding Nemo: The Big Blue... and Beyond!",
+    "kind": "show",
+    "area": "Theater in the Wild",
+    "status": "open",
+    "aliases": [
+      "Finding Nemo show",
+      "Nemo musical"
+    ],
+    "species": [],
+    "description": "Musical stage show retelling Finding Nemo with large puppets and digital scenery, held inside Theater in the Wild.",
+    "attributes": [
+      "live show",
+      "indoor",
+      "puppetry"
+    ],
+    "hoursNote": "Runs on a daily show schedule; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/finding-nemo-big-blue-and-beyond/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Finding_Nemo:_The_Big_Blue..._and_Beyond!",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Area corrected to 'Theater in the Wild', the guidemap's own section heading, as you decided (2026-10-12). The guidemap lists it separately from Asia, and Asia isn't kept as an alias. Earlier sources disagreed: the official page's image caption said DinoLand USA, while Wikipedia and TouringPlans said Asia. 'Indoor' comes from the official wording 'inside the cool confines of the Theater in the Wild'."
+  },
+  {
+    "id": "zootopia-better-zoogether",
+    "name": "Zootopia: Better Zoogether!",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Zootopia show",
+      "Zootopia 4D"
+    ],
+    "species": [],
+    "description": "4D Zootopia film in the Tree of Life Theater, where Judy Hopps and Nick Wilde celebrate the city's Zoogether Day.",
+    "attributes": [
+      "4D",
+      "show",
+      "height: any"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/zootopia-better-zoogether/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/zootopia-better-zoogether-opening-date-announced-at-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2025-10-20",
+        "tier": "A",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://thewaltdisneycompany.com/zootopia-better-zoogether/",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "2025-11-07",
+        "tier": "A",
+        "supports": [
+          "area",
+          "description"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Opened 2025-11-07: the Parks Blog, the TWDC article and Wikipedia, all read directly, agree. Following your rule, the TWDC article supports only location and description, not open status. It replaced It's Tough to be a Bug! in the same theater."
+  },
+  {
+    "id": "tree-of-life-awakenings",
+    "name": "Tree of Life Awakenings",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Tree of Life projections",
+      "Tree of Life Nighttime Awakenings"
+    ],
+    "species": [],
+    "description": "After-dark projection show that makes animal spirits seem to come alive across the Tree of Life's trunk, repeating in short cycles.",
+    "attributes": [
+      "nighttime",
+      "projection show",
+      "height: any"
+    ],
+    "hoursNote": "Only after dark, and only on nights when the park stays open late enough; some days have no performances.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/tree-of-life-nighttime-awakenings/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes",
+          "hoursNote"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "name",
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "When I checked the official page on 2026-10-12, it said 'No performance today'. Whether a night has shows depends on how late the park is open. That makes this a good time-sensitive trap: I don't recommend claiming it runs on any specific night. The official URL uses 'nighttime-awakenings', but the page heading is 'Tree of Life Awakenings'. You chose to keep it in the pack."
+  },
+  {
+    "id": "winged-encounters",
+    "name": "Winged Encounters – The Kingdom Takes Flight",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Winged Encounters",
+      "macaw show"
+    ],
+    "species": [
+      "macaw"
+    ],
+    "description": "Free-flying flock of macaws soaring over Discovery Island near the Tree of Life, with bird experts answering questions.",
+    "attributes": [
+      "animal encounter",
+      "live birds"
+    ],
+    "hoursNote": "Runs at set times during the day; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/winged-encounters/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "species",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/spot-your-favorite-animals-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-06-23",
+        "tier": "A",
+        "supports": [
+          "species",
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Species is the general 'macaw', which both Tier A sources name. The official page also lists six macaw species (hyacinth, green-winged, blue-and-gold, scarlet, blue-throated, military); those are single-source."
+  },
+  {
+    "id": "viva-gaia-street-band",
+    "name": "Viva Gaia Street Band",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Viva Gaia"
+    ],
+    "species": [],
+    "description": "Caribbean-style street party band in bright masquerade costumes that gets the crowd dancing along.",
+    "attributes": [
+      "live music",
+      "audience participation"
+    ],
+    "hoursNote": "Performs at set times; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/viva-gaia-street-band/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "name",
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "adventurers-outpost",
+    "name": "Meet Favorite Disney Pals at Adventurers Outpost",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Adventurers Outpost",
+      "Mickey and Minnie meet"
+    ],
+    "species": [],
+    "description": "Character meet-and-greet with Mickey and Minnie Mouse dressed as globe-trotting explorers at their expedition headquarters.",
+    "attributes": [
+      "character experience",
+      "photo opportunity"
+    ],
+    "hoursNote": "Runs during the day; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/character-meet-disney-pals-adventurers-outpost/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/guide-to-character-experiences-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-07-24",
+        "tier": "A",
+        "supports": [
+          "status",
+          "description"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/attractions",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The Parks Blog places it near the bridge to Asia. Which characters appear can change; the two directly read Tier A sources (both 2026) agree on Mickey and Minnie."
+  },
+  {
+    "id": "adventures-with-kevin",
+    "name": "Adventures with Kevin on Discovery Island",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Kevin",
+      "Kevin from Up"
+    ],
+    "species": [],
+    "description": "Roaming encounter with Kevin, the very tall bird from Up, who wanders with a Wilderness Explorer companion and greets guests.",
+    "attributes": [
+      "character experience",
+      "roaming"
+    ],
+    "hoursNote": "Appears at set times; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/character-meet-kevin/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/guide-to-character-experiences-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-07-24",
+        "tier": "A",
+        "supports": [
+          "area",
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Area conflict. The official page's area label says Oasis, but its title says 'on Discovery Island', and the Parks Blog (2026-07-24) places Up character sightings on Discovery Island. I've used Discovery Island. Earlier, a search summary said some regional versions of the page showed 'Temporarily Unavailable'; the US page I read didn't. You chose to keep Discovery Island."
+  },
+  {
+    "id": "zoogether-day-gathering-spot",
+    "name": "Zoogether Day Gathering Spot",
+    "kind": "show",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Judy and Nick meet",
+      "Zootopia character meet"
+    ],
+    "species": [],
+    "description": "Character meet-and-greet with Judy Hopps and Nick Wilde from Zootopia near the Tree of Life.",
+    "attributes": [
+      "character experience"
+    ],
+    "hoursNote": "Runs during the day; check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/entertainment/animal-kingdom/character-meet-zoogether-day-gathering-spot/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/guide-to-character-experiences-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-07-24",
+        "tier": "A",
+        "supports": [
+          "status",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "New since Stage 1. The Parks Blog (2026-07-24) places the Zootopia greetings at 'The Gathering Spot near the Tree of Life'. The official page's text was cut off partway, so a status notice may exist lower on the page."
+  },
+  {
+    "id": "tiffins",
+    "name": "Tiffins Restaurant",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Tiffins"
+    ],
+    "species": [],
+    "description": "Table-service restaurant with travel-inspired dishes, near the Tree of Life by the bridge to Pandora.",
+    "attributes": [
+      "table service",
+      "reservations recommended"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/new-flavors-debut-as-tiffins-restaurant-marks-10-years-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-18",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes",
+          "description"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "attributes"
+        ],
+        "note": "'reservations recommended' approved by user, decision table 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The official dining page returned only its title, so it isn't cited. I removed 'upscale' and 'reservations recommended' because no page I read directly supports them."
+  },
+  {
+    "id": "nomad-lounge",
+    "name": "Nomad Lounge",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Nomad Lounge & Cocktail Bar"
+    ],
+    "species": [],
+    "description": "Lounge and cocktail bar next to Tiffins for drinks and small plates.",
+    "attributes": [
+      "lounge",
+      "bar"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/nomad-lounge/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Name: the official page heading reads 'Nomad Lounge & Cocktail Bar', while the Parks Blog, Wikipedia and TouringPlans all say 'Nomad Lounge'. I used the shorter form and kept the long one as an alias. The 'small plates' wording comes from the Parks Blog's 'light bite' phrasing."
+  },
+  {
+    "id": "flame-tree-barbecue",
+    "name": "Flame Tree Barbecue",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Flame Tree"
+    ],
+    "species": [],
+    "description": "Quick-service barbecue spot on Discovery Island.",
+    "attributes": [
+      "quick service",
+      "mobile order"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/flame-tree-barbecue/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "pizzafari",
+    "name": "Pizzafari",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Pizzafari Hosted by Coca-Cola"
+    ],
+    "species": [],
+    "description": "Quick-service pizza restaurant on Discovery Island.",
+    "attributes": [
+      "quick service",
+      "mobile order"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/pizzafari/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "aliases"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The guidemap lists it as 'Pizzafari Hosted by Coca-Cola'; you decided to keep 'Pizzafari' as the name and the longer form as an alias."
+  },
+  {
+    "id": "creature-comforts",
+    "name": "Creature Comforts",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Creature Comforts Coffee Shop",
+      "Starbucks"
+    ],
+    "species": [],
+    "description": "Quick-service coffee shop and bakery on Discovery Island.",
+    "attributes": [
+      "quick service",
+      "coffee"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/creature-comforts/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "status",
+          "aliases"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Name set to 'Creature Comforts' to match the guidemap, as you decided; 'Creature Comforts Coffee Shop' (the official dining page heading) is kept as an alias. The 'Starbucks' alias comes from DFB and Magic Tips (both Tier C); neither the official page nor the guidemap mentions the brand."
+  },
+  {
+    "id": "eight-spoon-cafe",
+    "name": "Eight Spoon Café",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Eight Spoons Café"
+    ],
+    "species": [],
+    "description": "Snack spot on Discovery Island for quick bites.",
+    "attributes": [
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/eight-spoon-cafe/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "aliases"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger. The Parks Blog spells it 'Eight Spoons Café'; the official page has 'Eight Spoon Café'."
+  },
+  {
+    "id": "isle-of-java",
+    "name": "Isle of Java",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Isle of Java Food Cart"
+    ],
+    "species": [],
+    "description": "Food cart on Discovery Island.",
+    "attributes": [
+      "snack",
+      "cart"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/isle-of-java/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger. The official page lists it as 'Isle of Java Food Cart'."
+  },
+  {
+    "id": "terra-treats",
+    "name": "Terra Treats",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Snack stand on Discovery Island.",
+    "attributes": [
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/terra-treats/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger."
+  },
+  {
+    "id": "smiling-crocodile",
+    "name": "The Smiling Crocodile",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Smiling Crocodile"
+    ],
+    "species": [],
+    "description": "Quick-service kiosk on Discovery Island.",
+    "attributes": [
+      "quick service",
+      "kiosk"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/smiling-crocodile/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "tusker-house",
+    "name": "Tusker House Restaurant",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Tusker House",
+      "Donald's Safari Breakfast",
+      "Donald's Dining Safari"
+    ],
+    "species": [],
+    "description": "Buffet restaurant in Harambe with character dining hosted by Donald Duck and friends in safari attire.",
+    "attributes": [
+      "buffet",
+      "character dining",
+      "reservations"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/disney-eats-guide-to-walt-disney-world-buffets-and-family-style-restaurants/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2025-04-03",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "attributes",
+          "aliases",
+          "description"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The official dining page returned only its title. The character line-up comes from a 2025 Parks Blog post; characters can change. 'Reservations' rests on the May 2026 Parks Blog's mention of a 'dining reservation'."
+  },
+  {
+    "id": "harambe-market",
+    "name": "Harambe Market",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Quick-service market in an open-air African plaza in Harambe.",
+    "attributes": [
+      "quick service",
+      "open-air",
+      "mobile order"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/harambe-market/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Its menu was revamped in 2025–26; menu details are deliberately left out."
+  },
+  {
+    "id": "dawa-bar",
+    "name": "Dawa Bar",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Bamboo bar in the heart of Harambe village.",
+    "attributes": [
+      "bar"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/dawa-bar/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "tamu-tamu-refreshments",
+    "name": "Tamu Tamu Refreshments",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Tamu Tamu"
+    ],
+    "species": [],
+    "description": "Walk-up dessert window in Harambe Village.",
+    "attributes": [
+      "walk-up window",
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/tamu-tamu-refreshments/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "kusafiri-coffee-shop",
+    "name": "Kusafiri Coffee Shop & Bakery",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Kusafiri"
+    ],
+    "species": [],
+    "description": "Walk-up coffee shop and bakery window in Africa.",
+    "attributes": [
+      "coffee",
+      "bakery",
+      "walk-up window"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/kusafiri-coffee-shop-and-bakery/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "harambe-fruit-market",
+    "name": "Harambe Fruit Market",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Snack stand in Africa.",
+    "attributes": [
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/harambe-fruit-market/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger."
+  },
+  {
+    "id": "mahindi",
+    "name": "Mahindi Popcorn and Snack Stand",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Mahindi"
+    ],
+    "species": [],
+    "description": "Roadside-hut style snack stand in Africa.",
+    "attributes": [
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/mahindi/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "status",
+          "aliases"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger. The full name comes from the official page; other sources say 'Mahindi'."
+  },
+  {
+    "id": "zuris-sweets-shop",
+    "name": "Zuri's Sweets Shop",
+    "kind": "dining",
+    "area": "Africa",
+    "status": "open",
+    "aliases": [
+      "Zuri's Sweet Shop",
+      "Zuri's"
+    ],
+    "species": [],
+    "description": "Sweets and treats shop in Africa.",
+    "attributes": [
+      "snack",
+      "sweets"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/zuris-sweet-shop/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger. The official page says 'Zuri's Sweets Shop'; TouringPlans and Magic Tips say 'Zuri's Sweet Shop'. It may count as a shop more than a dining spot."
+  },
+  {
+    "id": "caravan-road",
+    "name": "Caravan Road",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Snack kiosk in Asia, across Discovery River from the Tree of Life.",
+    "attributes": [
+      "snack",
+      "kiosk"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/caravan-road/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger."
+  },
+  {
+    "id": "drinkwallah",
+    "name": "Drinkwallah",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Drinkwallah Snacks & Frozen Beverages"
+    ],
+    "species": [],
+    "description": "Snack and frozen-drink stand in Asia.",
+    "attributes": [
+      "snack",
+      "drinks"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/drinkwallah/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger."
+  },
+  {
+    "id": "anandapur-ice-cream-truck",
+    "name": "Anandapur Ice Cream Truck",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "ice cream truck"
+    ],
+    "species": [],
+    "description": "Walk-up ice cream truck parked along the path in Asia.",
+    "attributes": [
+      "snack",
+      "walk-up"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/anandapur-ice-cream-truck/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger."
+  },
+  {
+    "id": "thirsty-river-bar",
+    "name": "Thirsty River Bar",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Thirsty River Bar & Trek Snacks"
+    ],
+    "species": [],
+    "description": "Open-air bar in Asia serving cocktails, beer, and frozen drinks.",
+    "attributes": [
+      "bar",
+      "open-air"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/thirsty-river-bar/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Disney Food Blog calls it 'Thirsty River Bar & Trek Snacks' (kept as an alias). Trek Snacks is a separate location on the guidemap and has its own entry (trek-snacks). 'Cocktails, beer, and frozen drinks' are drink categories from the official page, not menu items."
+  },
+  {
+    "id": "warung-outpost",
+    "name": "Warung Outpost",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Drink and snack outpost in Asia.",
+    "attributes": [
+      "snack",
+      "drinks"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/warung-outpost/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger."
+  },
+  {
+    "id": "mr-kamals",
+    "name": "Mr. Kamal's",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Snack stand in Asia.",
+    "attributes": [
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Dropped from the pack by your decision (2026-10-12); kept in the ledger. I couldn't find an official dining page (the guessed URLs returned 404), so the directly read Parks Blog article (2026-05-06) anchors its status."
+  },
+  {
+    "id": "satuli-canteen",
+    "name": "Satu'li Canteen",
+    "kind": "dining",
+    "area": "Pandora – The World of Avatar",
+    "status": "open",
+    "aliases": [
+      "Satuli Canteen"
+    ],
+    "species": [],
+    "description": "Quick-service restaurant set in a converted former mess hall in Pandora.",
+    "attributes": [
+      "quick service",
+      "mobile order"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/satuli-canteen/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": ""
+  },
+  {
+    "id": "pongu-pongu",
+    "name": "Pongu Pongu",
+    "kind": "dining",
+    "area": "Pandora – The World of Avatar",
+    "status": "open",
+    "aliases": [
+      "Pongu Pongu Lounge"
+    ],
+    "species": [],
+    "description": "Drink stand in Pandora serving Na'vi-themed beverages and a sweet snack.",
+    "attributes": [
+      "drinks",
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/pongu-pongu/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://disneyparksblog.com/wdw/plan-your-food-expedition-at-disneys-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-05-06",
+        "tier": "A",
+        "supports": [
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "The official page lists it as 'Pongu Pongu Lounge at Pandora'. 'Sweet snack' is a category, not a menu item."
+  },
+  {
+    "id": "yak-and-yeti-restaurant",
+    "name": "Yak & Yeti Restaurant",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Yak & Yeti",
+      "Yak and Yeti"
+    ],
+    "species": [],
+    "description": "Restaurant in Asia, separate from the quick-service Yak & Yeti Local Food Cafes counter.",
+    "attributes": [],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user confirmed it's open via a browser check of the wdwmagic dining list"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area",
+          "status"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Status rests on your hand-check (user-confirmed) plus Wikipedia and TouringPlans. The official page returned only its title. I've recorded no service-style attribute: only Wikipedia (Tier C) says table service."
+  },
+  {
+    "id": "yak-and-yeti-local-food-cafes",
+    "name": "Yak & Yeti Local Food Cafes",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Yak and Yeti Local Food Cafes"
+    ],
+    "species": [],
+    "description": "Quick-service restaurant in Asia, part of the Yak & Yeti family of locations.",
+    "attributes": [
+      "quick service"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/yak-and-yeti-local-foods-cafe/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Disney%27s_Animal_Kingdom",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You found the official URL; I fetched and read it on 2026-10-12. It lists Asia with no closure notice. The page shows the name with a trademark symbol: 'Yak & Yeti™ ocal Food Cafes'."
+  },
+  {
+    "id": "yak-and-yeti-quality-beverages",
+    "name": "Yak & Yeti Quality Beverages",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [
+      "Yak and Yeti Quality Beverages"
+    ],
+    "species": [],
+    "description": "Bar and drink stand in Asia, part of the Yak & Yeti family of locations.",
+    "attributes": [
+      "bar"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/quality-beverages/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You found the official URL; I fetched and read it on 2026-10-12. It lists Asia with no closure notice. The page shows the name with a trademark symbol: 'Yak & Yeti™ uality Beverages'."
+  },
+  {
+    "id": "royal-anandapur-tea",
+    "name": "Royal Anandapur Tea Company",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "unverified",
+    "aliases": [],
+    "species": [],
+    "description": "",
+    "attributes": [],
+    "hoursNote": "",
+    "sources": [
+      {
+        "url": "https://www.disneyfoodblog.com/disneys-animal-kingdom-walt-disney-world/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-09-14",
+        "tier": "C",
+        "supports": [
+          "name"
+        ]
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/royal-anandapur-tea-company/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-08-13",
+        "tier": "C",
+        "supports": [
+          "status",
+          "area"
+        ]
+      }
+    ],
+    "confidence": "unverified",
+    "notes": "Out of the pack per your decision. Disney Food Blog (Tier C, updated 2026-08-13) describes it as an open Joffrey's kiosk in Asia, but no Tier A source or user confirmation backs that, and the official URL returns 404. Guidemap check (2026-10-12): the map doesn't list it. Asia #50 is 'Joffrey's Coffee & Tea Company', but you decided not to treat that as a rename. The second sources I found (Disney Food Blog and a disneyblog search summary) describe Royal Anandapur as a Joffrey's-run kiosk rather than a separate Joffrey's stand, so I haven't added Joffrey's."
+  },
+  {
+    "id": "rainforest-cafe",
+    "name": "Rainforest Cafe at Disney's Animal Kingdom",
+    "kind": "dining",
+    "area": "Oasis",
+    "status": "open",
+    "aliases": [
+      "Rainforest Cafe"
+    ],
+    "species": [],
+    "description": "Themed restaurant at the park entrance, outside the gate but also reachable from inside the park.",
+    "attributes": [],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status",
+          "area",
+          "description"
+        ],
+        "note": "user confirmed it's open, outside the gate but reachable from inside; area set to Oasis by user"
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining",
+        "retrievedOn": "2026-10-09",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "https://magic-tips.app/en/walt-disney-world/disneys-animal-kingdom/mataem",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You confirmed it's open, outside the gate but reachable from inside, and chose 'Oasis' as its area. The official page returned only its title."
+  },
+  {
+    "id": "guest-relations",
+    "name": "Guest Relations",
+    "kind": "service",
+    "area": "Oasis",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Guest Relations lobby and walk-up window for guest questions and assistance.",
+    "attributes": [],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/guest-services/guest-relations/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user approved including services, with areas as decided 2026-10-12"
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "area"
+        ],
+        "note": "user confirmed area 'The Oasis' on 2026-10-12, citing the official park guidemap (DAK_0526_ENG_DIGITAL.pdf)"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You asked to include it in the pack. Status rests on the official page plus your confirmation. The area 'Park entrance' comes from your note that these services sit at the very entrance; it isn't an official land name. You wrote 'The Oasis'; I recorded it as 'Oasis' to match the guidemap's land heading and the other Oasis entries."
+  },
+  {
+    "id": "first-aid",
+    "name": "First Aid",
+    "kind": "service",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "First aid location for guests who need basic medical help during their visit.",
+    "attributes": [],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/guest-services/first-aid/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status",
+          "area"
+        ],
+        "note": "user approved including services, with areas as decided 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You asked to include it in the pack. Status rests on the official page plus your confirmation. You approved Discovery Island; third-party guides place it near Creature Comforts."
+  },
+  {
+    "id": "baby-care-center",
+    "name": "Baby Care Center",
+    "kind": "service",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Free baby care facility with nursing, changing, and feeding areas plus a small kitchenette.",
+    "attributes": [
+      "free"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/guest-services/baby-care-centers/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user approved including services, with areas as decided 2026-10-12"
+      },
+      {
+        "url": "https://disneyblog.com/guide/baby-care-centers/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-06",
+        "tier": "C",
+        "supports": [
+          "area"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "area"
+        ],
+        "note": "user confirmed area 'Discovery Island' on 2026-10-12, citing the official park guidemap (DAK_0526_ENG_DIGITAL.pdf)"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You asked to include it in the pack. Status rests on the official page plus your confirmation. disneyblog.com (Tier C, June 2026, read directly) and your approval put it on Discovery Island, behind Creature Comforts. The facilities listed come from the official page."
+  },
+  {
+    "id": "stroller-rental",
+    "name": "Stroller Rentals at Garden Gate Gifts",
+    "kind": "service",
+    "area": "Oasis",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Stroller rentals offered at Garden Gate Gifts.",
+    "attributes": [],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/guest-services/stroller-rentals/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user approved including services, with areas as decided 2026-10-12"
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "area"
+        ],
+        "note": "user confirmed area 'The Oasis' on 2026-10-12, citing the official park guidemap (DAK_0526_ENG_DIGITAL.pdf)"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "You asked to include it in the pack. Status rests on the official page plus your confirmation. Area 'Park entrance' follows your note; the Parks Blog places Garden Gate Gifts toward the Oasis. If you'd rather use 'Oasis', tell me. You wrote 'The Oasis'; I recorded it as 'Oasis' to match the guidemap's land heading and the other Oasis entries."
+  },
+  {
+    "id": "lockers",
+    "name": "Lockers",
+    "kind": "service",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Lockers for storing dry items near the entrance to Kali River Rapids.",
+    "attributes": [],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/attractions/animal-kingdom/kali-river-rapids/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "status"
+        ]
+      },
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status",
+          "area"
+        ],
+        "note": "user approved including services, with areas as decided 2026-10-12"
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Removed from the pack by your decision (2026-10-12); kept in the ledger. You asked to include it in the pack. Status rests on the official page plus your confirmation. The only directly read source is the Kali River Rapids official page. Area 'Asia' follows from that ride's location. It may not describe every locker location in the park."
+  },
+  {
+    "id": "the-feeding-ground",
+    "name": "The Feeding Ground",
+    "kind": "dining",
+    "area": "Discovery Island",
+    "status": "open",
+    "aliases": [
+      "Feeding Ground"
+    ],
+    "species": [],
+    "description": "Snack stand on Discovery Island near the entrance to the Tree of Life Theater.",
+    "attributes": [
+      "snack"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      },
+      {
+        "url": "https://www.disneyfoodblog.com/discovery-island-in-walt-disney-worlds-animal-kingdom/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-08-21",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "description",
+          "attributes"
+        ]
+      },
+      {
+        "url": "https://touringplans.com/animal-kingdom/dining/the-feeding-ground",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "2026-10-06",
+        "tier": "C",
+        "supports": [
+          "name",
+          "area",
+          "description"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Added 2026-10-12 from the guidemap (Discovery Island dining #10), plus Disney Food Blog (updated 2026-08-21), which lists it as a current snack stop near the Zootopia: Better Zoogether entrance. TouringPlans still places it 'near the entrance of It's Tough to be a Bug', which is the same theater under its old show name. I found no official dining page (the guessed URL returned 404). Menu details are deliberately left out."
+  },
+  {
+    "id": "trek-snacks",
+    "name": "Trek Snacks",
+    "kind": "dining",
+    "area": "Asia",
+    "status": "open",
+    "aliases": [],
+    "species": [],
+    "description": "Grab-and-go snack counter in Asia.",
+    "attributes": [
+      "snack",
+      "grab-and-go"
+    ],
+    "hoursNote": "Check the official app for the day's operating hours.",
+    "sources": [
+      {
+        "url": "https://disneyworld.disney.go.com/dining/animal-kingdom/trek-snacks/",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status",
+          "attributes"
+        ]
+      },
+      {
+        "url": "DAK_0526_ENG_DIGITAL.pdf (official Disney's Animal Kingdom guidemap, provided by user)",
+        "retrievedOn": "2026-10-12",
+        "articleDate": "",
+        "tier": "A",
+        "supports": [
+          "name",
+          "area",
+          "status"
+        ],
+        "note": "No edition date is printed on the map; the file name code '0526' and the print code '052626' suggest a May 2026 edition, which is inferred, not stated."
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Added 2026-10-12. It's listed separately from Thirsty River Bar on both the guidemap (Asia #52) and its own official dining page, which I read directly. Its descriptive alias on Thirsty River Bar has been removed."
+  },
+  {
+    "id": "rivers-of-light",
+    "name": "Rivers of Light",
+    "kind": "show",
+    "area": "",
+    "status": "closed",
+    "aliases": [],
+    "species": [],
+    "description": "Former nighttime show at Disney's Animal Kingdom that has been discontinued.",
+    "attributes": [],
+    "hoursNote": "Discontinued; not performing.",
+    "sources": [
+      {
+        "url": "user-confirmed",
+        "retrievedOn": "2026-10-13",
+        "articleDate": "",
+        "tier": "user-confirmed",
+        "supports": [
+          "status"
+        ],
+        "note": "user confirmed on 2026-10-13 that the show was discontinued"
+      },
+      {
+        "url": "https://www.wdwmagic.com/attractions/primeval-whirl/news/16jul2020-primeval-whirl-stitchs-great-escape-and-rivers-of-light-permanently-closed.htm",
+        "retrievedOn": "2026-10-13",
+        "articleDate": "2020-07-16",
+        "tier": "B-extract",
+        "supports": [
+          "status"
+        ]
+      }
+    ],
+    "confidence": "two-sources",
+    "notes": "Added 2026-10-13 as ground truth for false-premise query u13; not a pack item. Area is left blank because no source I read directly gives one. The closure date appears only in a B-extract, so it isn't recorded. Disney's old official URL now falls back to the general entertainment list."
+  }
+]
