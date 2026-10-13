@@ -139,5 +139,25 @@
     ],
     "shouldDecline": false,
     "note": "'Flight of Passage' maps to avatar-flight-of-passage (one match, also an alias). The pack has no live status, so the answer should point to the official app."
+  },
+  {
+    "id": "u15",
+    "text": "What attraction is inside of the Tree of Life?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "zootopia-better-zoogether"
+    ],
+    "shouldDecline": false,
+    "note": "Added at your request (2026-10-13). 'Zootopia: Better Zoogether!' maps to zootopia-better-zoogether (one match). Its description places it in the Tree of Life Theater, backed by the official page and the TWDC article. Tests that the question isn't answered with tree-of-life itself or with the closed It's Tough to be a Bug!."
+  },
+  {
+    "id": "u16",
+    "text": "What show is inside of the Tree of Life?",
+    "category": "descriptive",
+    "expectedItemIds": [
+      "zootopia-better-zoogether"
+    ],
+    "shouldDecline": false,
+    "note": "Added at your request (2026-10-13). 'Zootopia: Better Zoogether!' maps to zootopia-better-zoogether (one match). Its description places it in the Tree of Life Theater, backed by the official page and the TWDC article. Tests that the question isn't answered with tree-of-life itself or with the closed It's Tough to be a Bug!."
   }
 ]
