@@ -26,12 +26,13 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 | Session key persistence | `src/lib/ldSessionKey.ts` | `sessionStorage`; rotate on logout / new session |
 | Flag key registry | `src/lib/ldFlagKeys.ts` | all flag keys, one typed object |
 | Conversion routing (GTM either/or) | `src/hooks/useTrackConversion.ts` | `track-conversions-via-gtm`; single path, value forwarded |
+| Deferred exposure | `src/context/ExposureLog.tsx:139` | `useFlagExposure` (`:139`) / `useExposureRecorder` (`:129`) → `variationDetail` at the decision point; `useFeatureFlag` reads are non-eventing, so every experiment flag needs one |
 
 ---
 
 ## 1. AI Configs — server routes
 
-**`server/app.ts:20`** — app factory; inits LD SDK (`:30`) + AI SDK (`:40`), mounts the card-creator AI route (`:42`).
+**`server/app.ts:21`** — `createApp()`; `trust proxy` on Vercel only (`:28`); mounts card-creator, simulate, search, and search-lab routes (`:52`–`:56`).
 
 - **Card creator — `server/routes/card-creator.ts:204`**
   - **Moderation gate:** `isDescriptionToxic()` (`:173`) → `openai.moderations.create('omni-moderation-latest')`; trips at `TOXICITY_THRESHOLD = 0.7` (`:136`) or sexual/minors → returns `NONOMON_CARD` (`:142`)
@@ -84,11 +85,12 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 
 ## 5. Observability & Session Replay
 
-- **`src/context/LDContext.tsx:92`** — `new Observability({ tracingOrigins: true, networkRecording: { enabled: true } })`
-- **`:93`** — `new SessionReplay({ privacySetting: 'strict' })`
-- **`:18`** — `gtmDataLayerInspector` mirrors every flag evaluation to the GTM dataLayer
+- **`src/context/LDContext.tsx:114`** — `new Observability({ tracingOrigins: true, networkRecording: { enabled: true } })`
+- **`:115`** — `new SessionReplay({ privacySetting: 'strict' })`
+- **`:19`** — `gtmDataLayerInspector` mirrors every flag evaluation to the GTM dataLayer; `datadogFlagInspector` (`:39`) tags each evaluation into Datadog RUM (inspectors registered at `:112`)
+- **`src/lib/datadogRum.ts`** — `initDatadogRum()` (`:38`, called from `main.tsx`) and `tagFeatureFlag()` (`:73`); a complete no-op unless both `VITE_DATADOG_*` keys are set
 
-> **Concept:** plugins on the same LD client → Web Vitals, session replay (strict privacy), and flag-eval telemetry with zero per-component wiring.
+> **Concept:** plugins and inspectors on the same LD client → Web Vitals, session replay (strict privacy), and flag-eval telemetry in LD, GTM, and Datadog with zero per-component wiring.
 
 ---
 
@@ -131,6 +133,48 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 
 ---
 
+## 10. AI search lab
+
+- **`server/routes/search-lab.ts:47`** — `POST /api/search-lab`; per-IP then per-session rate limit; `variationDetail('ai-search-lab')` on a **session-only** context; AI budget check → `aiSearch()` or keyword fallback; fires `ai_search_performed`; flushes both LD clients
+- **`server/routes/search-lab-click.ts:21`** — `POST /api/search-lab/click` → `lab_result_clicked`
+- **`server/lab/aiSearch.ts:79`** — one call to the `ai-search-lab-model` AI Config via `@launchdarkly/ai-node`; `classifyFailure()` (`:68`) maps to `config-missing` / `config-disabled`; `ensureSdkKeyEnv()` (`:56`) maps `LAUNCHDARKLY_SDK_KEY` → `LD_SDK_KEY`
+- **`server/lab/validateAiResult.ts:61`** — shape check + id filtering of model output (rejects text around the JSON)
+- **`server/lab/keywordSearch.ts:104`** — field-weighted keyword fallback; `normalize()` (`:41`) folds accents, dashes, curly quotes
+- **`server/lab/guard.ts`** — sliding-window `createRateLimiter()` (`:45`), `createAiBudget()` (`:102`), env-driven `readGuardConfig()` (`:135`); in-memory, per instance
+- **`server/lab/packRegistry.ts`** — pack key → pack (`ak-park`)
+- **`src/packs/`** — `types.ts` (Pack / PackItem / labeled queries), `validate.ts`, `ak-park.ts` (**generated** — edit `data/ak-pack/` and run `scripts/build-ak-pack.ts`)
+- **`src/pages/SearchLab.tsx:104`** — bare page (rendered before the storefront layout in `App.tsx:82`); `components/SearchLab/` holds `SearchBar`, `ResultCard`, `DeclineCard`, `DebugStrip`
+- **`src/lib/labSession.ts:42`** — `getLabSessionKey()`: `?sk=` → stored `dt-lab-session-key` → new UUID
+- **`scripts/`** — `build-ak-pack.ts`, `validate-pack.ts`, `test-pack.ts`, `test-keyword-search.ts`, `test-ai-validate.ts`, `test-guard.ts` (all `npx tsx`, no LD/network)
+
+> **Concept:** an AI Config behind a server-side flag, with a deterministic fallback, output validation, and cost/abuse guardrails — the "ship AI safely" story.
+
+---
+
+## 11. Hero content experiment (LaunchDarkly × Contentful)
+
+- **`src/components/Hero/HeroSection.tsx:145`** — reads `hero-content-experiment` (`:151`), records exposure on mount via `useFlagExposure` (`:159`), fires `hero_cta_click` with the variation (`:164`), resolves content (`:181`)
+- **`src/lib/heroContent.ts:132`** — `resolveHeroContent()`: flag entry `meta` map (`getVariationMeta`, `:81`) → `heroBanner` entry (`fetchHeroBanner`, `:112`) via the Contentful CDA; any failure → `null` → static fallback
+
+> **Concept:** LD owns targeting and experimentation; the CMS owns content.
+
+---
+
+## 12. About page experiment
+
+- **`src/pages/About.tsx`** — `about-layout-default` seeds the initial layout (`:297`) with exposure (`:300`); the toggle (`:418`) fires `about_layout_toggled`; `about_layout_time_ms` (`:341`) and `about_layout_final` (`:357`) on leave; `about-seasonal-images` (`:308`) swaps the image set live
+- `ClassicLayout` (`:211`) / `ImmersiveLayout` (`:255`)
+
+> **Concept:** assignment (the flag) vs observed behavior (what the visitor ends up using) — a preference test.
+
+---
+
+## 13. PDP customer-feedback note
+
+- **`src/pages/ProductDetail.tsx:209`** — `ApexFeedbackNote`: string flag `show-customer-feedback-on-pdp` is the note text; mounts only on Apex Low PDPs (`isApexLow`, `:338`) so the exposure fires only for the eligible population
+
+---
+
 ## Quick index
 
 | # | Subsystem | Start here |
@@ -140,8 +184,12 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
 | 2 | Card Creator FE | `src/pages/CardCreator.tsx`, `TogglemonCard.tsx` |
 | 3 | VIP + cart | `VipModalContext.tsx`, `CartContext.tsx`, `VIPUpgradeModal.tsx` |
 | 4 | PLP / PDP | `pages/Products.tsx`, `pages/ProductDetail.tsx`, `productData.ts` |
-| 5 | Observability | `LDContext.tsx:92` |
+| 5 | Observability | `LDContext.tsx:114`, `lib/datadogRum.ts` |
 | 6 | Simulation | `simulate.ts`, `engine.ts`, `darktrainers_simulation.py` |
 | 7 | Server-side search | `server/routes/search.ts`, `server/search/ranking.ts` |
 | 8 | Demo controls | `Demo/PersonaSwitcher.tsx`, `DemoControlsPanel.tsx` |
 | 9 | Banners | `Layout/SeasonalBanner.tsx` |
+| 10 | AI search lab | `server/routes/search-lab.ts`, `server/lab/`, `pages/SearchLab.tsx` |
+| 11 | Hero × Contentful | `Hero/HeroSection.tsx`, `lib/heroContent.ts` |
+| 12 | About experiment | `pages/About.tsx` |
+| 13 | PDP feedback note | `pages/ProductDetail.tsx:209` |

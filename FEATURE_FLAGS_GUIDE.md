@@ -4,7 +4,7 @@ This guide explains the feature flags and AI Configs used in the DarkTrainers de
 
 ## Overview
 
-DarkTrainers is a premium limited-drop sneaker brand demo. It uses LaunchDarkly feature flags, native experimentation, observability, and AI Configs to showcase full-stack flag-driven development in a realistic e-commerce context. The flag keys are defined in [`src/lib/ldFlagKeys.ts`](src/lib/ldFlagKeys.ts).
+DarkTrainers is a premium limited-drop sneaker brand demo. It uses LaunchDarkly feature flags (client- and server-side), native and warehouse-native experimentation, observability, and AI Configs to showcase full-stack flag-driven development in a realistic e-commerce context. The flag keys are defined in [`src/lib/ldFlagKeys.ts`](src/lib/ldFlagKeys.ts).
 
 ## Observability
 
@@ -32,6 +32,13 @@ These events are manually tracked via `ldClient.track()`:
 | `search_performed` | `server/routes/search.ts` | **Server-side.** Every `/api/search` call (value = number of results returned) |
 | `search_zero_results` | `server/routes/search.ts` | **Server-side.** A search query returned nothing |
 | `search_result_clicked` | `Products.tsx` (PLP) | User clicks through to a search result (value = product price) |
+| `member_signup` | `MemberSignupForm.tsx` | An anonymous guest completes `/signup` (guest → Standard). Not fired for already-identified users |
+| `hero_cta_click` | `HeroSection.tsx` | User clicks a Hero CTA; data includes the served `variation` |
+| `about_layout_toggled` | `About.tsx` | User switches layout with the on-page toggle (data `{ from, to }`) |
+| `about_layout_final` | `About.tsx` | Layout in view when the visitor leaves the page |
+| `about_layout_time_ms` | `About.tsx` | Time spent in a layout (value = ms) |
+| `ai_search_performed` | `server/routes/search-lab.ts` | **Server-side.** Every `/api/search-lab` call (value = result count; data includes served path and fallback reason) |
+| `lab_result_clicked` | `server/routes/search-lab-click.ts` | **Server-side.** First click on a search lab result (data `{ itemId, position, query }`) |
 
 ## Feature Flags
 
@@ -174,11 +181,58 @@ Gates the Togglemon Card Creator page (`/collectibles/card-creator`) and its CTA
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
-Controls how conversions (e.g. `add_to_cart`, `product_viewed`, `card_downloaded`) are sent across the Card Creator and Collectibles pages — a demo of two LaunchDarkly integration paths:
+Controls how conversions (`add_to_cart`, `product_viewed`, `card_downloaded`, `member_signup`, `search_result_clicked`) are sent across the Card Creator, Collectibles, signup, and PLP search surfaces — a demo of two LaunchDarkly integration paths:
 - **On** → pushed to the GTM dataLayer as an `ld_conversion` event; a GTM Custom HTML tag forwards it to LaunchDarkly (shows integrating LD via an existing data layer).
 - **Off (default)** → sent directly via `ldClient.track()`.
 
-Both pages share the `useTrackConversion` hook (`src/hooks/useTrackConversion.ts`), so exactly one path fires per action (never double-counted), and the numeric conversion value is forwarded in both modes so numeric metrics behave identically either way. In GTM mode the Custom HTML tag must read a `dlv - value` Data Layer Variable and pass it to `ldClient.track()` — see `src/lib/gtmStub.ts`.
+All of them share the `useTrackConversion` hook (`src/hooks/useTrackConversion.ts`), so exactly one path fires per action (never double-counted), and the numeric conversion value is forwarded in both modes so numeric metrics behave identically either way. In GTM mode the Custom HTML tag must read a `dlv - value` Data Layer Variable and pass it to `ldClient.track()` — see `src/lib/gtmStub.ts`.
+
+### Experiment & Content Flags
+
+These four are experiment-ready: values are read non-eventing through `useFeatureFlag`, and the
+experiment exposure is recorded deliberately at the decision point with `useFlagExposure`
+(`src/context/ExposureLog.tsx`). An experiment flag without that call shows no traffic.
+
+#### 18. PDP Customer Feedback (`show-customer-feedback-on-pdp`)
+
+**Type:** String &nbsp; **Default:** `''`
+
+A customer-feedback note shown beside the size selector on **Apex Low** PDPs only. The string
+value *is* the note text; an empty string hides it. `ApexFeedbackNote` in
+`src/pages/ProductDetail.tsx` mounts only on an Apex Low PDP, so reaching one of those pages
+is the decision point — the exposure fires there and nowhere else. Updates live when the flag
+changes.
+
+#### 19. Hero Content Experiment (`hero-content-experiment`)
+
+**Type:** String &nbsp; **Variations:** `control` / `benefit-led` / `drive-vip-signup` / `court-view` &nbsp; **Default:** `control`
+
+Which homepage Hero to render — the LaunchDarkly × Contentful demo. The flag value is a key into
+the Contentful `launchDarklyFeatureFlag` entry's `meta` map, which points at a `heroBanner`
+entry fetched from the Content Delivery API (`src/lib/heroContent.ts`). All targeting stays in
+LD; Contentful supplies content. Any Contentful failure (missing env vars, bad token, missing
+mapping) renders the static fallback Hero. Exposure is recorded when the Hero mounts; CTA
+clicks fire `hero_cta_click` tagged with the variation.
+
+**Requires:** `VITE_CONTENTFUL_SPACE_ID` and `VITE_CONTENTFUL_CDA_TOKEN` (optional
+`VITE_CONTENTFUL_ENVIRONMENT`, default `master`). **Experiment:** randomizes on `session`.
+
+#### 20. About Layout Default (`about-layout-default`)
+
+**Type:** String &nbsp; **Variations:** `classic` / `immersive` &nbsp; **Default:** `classic`
+
+The About page's **assigned** initial layout — a preference test (does the default layout
+change which one visitors end up using?). The flag seeds the layout once on page load; the
+on-page toggle then changes the observed layout freely, so *assignment* and *observed state*
+stay separate concepts. Randomized on the `user` context. Metrics:
+`about_layout_toggled`, `about_layout_final`, `about_layout_time_ms`.
+
+#### 21. About Seasonal Images (`about-seasonal-images`)
+
+**Type:** String &nbsp; **Variations:** `Summer` / `Winter` &nbsp; **Default (off):** `Summer`
+
+Swaps the About page hero and story images (Winter = snowboarding + ski lodge). Read live and
+non-eventing, so toggling it swaps images in real time. Independent of the layout experiment.
 
 ### Server-Side Flags
 
@@ -186,7 +240,7 @@ Evaluated with the **Node server SDK** inside Express, never in the browser. Lis
 `LD_SERVER_FLAGS` (`src/lib/ldFlagKeys.ts`) so the project keeps one flag inventory,
 but nothing in `src/` may read them.
 
-#### 18. Search Ranking Algorithm (`search-ranking-algorithm`)
+#### 22. Search Ranking Algorithm (`search-ranking-algorithm`)
 
 **Type:** String &nbsp; **Variations:** `legacy-keyword` (control) / `weighted-relevance` / `personalized-affinity` &nbsp; **Default:** `legacy-keyword`
 
@@ -229,7 +283,7 @@ context kind must be marked *available for experiments* in LD (Code → Contexts
 > difference mixed "better ranking" with "more requests". The experiment now measures
 > ranking only.
 
-#### 19. Search Typeahead (`search-typeahead`)
+#### 23. Search Typeahead (`search-typeahead`)
 
 **Type:** Boolean &nbsp; **Default:** `false`
 
@@ -256,7 +310,7 @@ which was itself part of the old confound.
 Not `show-`-prefixed despite the app's other booleans — it is a behavior toggle in the
 `search-*` family rather than a visibility gate.
 
-#### 20. Storefront Theme (`storefront-theme`)
+#### 24. Storefront Theme (`storefront-theme`)
 
 **Type:** String &nbsp; **Variations:** `default` / `parks` / `cruise` &nbsp; **Default:** `default`
 
@@ -270,18 +324,33 @@ scoped.
 > earlier vertical-specific key for exactly that reason — the only way to change a key
 > is to create a new flag and repoint the code.
 
+#### 25. AI Search Lab (`ai-search-lab`)
+
+**Type:** Boolean &nbsp; **Default:** `false`
+
+Which path `POST /api/search-lab` serves: **off** → keyword search over the content pack;
+**on** → the `ai-search-lab-model` AI Config, falling back to keyword search on any failure.
+Evaluated per request on a **session-only** context keyed by the lab's own session key
+(`dt-lab-session-key`, overridable with `?sk=`), separate from the storefront session. The
+response's `served` / `fallbackReason` fields show what actually ran. Not yet listed in
+`LD_SERVER_FLAGS`.
+
+**Requires:** the Express API server and a valid `OPENAI_API_KEY`. See
+[AI Search Lab](#ai-search-lab) below.
+
 ## AI Configs
 
-The Express server (`server/routes/`) uses the LaunchDarkly Node.js server-side AI SDK (`@launchdarkly/server-sdk-ai`):
+The Express server (`server/routes/`) reads AI Configs through two LaunchDarkly AI SDKs:
 
-| AI Config key | Mode | Route | Purpose |
-|---|---|---|---|
-| `togglemon-card-creator` | Completion | `POST /api/card-creator` | Togglemon Card Creator (multiple prompt variations + Toxicity judge) |
+| AI Config key | Mode | Route | SDK | Purpose |
+|---|---|---|---|---|
+| `togglemon-card-creator` | Completion | `POST /api/card-creator` | `@launchdarkly/server-sdk-ai` | Togglemon Card Creator (multiple prompt variations + Toxicity judge) |
+| `ai-search-lab-model` | Completion | `POST /api/search-lab` | `@launchdarkly/ai-node` | AI search lab (key overridable via `AI_SEARCH_LAB_CONFIG_KEY`) |
 
-For each request the server:
+For each card-creator request the server:
 
 1. Evaluates the AI Config for the current user/session context
-2. Merges the AI Config's messages with conversation history and the user's message
+2. Merges the AI Config's messages with the user's description
 3. Calls the configured LLM provider via the OpenAI SDK (card creator `gpt-4o`)
 4. Tracks token usage, latency, and success/error back to LaunchDarkly via `trackOpenAIMetrics`, then flushes events (required on serverless) so they appear in the Monitor tab per variation
 
@@ -293,6 +362,22 @@ The `togglemon-card-creator` config has multiple prompt **variations** — `base
 - **`POST /api/card-creator/art`** — generates a text-free creature illustration via `gpt-image-1`, with a bounded retry on transient failures and graceful fallback to the prompt text.
 
 > **Note:** the image model's own moderation is a second safety layer, and content-policy refusals are not retried.
+
+### AI Search Lab
+
+`/search-lab` is a standalone page for natural-language search over a **content pack** — a
+self-contained catalog plus labeled queries, independent of the shoe catalog. The current pack
+is `ak-park` (Animal Kingdom, 49 items), generated from `data/ak-pack/` by
+`scripts/build-ak-pack.ts`.
+
+- With `ai-search-lab` on, the server makes one call to `ai-search-lab-model`, expects JSON
+  `{ ids, message }`, validates it, and keeps only real pack ids. Failures fall back to keyword
+  search with a `fallbackReason`: `config-missing`, `config-disabled`, `invalid-output`,
+  `error`, or `ai-budget`.
+- `@launchdarkly/ai-node` keeps its own LD client and reads `LD_SDK_KEY`; the server defaults
+  it from `LAUNCHDARKLY_SDK_KEY`, so no extra key is needed.
+- Rate limits and an hourly AI-call budget (`server/lab/guard.ts`) protect the public demo;
+  they are in-memory and per instance, tunable with the `SEARCH_LAB_*` env vars.
 
 ## Simulation (Python)
 
@@ -312,8 +397,12 @@ python darktrainers_simulation.py --profile test-databricks --warehouse-schema b
 |---|---|---|
 | `LAUNCHDARKLY_CLIENT_KEY` | Frontend | Client-side ID for the React SDK |
 | `LAUNCHDARKLY_SDK_KEY` | Backend | Server-side SDK key for the Express server |
-| `OPENAI_API_KEY` | Card creator | OpenAI API key for LLM calls, image generation, and moderation |
+| `OPENAI_API_KEY` | Card creator, search lab | OpenAI API key for LLM calls, image generation, and moderation |
 | `SERVER_PORT` | Backend | Express server port (default: 3001) |
+| `VITE_CONTENTFUL_SPACE_ID`, `VITE_CONTENTFUL_CDA_TOKEN`, `VITE_CONTENTFUL_ENVIRONMENT` | Hero (optional) | Contentful Content Delivery API access; unset → static Hero |
+| `VITE_DATADOG_APPLICATION_ID`, `VITE_DATADOG_CLIENT_TOKEN`, `VITE_DATADOG_SITE` | Datadog RUM (optional) | RUM + flag-evaluation tagging; unset → no-op |
+| `AI_SEARCH_LAB_CONFIG_KEY` | Search lab (optional) | AI Config key (default `ai-search-lab-model`) |
+| `SEARCH_LAB_RATE_LIMIT_PER_IP`, `SEARCH_LAB_RATE_LIMIT_PER_SESSION`, `SEARCH_LAB_CLICK_LIMIT_PER_IP`, `SEARCH_LAB_AI_CALLS_PER_HOUR` | Search lab (optional) | Guard limits (defaults 30 / 20 / 120 / 200) |
 
 The simulation script uses additional per-warehouse keys — see [SIMULATION.md](SIMULATION.md) and [.env.example](.env.example).
 
@@ -328,6 +417,10 @@ if (isLoading) return <SkeletonLoader />;
 return value ? <Products /> : null;
 ```
 
+`useFeatureFlag` is **non-eventing** — it never records an experiment exposure. For an
+experiment flag, also call `useFlagExposure(flagKey, default)` where the visitor actually meets
+the variant (or `useExposureRecorder()` for event-driven points such as opening the cart).
+
 ## Best Practices
 
 1. **Flag naming:** Use kebab-case for flag keys (e.g., `show-product-catalog`)
@@ -335,4 +428,5 @@ return value ? <Products /> : null;
 3. **Default values:** Always provide sensible defaults that produce a working UI
 4. **Loading states:** Gate flag-controlled content behind `isLoading` to prevent flicker
 5. **Server-side secrets:** AI Configs and LLM keys are read on the Express server only — never in the browser
-6. **Simulation coverage:** New conversion/engagement events need a corresponding entry in the simulation script
+6. **Deliberate exposure:** Every experiment flag needs a `useFlagExposure` call at its decision point
+7. **Simulation coverage:** New conversion/engagement events need a corresponding entry in the simulation script

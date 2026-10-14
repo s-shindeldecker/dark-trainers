@@ -189,3 +189,12 @@ Everything looks correct in BQ but UI is wrong?
 - VIP users have stable keys (`vip-user-001` through `vip-user-090`) — standard users get random UUIDs each simulation run
 - Don't run simulation continuously before demos — VIP AOV accumulates across runs
 - AOV skew is intentional: VIP mean ~$620, standard mean ~$85
+
+## Other warehouses (Snowflake, Databricks)
+
+This runbook is BigQuery-specific. Two lessons from debugging Snowflake warehouse-native results carry over:
+
+- **`trafficCount: 0` is an exposure-side problem**, not a metrics problem. Check the exposure data (for Snowflake, `COMPUTED_ARM_AGGREGATES`) and the LD data source query before touching the metric events table.
+- **Give a newly configured data source time.** Results can stay empty for hours after the data source query is fixed and the app has started sending traffic; wait before escalating or rebuilding tables.
+
+For Snowflake configuration see [SIMULATION.md](SIMULATION.md); for the Databricks star schema see [docs/WAREHOUSE_MODEL.md](docs/WAREHOUSE_MODEL.md).
