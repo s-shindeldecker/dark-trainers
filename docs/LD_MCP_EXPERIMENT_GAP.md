@@ -1,5 +1,7 @@
 # LD MCP gap: agents cannot detect running experiments
 
+> **Resolved (2026-08-20):** the LD MCP server now exposes `list-experiments`, `get-experiment`, and `get-experiment-results`, which correctly report running experiments in this project. The report below is kept for the record. AI Config experiment coverage was not re-verified.
+
 **Reporter:** Scott Shindeldecker · **Found via:** dark-trainers / production
 **Severity:** high for any experiment-aware agent workflow
 

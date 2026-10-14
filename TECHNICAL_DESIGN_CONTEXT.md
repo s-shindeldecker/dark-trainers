@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-**Dark Trainers** is a premium limited-drop sneaker brand demo application. Its primary purpose is to showcase LaunchDarkly's full-stack capabilities: client-side feature flags, AI Configs, multi-context targeting, native experimentation (BigQuery/Databricks), observability, and session replay — all within a realistic e-commerce context.
+**Dark Trainers** is a premium limited-drop sneaker brand demo application. Its primary purpose is to showcase LaunchDarkly's full-stack capabilities: client-side and server-side feature flags, AI Configs, multi-context targeting, client- and server-side experimentation, warehouse-native experimentation (BigQuery/Databricks/Snowflake), a LaunchDarkly × Contentful integration, observability, and session replay — all within a realistic e-commerce context.
 
 The app is not a real store. It is a demonstration vehicle. Every technical decision should ask: *does this make the LaunchDarkly story clearer and more compelling?*
 
@@ -20,12 +20,13 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | Build tool | Vite 6 |
 | Styling | Emotion (CSS-in-JS) + MUI v7 |
 | Backend | Express 5.2, Node.js, TypeScript (via `tsx`) |
-| AI / LLM | OpenAI SDK (GPT-4o-mini) |
-| Feature flags | LaunchDarkly React Client SDK v3, LD Node Server SDK v9, LD Server SDK AI v0.16 |
-| Observability | `@launchdarkly/observability` (Web Vitals), `@launchdarkly/session-replay` |
+| AI / LLM | OpenAI SDK v6 — chat model set by each AI Config; `gpt-image-1` for card art; OpenAI Moderations for content safety |
+| Feature flags | LaunchDarkly React Client SDK v3, LD Node Server SDK v9, LD Server SDK AI v0.16 (card creator), `@launchdarkly/ai-node` v0.2 + `ai-openai-messages` (search lab) |
+| Observability | `@launchdarkly/observability` (Web Vitals), `@launchdarkly/session-replay`, `@launchdarkly/observability-node` (server); Datadog RUM (optional, flag-tagged) |
+| Content | Contentful Content Delivery API (homepage Hero, optional) |
 | Data warehouse | BigQuery (primary), Databricks (test), Snowflake |
 | Simulation | Python 3.12 (`darktrainers_simulation.py`) |
-| Deployment | Vercel (SPA rewrite via `vercel.json`) |
+| Deployment | Vercel — SPA from `dist` + the Express app as one serverless function (`vercel.json`) |
 
 ---
 
@@ -47,6 +48,7 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | `/about` | About page | — |
 | `/faq` | FAQ | — |
 | `/reviews` | Reviews | — |
+| `/search-lab` | AI search lab (`SearchLab.tsx`) | — (unlinked; rendered outside the storefront layout, see `App.tsx`) |
 
 ### Backend API Routes
 
@@ -56,6 +58,8 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | `POST /api/card-creator/art` | Togglemon card art via `gpt-image-1` (retry + graceful fallback) |
 | `POST /api/search` | Server-side product search. Evaluates `search-ranking-algorithm` (Node SDK) per request, ranks the static catalog with the served algorithm, applies three-state drop entitlement (`ac26-drop-access`, same context, via `server/search/access.ts`), fires `search_performed` / `search_zero_results`, returns results + `_served`. Each result carries `_purchasable` so a `view-only` hit renders its blocked CTA |
 | `GET /api/search/info` | Searchable catalog size — confirms on stage that the server is ranking the current catalog |
+| `POST /api/search-lab` | AI search lab over a content pack (default `ak-park`). Evaluates server-side `ai-search-lab` on a **session-only** context: off → keyword search (`server/lab/keywordSearch.ts`); on → `ai-search-lab-model` AI Config (`server/lab/aiSearch.ts`) with keyword fallback. Rate-limited per IP and per session, AI calls capped per hour (`server/lab/guard.ts`). Fires `ai_search_performed`; returns `served`, `fallbackReason`, `variationKey`, `modelName`, `tokens`, `latencyMs` |
+| `POST /api/search-lab/click` | Records `lab_result_clicked` (first click per result per search) on the same session-only context; rate-limited per IP |
 | `POST /api/simulate` | Flag evaluation for simulation script |
 | `GET /api/health` | Health check |
 
@@ -160,6 +164,10 @@ transitionGuestToStandard()     — Guest → Standard (session key preserved; u
 | `checkout-vip-banner` | JSON | VIP upsell banner config in checkout |
 | `promo-banner-text` | String | Top promo strip (empty string = hidden) |
 | `promo-banner-position` | String | Promo strip placement (`top` \| `bottom`) |
+| `show-customer-feedback-on-pdp` | String | Customer-feedback note beside the size selector on Apex Low PDPs. The value **is** the note text; `''` (default) hides it. Exposure recorded only when an Apex Low PDP mounts (`ApexFeedbackNote`, `useFlagExposure`) |
+| `hero-content-experiment` | String | Homepage Hero variation: `control` \| `benefit-led` \| `drive-vip-signup` \| `court-view`. Value is a key into a Contentful `launchDarklyFeatureFlag` entry's `meta` map → `heroBanner` entry (`src/lib/heroContent.ts`); Contentful failure → static fallback. Read non-eventing; exposure on Hero mount via `useFlagExposure`. Experiment randomizes on `session` |
+| `about-layout-default` | String | About page **assigned** initial layout (`classic` \| `immersive`), randomized on `user`. Seeds the layout once on load; the on-page toggle then changes the observed layout freely |
+| `about-seasonal-images` | String | About page image set (`Summer` default \| `Winter`); read live + non-eventing so a toggle swaps images in real time. Independent of the layout experiment |
 | `storefront-theme` | String | **Reserved.** Per-vertical storefront theming (`default` \| `parks` \| `cruise`); off/default serves `default` and nothing reads it. Keys are immutable and publicly visible on the LD flag list — never name one after a customer or prospect. |
 
 ### Server-side-only flags
@@ -171,12 +179,14 @@ evaluation and undercut the server-side story.
 | Key | Type | Variations | Default | Where |
 |---|---|---|---|---|
 | `search-ranking-algorithm` | String | `legacy-keyword` (control) \| `weighted-relevance` \| `personalized-affinity` | `legacy-keyword` | `server/routes/search.ts`, per request, on `multi{session,user}`. Evaluated with `variationDetail` — which *is* the experiment exposure. The served arm reaches the client only as the response's `_served` field. |
+| `ai-search-lab` | Boolean | `false` (keyword) \| `true` (AI Config) | `false` | `server/routes/search-lab.ts`, per request, on a **session-only** context (the lab's own `dt-lab-session-key`). Not yet listed in `LD_SERVER_FLAGS`. |
 
 ### AI Config Keys
 
 | Key | Mode | Purpose |
 |---|---|---|
 | `togglemon-card-creator` | Completion | Card creator; variations `baseline` / `holographic` / `summer-beach`; Toxicity judge @ 100% |
+| `ai-search-lab-model` | Completion | Search lab; returns JSON `{ ids, message }` over the pack, validated by `server/lab/validateAiResult.ts`. Key overridable via `AI_SEARCH_LAB_CONFIG_KEY`. Read through `@launchdarkly/ai-node`, which keeps its own LD client (reads `LD_SDK_KEY`, defaulted from `LAUNCHDARKLY_SDK_KEY`) |
 
 AI Configs track token usage (input/output/total), latency (ms), and success/error per variation via
 `trackOpenAIMetrics`; the card-creator route flushes events after each generation so they reach the
@@ -198,7 +208,8 @@ return value ? <FeatureComponent /> : <FallbackComponent />;
 **Rules:**
 - Always provide a meaningful default value — flags can be off in any environment.
 - Skeleton loaders are mandatory on flag-gated content (prevents flash on context switch).
-- Server-side flags (AI Configs, warehouse configs) are read via the Node SDK on the Express server, never in the browser.
+- Server-side flags (AI Configs, `search-ranking-algorithm`, `ai-search-lab`) are read via the Node SDK on the Express server, never in the browser.
+- `useFeatureFlag` is **non-eventing** (backed by `allFlags()`), so it never records an experiment exposure. Every experiment flag must also call `useFlagExposure(flagKey, default)` — or `useExposureRecorder()` for event-driven decision points — from `src/context/ExposureLog.tsx` at its real decision point. Without it the experiment shows no traffic.
 
 ---
 
@@ -266,6 +277,14 @@ The `checkout-vip-banner` JSON flag controls upsell messaging shown at checkout 
 - Tracks metrics via `trackOpenAIMetrics` and `flush()`es (Monitor tab per variation). Returns `_served` (variationKey/model) for per-call verification.
 - **Art** (`/api/card-creator/art`): `gpt-image-1`, text-free illustration, bounded retry on transient errors, graceful fallback to the prompt text on the card.
 
+### AI Search Lab (`/api/search-lab` + `/click`)
+
+- Searches a **content pack** (`src/packs/`): a self-contained catalog plus a labeled query set, deliberately independent of the storefront `Product` catalog and of `server/search/ranking.ts`, so the lab never disturbs the live ranking experiment. The registered pack is `ak-park` (Animal Kingdom, 49 items), **generated** by `scripts/build-ak-pack.ts` from the research ledger in `data/ak-pack/` — never edit `src/packs/ak-park.ts` by hand.
+- `ai-search-lab` off → keyword search (field-weighted, accent/dash/quote normalization, naive plural folding). On → one call to the `ai-search-lab-model` AI Config; output is shape-checked and filtered to real pack ids. Any failure falls back to keyword search with a `fallbackReason` (`config-missing`, `config-disabled`, `invalid-output`, `error`, `ai-budget`).
+- **Guardrails** (`server/lab/guard.ts`): sliding-window limits per IP (30 / 10 min) and per session (20 / 10 min) on search, per IP (120 / 10 min) on clicks, and 200 AI calls per rolling hour; all env-overridable. In-memory and per instance — demo-grade, not a security control. `trust proxy` is enabled only on Vercel so `req.ip` is the client.
+- **Session:** `src/lib/labSession.ts` keeps a separate `dt-lab-session-key` (overridable with `?sk=`) and never reads or rotates the storefront's `dt-ld-session-key`.
+- Flushes both the repo's LD client and the AI SDK's client before responding.
+
 ### AI Config Pattern (server-side)
 
 ```typescript
@@ -299,6 +318,16 @@ ldClient.trackTokenUsage(...);
 | `search_performed` | **Server**, every `/api/search` call | number of results returned |
 | `search_zero_results` | **Server**, when a query returns 0 results | — |
 | `search_result_clicked` | Client, a search result clicked through from the PLP | product price |
+| `member_signup` | Client, `/signup` — anonymous guests only (identified users get a confirmation, no event) | — |
+| `hero_cta_click` | Client, Hero CTA; data includes `variation`, `cta_text`, `cta_url` | — |
+| `about_layout_toggled` | Client, About page toggle; data `{ from, to }` | — |
+| `about_layout_final` | Client, About page — layout in view when the visitor leaves | — |
+| `about_layout_time_ms` | Client, About page — time spent per layout | ms |
+| `ai_search_performed` | **Server**, every `/api/search-lab` call; data includes served path, fallback reason, variation, model | result count |
+| `lab_result_clicked` | **Server**, `/api/search-lab/click`; data `{ itemId, position, query }` | — |
+
+Simulation-only events (emitted by `server/simulation/engine.ts`, not the UI): `trial_signup`,
+`trial_to_paid_conversion`, `total_revenue`, `adjusted_revenue`, `hero_engagement`.
 
 The two server-fired search events are emitted by the Express route as part of handling
 the request — the client is not responsible for either, and cannot suppress them. The
@@ -324,7 +353,7 @@ expected step change from that flag, not a per-arm artifact. Request cadence is
 deliberately *not* derived from the served ranking arm: it was, and that confounded the
 ranking experiment with request volume. Nothing in the cadence path reads the arm now.
 
-Card-creator and collectible conversions route via **either** the GTM dataLayer **or** a direct
+Card-creator, collectible, member-signup, and search-click conversions route via **either** the GTM dataLayer **or** a direct
 `ldClient.track()` call, controlled by the `track-conversions-via-gtm` flag. Both surfaces use the shared
 `useTrackConversion` hook (`src/hooks/useTrackConversion.ts`), which guarantees exactly one path fires
 (no double-counting) and forwards the numeric conversion value in both modes so value-based metrics stay
@@ -400,8 +429,25 @@ LAUNCHDARKLY_SDK_KEY=             # server-side SDK key (Express server)
 LAUNCHDARKLY_SDK_KEY_TEST=        # test environment server SDK key (simulation)
 LAUNCHDARKLY_SDK_KEY_SNOWFLAKE=   # snowflake environment server SDK key (simulation)
 
-# AI (Togglemon Card Creator — text, image, and moderation)
+# AI (Togglemon Card Creator — text, image, moderation; AI search lab)
 OPENAI_API_KEY=
+
+# AI search lab (optional; defaults shown)
+# AI_SEARCH_LAB_CONFIG_KEY=ai-search-lab-model
+# SEARCH_LAB_RATE_LIMIT_PER_IP=30
+# SEARCH_LAB_RATE_LIMIT_PER_SESSION=20
+# SEARCH_LAB_CLICK_LIMIT_PER_IP=120
+# SEARCH_LAB_AI_CALLS_PER_HOUR=200
+
+# Contentful (homepage Hero; optional — static fallback when unset)
+VITE_CONTENTFUL_SPACE_ID=
+VITE_CONTENTFUL_CDA_TOKEN=
+# VITE_CONTENTFUL_ENVIRONMENT=master
+
+# Datadog RUM (optional — complete no-op unless both keys are set)
+VITE_DATADOG_APPLICATION_ID=
+VITE_DATADOG_CLIENT_TOKEN=
+VITE_DATADOG_SITE=datadoghq.com
 
 # Server
 SERVER_PORT=3001                  # optional, defaults to 3001
@@ -422,10 +468,14 @@ DATABRICKS_SCHEMA=darktrainers_metrics
 # Snowflake (simulation profile: snowflake)
 SNOWFLAKE_ACCOUNT=
 SNOWFLAKE_USER=
-SNOWFLAKE_PASSWORD=
+SNOWFLAKE_PASSWORD=               # or key-pair auth instead:
+# SNOWFLAKE_PRIVATE_KEY=          # PEM *content* (newlines as \n), not a file path
+# SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=
 SNOWFLAKE_DATABASE=
 SNOWFLAKE_SCHEMA=
 SNOWFLAKE_WAREHOUSE=
+SNOWFLAKE_METRICS_TABLE=metric_events
+# SNOWFLAKE_ROLE=ACCOUNTADMIN
 ```
 
 ---

@@ -76,6 +76,76 @@
 
 ---
 
+### Scenario 5 — Server-Side Experimentation: Search Ranking
+
+**The story:** "Not every experiment is a button color. Here the variant decision happens in the backend, on every request — we're experimenting on a search *service*, and the browser never even sees the flag."
+
+**What you show, step by step:**
+
+1. Make sure the Express server is running and `show-product-catalog` is on. Open `/products` and search (e.g. `running`).
+2. Open the demo controls panel → **Server-side search** shows the arm the server actually served: `legacy-keyword`, `weighted-relevance`, or `personalized-affinity`.
+3. In LD, show `search-ranking-algorithm` — evaluated in `server/routes/search.ts` with the Node SDK. Change targeting (or press **New session**) and search again; the order changes and the panel shows the new arm.
+4. Switch persona Guest → VIP and repeat. `personalized-affinity` pushes VIP toward drop-exclusive and limited items; a guest with no attributes gets the control ordering.
+5. **Entitlement on the same request:** as a guest, search `ac26` — 6 ranked hits, 0 shown, and `search_zero_results` fires server-side. As VIP, they appear.
+6. Show the experiment metrics: `search_result_clicked` (primary) and `search_performed` (volume guardrail), randomized on `session`. *(Check the experiment exists and is running in LD before the demo.)*
+
+**The insight to land:** "The metric counts exactly what the visitor saw, because the server applied ranking and entitlement before counting. And typeahead is a *separate* flag, so 'better ranking' is never confused with 'more searches.'"
+
+**One thing to be ready for:** "Why not just read the flag in the browser?" — a client-side read is a second evaluation that can disagree with what the server served, and an extra exposure. The server returns the served arm as `_served`; the panel shows that.
+
+---
+
+### Scenario 6 — AI Search Lab: Shipping AI Safely
+
+**The story:** "Here's an AI feature with a safety net. Natural-language search over a theme-park content pack, driven by an AI Config — with a deterministic fallback, output validation, and cost guardrails, all switchable from LaunchDarkly."
+
+**What you show, step by step:**
+
+1. Open `/search-lab` (unlinked; add `?sk=demo-1` to pin a session key). Search something conversational, e.g. `where can I see gorillas` or `rides for little kids`.
+2. Point to the **debug strip**: `served` (keyword or ai), variation, model, tokens, latency.
+3. In LD, toggle the server-side flag `ai-search-lab` off → the same query returns keyword results. On → the `ai-search-lab-model` AI Config answers.
+4. **Fallback:** disable the AI Config or point it at a bad model. The page keeps working; the strip shows `keyword fallback: config-disabled` (or `error`). The AI path is never a single point of failure.
+5. Show the AI Config **Monitor** tab (tokens, latency per variation) and the `ai_search_performed` / `lab_result_clicked` events — the basis for an experiment on prompt or model choice.
+
+**The insight to land:** "Model, prompt, and whether AI runs at all are configuration. If the model misbehaves or costs spike, one toggle reverts to keyword search — and an hourly budget caps spend even if nobody's watching."
+
+**One thing to be ready for:** The rate limits and AI budget are in-memory per server instance — demo-grade protection, not a production control. Say so if asked.
+
+---
+
+### Scenario 7 — LaunchDarkly × Contentful: Hero Content Experiment
+
+**The story:** "Marketing owns the content in the CMS; LaunchDarkly owns who sees what. Neither team waits on the other, and the experiment measures real outcomes."
+
+**What you show, step by step:**
+
+1. Open the homepage. The Hero is driven by `hero-content-experiment` (`control`, `benefit-led`, `drive-vip-signup`, `court-view`).
+2. In Contentful, show the `launchDarklyFeatureFlag` entry whose `meta` map points each variation at a `heroBanner` entry. Edit a headline, publish, reload — new content, no deploy.
+3. In LD, change the served variation (or press **New session** to re-roll the session-randomized experiment) — a different Hero renders.
+4. Open the demo controls panel's exposure log: the exposure fired when the Hero mounted, not at page load.
+5. Show the experiment and its metrics — `hero_cta_click` (tagged with the variation) and downstream conversions such as `member_signup` and `add_to_cart`.
+
+**The insight to land:** "Targeting and measurement stay in one place, content stays in the CMS, and the experiment counts only people who actually saw the Hero."
+
+**One thing to be ready for:** If Contentful is unreachable the Hero renders a static fallback, so the page never breaks — but you won't see variation-specific content.
+
+---
+
+### Scenario 8 — Preference Test & Unknown → Known: About Layout and Member Signup
+
+**The story:** "Two questions customers ask a lot: how do you test a default when users can change it, and what happens to a visitor's experiment assignment when they sign up?"
+
+**What you show, step by step:**
+
+1. Open `/about`. *(Check `about-layout-default` is on and its experiment is running before the demo.)* The flag assigns `classic` or `immersive` as the starting layout; use the on-page toggle to switch.
+2. Explain the split: the flag is the **assignment**; `about_layout_toggled`, `about_layout_final`, and `about_layout_time_ms` record the **observed** behavior. The question is whether the default changes what people end up using.
+3. Bonus: flip `about-seasonal-images` to `Winter` — images swap live, independent of the experiment.
+4. As a Guest, go to `/signup` and complete the form (it's prefilled with the Standard persona). In the demo panel the session key is unchanged; in LD Live Events the next evaluations carry `multi{session,user}`, and `member_signup` fired.
+
+**The insight to land:** "Keep the session context and attach the user context on login — don't swap keys. The visitor keeps their assignment, and the conversion is attributed to the experiment they were in."
+
+---
+
 ### The Discovery Question to Open Your Session
 
 Before diving into any scenario, ask this one question:
@@ -87,7 +157,10 @@ Their answer tells you which scenario to lead with:
 - "We're not sure the audience is comparable across variations" → go straight to Stratified Sampling
 - "We have too many experiments running at once and we're not sure they're interfering" → go to Layers first
 - "We're still figuring out which metrics to trust" → start with the Basic Experiment and metric chaining
-- "We're shipping AI features and worried about controlling and governing them" → go to the Card Creator (AI Configs + safety)
+- "We're shipping AI features and worried about controlling and governing them" → go to the Card Creator (AI Configs + safety), then the AI Search Lab (fallbacks + cost guardrails)
+- "Our important experiments are in the backend, not the UI" → go to Server-Side Search Ranking
+- "Our content lives in a CMS and marketing can't wait on engineering" → go to the Hero × Contentful experiment
+- "We lose track of users between anonymous and logged in" → go to Scenario 8 (member signup)
 
 ---
 

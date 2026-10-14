@@ -1,7 +1,7 @@
 # Bootstrapping + Deferred Experiment Exposure — Implementation Plan
 
 **Branch:** `feat/bootstrap-deferred-exposure`
-**Status:** planning (no source changes yet)
+**Status:** implemented — shipped in PR #35 ("Preload flags without exposure; defer experiment exposure to the funnel"), with follow-up fixes in #36 and #54. Kept as the design record; the live implementation is `src/context/ExposureLog.tsx` (`useFlagExposure` / `useExposureRecorder`).
 **LD project / environment audited:** `dark-trainers` / `production`
 
 ## Goal
