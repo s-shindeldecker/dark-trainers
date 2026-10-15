@@ -47,6 +47,32 @@ const ANONYMOUS_FALLBACK_KEY = 'anonymous-search-user';
 /** Cap the response so a one-letter query can't return the whole catalog. */
 const MAX_RESULTS = 24;
 
+/**
+ * Guarded-release demo: a per-request "regression marker". A request carrying a
+ * valid `x-demo-regression` header that lands on this arm fails or slows down,
+ * so a guarded rollout's metrics have a real regression to catch. Stateless —
+ * nothing persists between requests, and every other request is untouched.
+ */
+const TARGET_REGRESSION_ARM: SearchVariation = 'personalized-affinity';
+const DEFAULT_REGRESSION_LATENCY_MS = 750;
+const MIN_REGRESSION_LATENCY_MS = 100;
+const MAX_REGRESSION_LATENCY_MS = 3000;
+
+type RegressionMarker = { mode: 'error' } | { mode: 'latency'; ms: number };
+
+/** Accepts exactly `error`, `latency`, or `latency:<integer ms>`; anything else is no marker. */
+function parseRegressionMarker(raw: string | undefined): RegressionMarker | null {
+  if (raw === 'error') return { mode: 'error' };
+  if (raw === 'latency') return { mode: 'latency', ms: DEFAULT_REGRESSION_LATENCY_MS };
+  const match = raw === undefined ? null : /^latency:(\d+)$/.exec(raw);
+  if (!match) return null;
+  const ms = Math.min(
+    MAX_REGRESSION_LATENCY_MS,
+    Math.max(MIN_REGRESSION_LATENCY_MS, Number(match[1])),
+  );
+  return { mode: 'latency', ms };
+}
+
 export function createSearchRouter(ldClient: LDClient) {
   const router = Router();
 
@@ -76,6 +102,17 @@ export function createSearchRouter(ldClient: LDClient) {
       const variation: SearchVariation = isSearchVariation(detail.value)
         ? detail.value
         : DEFAULT_SEARCH_VARIATION;
+
+      // Regression marker: only on the target arm, after the exposure above has
+      // been recorded and before ranking. `error` throws into the catch below
+      // (the 500 still carries the applied header); `latency` just waits.
+      const regression = parseRegressionMarker(req.get('x-demo-regression'));
+      if (regression && variation === TARGET_REGRESSION_ARM) {
+        res.setHeader('x-demo-regression-applied', regression.mode);
+        console.warn(`[Search] Demo regression applied: mode=${regression.mode} arm=${variation}`);
+        if (regression.mode === 'error') throw new Error('Simulated regression');
+        await new Promise((resolve) => setTimeout(resolve, regression.ms));
+      }
 
       const requester: SearchRequester = {
         memberTier: typeof userContext?.memberTier === 'string' ? userContext.memberTier : undefined,
