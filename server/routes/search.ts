@@ -105,7 +105,8 @@ export function createSearchRouter(ldClient: LDClient) {
 
       // Regression marker: only on the target arm, after the exposure above has
       // been recorded and before ranking. `error` throws into the catch below
-      // (the 500 still carries the applied header); `latency` just waits.
+      // (the 500 still carries the applied header, and the catch flushes the
+      // exposure before responding); `latency` just waits.
       const regression = parseRegressionMarker(req.get('x-demo-regression'));
       if (regression && variation === TARGET_REGRESSION_ARM) {
         res.setHeader('x-demo-regression-applied', regression.mode);
@@ -216,10 +217,22 @@ export function createSearchRouter(ldClient: LDClient) {
       });
     } catch (error) {
       console.error('[Search] Error:', error);
-      res.status(500).json({
-        error: 'Search failed',
-        detail: error instanceof Error ? error.message : String(error),
-      });
+      // A failed search must still deliver its exposure: the guarded rollout
+      // can only attribute this failure to the served arm if the evaluation
+      // event recorded above reaches LaunchDarkly before the isolate freezes.
+      // Flush BEFORE responding (api/index.ts stops awaiting once the response
+      // finishes), and respond in `finally` so a failing flush can't change it.
+      // No search_performed / search_zero_results here — those are success-only.
+      try {
+        await ldClient.flush();
+      } catch (flushErr) {
+        console.error('[Search] LD flush failed:', flushErr);
+      } finally {
+        res.status(500).json({
+          error: 'Search failed',
+          detail: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   });
 
