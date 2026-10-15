@@ -8,6 +8,8 @@ import { LD_SERVER_FLAGS } from '../../lib/ldFlagKeys';
 import { STANDARD_ROSTER, VIP_ROSTER } from '../../types/darktrainers';
 import { generateRandomStandardUser, generateRandomVipUser } from '../../lib/generateRandomUser';
 import { MemberBadge } from '../Member/MemberBadge';
+import { GuardedReleaseSection, useTrafficSimulator } from './GuardedReleaseControls';
+import { regressionLabel } from './trafficSim';
 
 const Panel = styled.aside`
   position: fixed;
@@ -232,6 +234,8 @@ export function DemoControlsPanel() {
   const { lastSearch, showServedBadge, setShowServedBadge } = useServerSearchLog();
   const [exposuresOpen, setExposuresOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(readCollapsed);
+  // Lives here, not in the section, so collapsing the panel doesn't stop a run.
+  const sim = useTrafficSimulator();
 
   // Persist show/hide across reloads and "New Session".
   useEffect(() => {
@@ -285,10 +289,15 @@ export function DemoControlsPanel() {
         <CollapsedHandle
           type="button"
           onClick={() => setCollapsed(false)}
-          aria-label="Show demo controls (Shift+D)"
+          aria-label={`Show demo controls (Shift+D)${sim.running ? `, simulation running, regression ${regressionLabel(sim.regression)}` : ''}`}
           title="Show demo controls (Shift+D)"
         >
           ⚙ Demo
+          {sim.running && (
+            <span style={{ color: sim.regression.mode === 'off' ? '#c8f000' : '#ffb020' }}>
+              {sim.regression.mode === 'off' ? '● sim' : `⚠ sim: ${regressionLabel(sim.regression)}`}
+            </span>
+          )}
         </CollapsedHandle>
       ) : (
       <Panel aria-label="Demo controls">
@@ -432,6 +441,7 @@ export function DemoControlsPanel() {
             </Hint>
           )}
         </ExposureSection>
+        <GuardedReleaseSection sim={sim} />
       </Panel>
       )}
     </Box>
