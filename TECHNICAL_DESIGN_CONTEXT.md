@@ -20,7 +20,7 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | Build tool | Vite 6 |
 | Styling | Emotion (CSS-in-JS) + MUI v7 |
 | Backend | Express 5.2, Node.js, TypeScript (via `tsx`) |
-| AI / LLM | OpenAI SDK v6 — chat model set by each AI Config; `gpt-image-1` for card art; OpenAI Moderations for content safety |
+| AI / LLM | OpenAI SDK v6 — chat model set by each AI Config; `gpt-image-2` (override with `OPENAI_IMAGE_MODEL`) for card art; OpenAI Moderations for content safety |
 | Feature flags | LaunchDarkly React Client SDK v3, LD Node Server SDK v9, LD Server SDK AI v0.16 (card creator), `@launchdarkly/ai-node` v0.2 + `ai-openai-messages` (search lab) |
 | Observability | `@launchdarkly/observability` (Web Vitals), `@launchdarkly/session-replay`, `@launchdarkly/observability-node` (server); Datadog RUM (optional, flag-tagged) |
 | Content | Contentful Content Delivery API (homepage Hero, optional) |
@@ -55,7 +55,7 @@ The app is not a real store. It is a demonstration vehicle. Every technical deci
 | Route | Purpose |
 |---|---|
 | `POST /api/card-creator` | Togglemon card text (LD AI Config: `togglemon-card-creator`); moderation gate → NoNoMon |
-| `POST /api/card-creator/art` | Togglemon card art via `gpt-image-1` (retry + graceful fallback) |
+| `POST /api/card-creator/art` | Togglemon card art via `gpt-image-2`, overridable with `OPENAI_IMAGE_MODEL` (retry + graceful fallback) |
 | `POST /api/search` | Server-side product search. Evaluates `search-ranking-algorithm` (Node SDK) per request, ranks the static catalog with the served algorithm, applies three-state drop entitlement (`ac26-drop-access`, same context, via `server/search/access.ts`), fires `search_performed` / `search_zero_results`, returns results + `_served`. Each result carries `_purchasable` so a `view-only` hit renders its blocked CTA |
 | `GET /api/search/info` | Searchable catalog size — confirms on stage that the server is ranking the current catalog |
 | `POST /api/search-lab` | AI search lab over a content pack (default `ak-park`). Evaluates server-side `ai-search-lab` on a **session-only** context: off → keyword search (`server/lab/keywordSearch.ts`); on → `ai-search-lab-model` AI Config (`server/lab/aiSearch.ts`) with keyword fallback. Rate-limited per IP and per session, AI calls capped per hour (`server/lab/guard.ts`). Fires `ai_search_performed`; returns `served`, `fallbackReason`, `variationKey`, `modelName`, `tokens`, `latencyMs` |
@@ -275,7 +275,7 @@ The `checkout-vip-banner` JSON flag controls upsell messaging shown at checkout 
 - Reads `togglemon-card-creator` (variations `baseline` / `holographic` / `summer-beach`) on a **session-inclusive** context (mirrors the client: session-only for anonymous, `multi{session,user}` for identified) so session-randomized experiments align and metrics attribute correctly.
 - **Content safety:** screens the description with OpenAI Moderations first; score ≥ `0.7` (or any `sexual/minors`) returns a fixed **NoNoMon** card instead of generating.
 - Tracks metrics via `trackOpenAIMetrics` and `flush()`es (Monitor tab per variation). Returns `_served` (variationKey/model) for per-call verification.
-- **Art** (`/api/card-creator/art`): `gpt-image-1`, text-free illustration, bounded retry on transient errors, graceful fallback to the prompt text on the card.
+- **Art** (`/api/card-creator/art`): `gpt-image-2` (override with `OPENAI_IMAGE_MODEL`), text-free illustration, bounded retry on transient errors, graceful fallback to the prompt text on the card.
 
 ### AI Search Lab (`/api/search-lab` + `/click`)
 

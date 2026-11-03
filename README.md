@@ -72,7 +72,7 @@ The homepage Hero reads `hero-content-experiment` (`control` | `benefit-led` | `
 A flag-gated page (`/collectibles/card-creator`) that turns a free-text creature description into a rendered trading card with AI-generated art — the flagship AI Configs demo.
 
 - **Text:** `POST /api/card-creator` evaluates `togglemon-card-creator` on a session-inclusive context and returns a validated card (name, type, HP, rarity, two moves, flavor, `imagePrompt`).
-- **Art:** `POST /api/card-creator/art` generates a text-free creature illustration via `gpt-image-1` (bounded retry on transient failures; graceful fallback to the prompt text).
+- **Art:** `POST /api/card-creator/art` generates a text-free creature illustration via `gpt-image-2`, overridable with `OPENAI_IMAGE_MODEL` (bounded retry on transient failures; graceful fallback to the prompt text).
 - **Content safety:** the description is screened with OpenAI Moderations before generation; anything at/above a `0.7` threshold (or any hint of `sexual/minors`) returns a friendly **NoNoMon** stand-in card instead.
 - **Visual editions:** Holo Rare / Ultra Rare cards render an animated holographic foil; special-edition prompts add a labeled ribbon (`edition` field).
 - **Actions:** add the card to the cart (custom collectible, fires `add_to_cart`) or download it as a PNG (fires `card_downloaded`).

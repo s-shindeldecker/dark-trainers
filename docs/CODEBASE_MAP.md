@@ -39,7 +39,7 @@ source, with the hand-run SQL in [../sql/databricks/](../sql/databricks/)),
   - AI Config read: `aiClient.completionConfig('togglemon-card-creator', …)` (`:234`)
   - **Session-inclusive context:** `ldContextFromBody()` (`:105`) mirrors the client so experiments bucket correctly
   - Metrics + **serverless flush:** `tracker.trackOpenAIMetrics()` (`:256`) then `ldClient.flush()` (`:285`) so events reach the Monitor tab
-  - **Art route** `POST /api/card-creator/art` (`:324`): `gpt-image-1`, retry loop on transient 408/429/5xx (`:352`), graceful fallback
+  - **Art route** `POST /api/card-creator/art` (`:298`): `gpt-image-2` (override with `OPENAI_IMAGE_MODEL`), retry loop on transient 408/429/5xx (`:326`), graceful fallback
 
 > **Concept:** model/prompt/params live in LD AI Configs, not code; token & latency tracked per variation; moderation + retry + flush are the production-hardening story.
 
