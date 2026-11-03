@@ -94,6 +94,14 @@ function openAiApiKey(): string | undefined {
   return process.env.OPENAI_API_KEY?.replace(/\s+/g, '');
 }
 
+/**
+ * Image model for card art. OpenAI retires image models (gpt-image-1 was shut
+ * down 2026-10-23), so allow an env override to swap models without a deploy.
+ */
+function imageModel(): string {
+  return process.env.OPENAI_IMAGE_MODEL?.trim() || 'gpt-image-2';
+}
+
 /** Trip the safety gate at/above this toxicity score (0-1). */
 const TOXICITY_THRESHOLD = 0.7;
 
@@ -286,7 +294,7 @@ export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient
     }
   });
 
-  // Phase 2: generate trading-card art from a card's imagePrompt via gpt-image-1.
+  // Phase 2: generate trading-card art from a card's imagePrompt via the image model.
   router.post('/art', async (req, res) => {
     try {
       const { imagePrompt } = req.body as { imagePrompt?: string };
@@ -309,7 +317,7 @@ export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient
         'logos, or watermarks anywhere in the image. Do not draw a card frame, ' +
         'border, or trading-card layout — just the raw artwork.';
 
-      // gpt-image-1 fails sporadically (transient 429/5xx). Retry those a
+      // gpt-image models fail sporadically (transient 429/5xx). Retry those a
       // couple of times with a short backoff so the demo actually shows art;
       // do NOT retry content-policy 400s (they'd just fail again).
       const MAX_ATTEMPTS = 3;
@@ -318,7 +326,7 @@ export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           const result = await openai.images.generate({
-            model: 'gpt-image-1',
+            model: imageModel(),
             prompt: artPrompt,
             n: 1,
             // Landscape (~1.5:1) matches the card art box (230x150), so the
@@ -332,7 +340,7 @@ export function createCardCreatorRouter(ldClient: LDClient, aiClient: LDAIClient
             output_compression: 80,
           } as any);
 
-          // gpt-image-1 returns base64; DALL·E returns a URL. Support either.
+          // gpt-image models return base64; DALL·E returns a URL. Support either.
           const image = result.data?.[0];
           const imageUrl = image?.url
             ? image.url

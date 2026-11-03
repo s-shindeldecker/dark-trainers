@@ -359,7 +359,7 @@ For each card-creator request the server:
 The `togglemon-card-creator` config has multiple prompt **variations** — `baseline`, `holographic` ("Holographic Edition"), and `summer-beach` ("Summer Heat Special Edition") — for live toggling, targeting, or experiments (e.g. session-randomized across variations, measured on `add_to_cart` / `card_downloaded`). An out-of-the-box **Toxicity judge** is attached at 100% sampling for output observability.
 
 - **`POST /api/card-creator`** — evaluates the config on a session-inclusive context (session-only for anonymous, `multi{session,user}` for identified) so it aligns with session-randomized experiments, then returns a validated card. Screens the description with **OpenAI Moderations** first; content at/above `0.7` (or any `sexual/minors`) returns a friendly **NoNoMon** stand-in instead of generating.
-- **`POST /api/card-creator/art`** — generates a text-free creature illustration via `gpt-image-1`, with a bounded retry on transient failures and graceful fallback to the prompt text.
+- **`POST /api/card-creator/art`** — generates a text-free creature illustration via `gpt-image-2` (override with `OPENAI_IMAGE_MODEL`), with a bounded retry on transient failures and graceful fallback to the prompt text.
 
 > **Note:** the image model's own moderation is a second safety layer, and content-policy refusals are not retried.
 
